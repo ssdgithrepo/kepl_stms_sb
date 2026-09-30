@@ -477,6 +477,37 @@ main,.main-content,.content-area{min-width:0;max-width:100%;overflow-x:hidden}
   .table-responsive>table{min-width:0!important;width:100%!important}
   .card,.card-dashboard{box-shadow:none!important;break-inside:avoid}
 }
+/* Final cross-device compatibility hardening.
+   Keep layout responsive without changing module behavior. */
+html,body{max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+*,*::before,*::after{box-sizing:border-box;}
+img,svg,canvas,video,iframe{max-width:100%;height:auto;}
+input,select,textarea,button{max-width:100%;}
+.form-control,.form-select{min-width:0;}
+.modal-dialog,.modal-content,.modal-body,.card,.card-body,.row,[class*="col-"]{min-width:0;}
+.table-responsive{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;}
+@media(max-width:575.98px){
+  .modal-dialog{width:auto;max-width:calc(100vw - .5rem);margin:.25rem auto;}
+  .modal-content{max-width:100vw;}
+  .modal-body{overflow-x:hidden;}
+  .form-label{line-height:1.2;}
+  .input-group{flex-wrap:nowrap;max-width:100%;}
+  .input-group>.form-control,.input-group>.form-select{min-width:0;}
+  .btn{white-space:normal;}
+}
+@media(min-width:576px) and (max-width:991.98px){
+  .modal-dialog.modal-xl{max-width:calc(100vw - 1rem);}
+}
+@media(min-width:992px){
+  .modal-dialog.modal-xl{max-width:min(1140px,calc(100vw - 2rem));}
+}
+@media(orientation:landscape) and (max-height:600px){
+  .modal-dialog-scrollable .modal-body{max-height:calc(100vh - 90px);}
+}
+@supports(padding:max(0px)){
+  .modal-header,.modal-footer{padding-left:max(.75rem,env(safe-area-inset-left));padding-right:max(.75rem,env(safe-area-inset-right));}
+}
+
 /* Fallbacks for browsers without newer viewport units. */
 @supports not (height:100svh){.modal-content{max-height:calc(100vh - 1rem)}.chat-shell{height:calc(100vh - 150px)}}
 </style>
@@ -1784,10 +1815,10 @@ button,input,select,textarea{max-width:100%;}
           <div id="cSO_WaterFields" class="row g-2 mt-1 d-none"><div class="col-6 col-md-3"><label class="form-label small fw-bold">Capacity (LPD) *</label><input type="number" min="1" class="form-control form-control-sm" id="cSO_Lpd"></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Rate / LPD *</label><input type="number" min="0" step="0.01" class="form-control form-control-sm" id="cSO_RateLpd"></div><div class="col-6 col-md-3"><label class="form-label small">Calculated Amount</label><input class="form-control form-control-sm bg-light" id="cSO_WaterAmount" readonly></div></div>
           <div id="cSO_UtilityFields" class="row g-2 mt-1 d-none"><div class="col-6 col-md-3"><label class="form-label small fw-bold">Project Capacity (kW) *</label><input type="number" min="0" step="0.01" class="form-control form-control-sm" id="cSO_UtilityKw"></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Rate / kW *</label><input type="number" min="0" step="0.01" class="form-control form-control-sm" id="cSO_UtilityRate"></div><div class="col-6 col-md-3"><label class="form-label small">Calculated Amount</label><input class="form-control form-control-sm bg-light" id="cSO_UtilityAmount" readonly></div></div>
           <div class="small text-muted mt-2"><i class="bi bi-info-circle me-1"></i>When Client Entry is saved with Sales Status = Done, these details are saved automatically as a new Sales Order in the backend Sales Orders sheet.</div>
-        </div></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Sales Type *</label><select class="form-select form-select-sm" id="cSalesType"><option>Primary Sales</option><option>Secondary Sales</option><option>Other</option></select></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Lead Temperature *</label><select class="form-select form-select-sm" id="cLeadTemp"><option>Hot</option><option>Warm</option><option>Cold</option><option>Other</option></select></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Visit Type *</label><select class="form-select form-select-sm" id="cVisitType"><option>New Lead</option><option>Follow Up</option><option>Regular</option><option>Specific If Any</option><option>Other</option></select></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Next Follow-up Date</label><input type="date" class="form-control form-control-sm" id="cNextFollowUpDate"></div>
+        </div></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Lead Temperature *</label><select class="form-select form-select-sm" id="cLeadTemp"><option>Hot</option><option>Warm</option><option>Cold</option><option>Other</option></select></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Visit Type *</label><select class="form-select form-select-sm" id="cVisitType"><option>New Lead</option><option>Follow Up</option><option>Regular</option><option>Specific If Any</option><option>Other</option></select></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Next Follow-up Date</label><input type="date" class="form-control form-control-sm" id="cNextFollowUpDate"></div>
         <div class="col-6 col-md-3"><label class="form-label small fw-bold">Visit Count</label><div class="input-group input-group-sm"><input type="number" min="1" id="cVisitCount" class="form-control" value="1"><button class="btn btn-outline-secondary" type="button" onclick="incrementVisitCount()">+1</button></div></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Visit Status *</label><select class="form-select form-select-sm" id="cVisitStatus"><option>Done</option><option>Not Done</option></select></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Meeting Status *</label><select class="form-select form-select-sm" id="cMeetingStatus"><option>Done</option><option>Not Done</option></select></div><div class="col-6 col-md-3"><label class="form-label small">Call Status</label><select class="form-select form-select-sm" id="cCallStatus"><option value="">-- Not specified --</option><option>Call Done</option><option>Call Not Done</option><option>Call Failed</option></select></div>
         <div class="col-12 col-md-4"><label class="form-label small fw-bold">Requirements</label><textarea class="form-control form-control-sm" id="cRequirements" rows="2"></textarea></div><div class="col-12 col-md-4"><label class="form-label small fw-bold">Remarks</label><textarea class="form-control form-control-sm" id="cRemarks" rows="2"></textarea></div><div class="col-12 col-md-4"><label class="form-label small fw-bold">Entry Date *</label><input type="date" class="form-control form-control-sm" id="cEntryDate" required></div>
-        <div class="col-12"><label class="form-label small fw-bold">Address (Optional)</label><textarea class="form-control form-control-sm" id="cAddress" rows="2" placeholder="Selected State, Region, District, Tehsil/Taluka, City/Village and PIN will appear here automatically. You can edit or type manually."></textarea></div><div class="col-12 col-md-6"><label class="form-label small fw-bold">Location Image</label><div class="d-flex gap-1 flex-wrap"><button type="button" class="btn btn-sm btn-outline-primary" onclick="chooseLocationImage('gallery')"><i class="bi bi-images me-1"></i> Gallery / Files</button><button type="button" class="btn btn-sm btn-outline-success" onclick="chooseLocationImage('camera')"><i class="bi bi-camera-fill me-1"></i> Camera</button></div><input type="file" class="d-none" id="cLocationGallery" accept="image/*" onchange="setLocationImageFile(this.files[0])"><input type="file" class="d-none" id="cLocationCamera" accept="image/*" capture="environment" onchange="setLocationImageFile(this.files[0])"><input type="hidden" id="cLocationImageData"><small class="text-muted">Choose from gallery/files or invoke the device camera. The device/OS controls the final camera app.</small></div><div class="col-12 col-md-6"><img id="cLocationPreview" class="camera-preview" alt="Location preview"></div>
+        <div class="col-12"><label class="form-label small fw-bold">Address (Optional)</label><textarea class="form-control form-control-sm" id="cAddress" rows="2" placeholder="Selected State, Region, District, Tehsil/Taluka, City/Village and PIN will appear here automatically. You can edit or type manually."></textarea></div>
       </div><div class="mt-3 d-flex justify-content-end"><button type="submit" class="btn btn-success px-4"><i class="bi bi-check2-circle me-1"></i> Save Client Entry</button></div>
     </form></div>
   </div></div>
@@ -2593,8 +2624,6 @@ button,input,select,textarea{max-width:100%;}
     document.getElementById('clientForm').reset(); populateLocationSelectors('c');
     loadClientIntoForm(c,true);
     document.getElementById('clientId').value=c.id;
-    document.getElementById('cLocationPreview').style.display=c.locationImageUrl?'block':'none';
-    if(c.locationImageUrl) document.getElementById('cLocationPreview').src=c.locationImageUrl;
     new bootstrap.Modal(document.getElementById('clientModal')).show();
   }
 
@@ -3573,7 +3602,6 @@ button,input,select,textarea{max-width:100%;}
     try{ delete document.getElementById('cEntryDate').dataset.userEdited; }catch(_){}
     document.getElementById('cVisitCount').value = 1;
     const orgBox=document.getElementById('clientOrgOptions'); if(orgBox) orgBox.classList.remove('show');
-    document.getElementById('cLocationPreview').style.display='none'; pendingLocationImageFile=null; document.getElementById('cLocationGallery').value=''; document.getElementById('cLocationCamera').value='';
     document.getElementById('clientCallSyncPanel')?.classList.add('d-none'); document.getElementById('clientDuplicateBanner')?.classList.remove('show');
     populateLocationSelectors('c');
     new bootstrap.Modal(document.getElementById('clientModal')).show();
@@ -3685,7 +3713,6 @@ button,input,select,textarea{max-width:100%;}
     if(o.orgName||o.organization)setValue('cOrgName',o.orgName||o.organization);
     if(o.clientName||o.contactName)setValue('cContactName',o.clientName||o.contactName);
     if(o.contactNumber||o.mobile)setValue('cMobile',o.contactNumber||o.mobile);
-    if(o.salesType||o.typeOfSales)setValue('cSalesType',salesTypeLabel(o.salesType||o.typeOfSales));
     const x=salesOrderCompact(o), box=document.getElementById('clientSalesOrderDetails');
     if(box)box.innerHTML=`<div class="source-order"><div class="small fw-bold">${escapeHtml(x.type)} <span class="badge text-bg-light">${escapeHtml(x.pi)}</span> <span class="badge text-bg-light">${escapeHtml(x.sales)}</span></div><div class="sales-source-grid"><div><small>Date</small><b>${escapeHtml(x.date)}</b></div><div><small>Capacity</small><b>${escapeHtml(x.capacity)}</b></div><div><small>PV split</small><b>${escapeHtml(x.split||x.pv||'—')}</b></div><div><small>Amount</small><b>${escapeHtml(x.amount)}</b></div></div></div>`;
     const req=o.requirements||o.requirement||''; const rem=o.remarks||''; if(req&&!getVal('cRequirements'))setValue('cRequirements',req); if(rem&&!getVal('cRemarks'))setValue('cRemarks',rem);
@@ -3708,7 +3735,7 @@ button,input,select,textarea{max-width:100%;}
     setValue('cOrgName', c.orgName); setValue('cContactName', c.contactName); setValue('cMobile', c.mobile);
     setValue('cOfficeMobile', c.officeMobile); setValue('cEmail', c.email); setValue('cGstin', c.gstin);
     setLocationValues('c', c); setValue('cPinCode', c.pinCode ? String(c.pinCode).split(' | ') : []); setValue('cPinManual',''); setValue('cAddress', c.address || ''); setValue('cSalesOrderStatus', c.salesOrderStatus || 'In Pipeline');
-    setValue('cSalesType', c.salesType || 'Primary Sales'); setValue('cLeadTemp', c.leadTemp || 'Warm');
+    setValue('cLeadTemp', c.leadTemp || 'Warm');
     setValue('cVisitType', c.visitType || 'Regular'); setValue('cNextFollowUpDate', c.nextFollowUpDate || ''); setValue('cVisitCount', c.visitCount || 1);
     setValue('cVisitStatus', c.visitStatus || 'Not Done'); setValue('cMeetingStatus', c.meetingStatus || 'Not Done');
     setValue('cCallStatus', c.callStatus || ''); setValue('cRequirements', c.requirements || '');
@@ -3741,14 +3768,6 @@ button,input,select,textarea{max-width:100%;}
 
   function incrementVisitCount() {
     const el=document.getElementById('cVisitCount'); el.value=Math.max(1,Number(el.value||1)+1);
-  }
-
-  let pendingLocationImageFile=null;
-  function chooseLocationImage(source){const id=source==='camera'?'cLocationCamera':'cLocationGallery';document.getElementById(id)?.click();}
-  function setLocationImageFile(file){if(!file)return;if(file.size>5*1024*1024){showOperationMessage('Image too large','Please select an image up to 5 MB.','error');return;}pendingLocationImageFile=file;const img=document.getElementById('cLocationPreview');if(img){img.src=URL.createObjectURL(file);img.style.display='block';}}
-  async function uploadLocationImage() {
-    const file=pendingLocationImageFile; if(!file)return null;
-    return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.onerror=reject;r.readAsDataURL(file);});
   }
 
   function updateClientPVTypeFields(){
@@ -3844,6 +3863,29 @@ button,input,select,textarea{max-width:100%;}
     return true;
   }
 
+  // Canonical Client Entry field map: every visible Client Entry field is saved under the
+  // corresponding database JSON field name. Removed Client Entry fields (Sales Type and
+  // Location Image) are deliberately not sent in the client payload.
+  const CLIENT_ENTRY_FIELD_MAP=Object.freeze({
+    cOrgName:'orgName', cContactName:'contactName', cMobile:'mobile', cOfficeMobile:'officeMobile',
+    cEmail:'email', cGstin:'gstin', cState:'state', cRegion:'region', cDistrict:'district',
+    cTehsil:'tehsil', cCityVillage:'city', cPinCode:'pinCode', cAddress:'address',
+    cSalesOrderStatus:'salesOrderStatus', cLeadTemp:'leadTemp', cVisitType:'visitType',
+    cVisitCount:'visitCount', cVisitStatus:'visitStatus', cMeetingStatus:'meetingStatus',
+    cCallStatus:'callStatus', cEntryDate:'entryDate', cNextFollowUpDate:'nextFollowUpDate',
+    cRequirements:'requirements', cRemarks:'remarks'
+  });
+  function collectCanonicalClientFields(){
+    const out={};
+    Object.entries(CLIENT_ENTRY_FIELD_MAP).forEach(([id,key])=>{
+      const el=document.getElementById(id);
+      if(!el)return;
+      if(id==='cState'||id==='cRegion') out[key]=getSelectOrOther(id);
+      else out[key]=getVal(id);
+    });
+    return out;
+  }
+
   document.getElementById('clientForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -3859,7 +3901,6 @@ button,input,select,textarea{max-width:100%;}
       if(!validateClientEntryBasics()) return;
 
       showProcessingMessage('Saving Client Entry','Saving the client entry through the backend...');
-      const imageData=await uploadLocationImage();
       const editingClientId=String(document.getElementById('clientId')?.value||'').trim();
       const existingClientRecord=editingClientId ? (rawData.clients||[]).find(x=>String(x.id)===editingClientId) : null;
       if(editingClientId && (!existingClientRecord || !requireOwnRecord(existingClientRecord,'edit/update'))){
@@ -3888,13 +3929,12 @@ button,input,select,textarea{max-width:100%;}
         ownerId:editingClientId?(existingClientRecord?.userId||existingClientRecord?.ownerId||currentUser.id):currentUser.id,
         ownerEmail:editingClientId?(existingClientRecord?.userEmail||existingClientRecord?.createdBy||existingClientRecord?.ownerEmail||currentUser.email):currentUser.email,
         createdByUserId:editingClientId?(existingClientRecord?.createdByUserId||existingClientRecord?.userId||currentUser.id):currentUser.id,
+        ...collectCanonicalClientFields(),
         orgName:getVal('cOrgName').trim(),contactName:getVal('cContactName').trim(),mobile:getVal('cMobile').trim(),
-        officeMobile:getVal('cOfficeMobile').trim(),email:clientEmailClean(getVal('cEmail')),gstin:getVal('cGstin').trim(),
-        state:getSelectOrOther('cState'),region:getSelectOrOther('cRegion'),district:getSelectOrOther('cDistrict'),
-        tehsil:getSelectOrOther('cTehsil'),city:getSelectOrOther('cCityVillage'),pinCode:getSelectOrOther('cPinCode')||getVal('cPinManual'),address:getVal('cAddress'),
-        salesOrderStatus:getSelectOrOther('cSalesOrderStatus')||'In Pipeline',salesType:getSelectOrOther('cSalesType'),leadTemp:getSelectOrOther('cLeadTemp'),
-        visitType:computedVisitCount>1 ? 'Follow Up' : getSelectOrOther('cVisitType'),visitCount:computedVisitCount,visitStatus:getSelectOrOther('cVisitStatus'),meetingStatus:getSelectOrOther('cMeetingStatus'),callStatus:getSelectOrOther('cCallStatus'),
-        entryDate:getVal('cEntryDate'),activityDate:getVal('cEntryDate'),nextFollowUpDate:getVal('cNextFollowUpDate'),requirements:getVal('cRequirements'),remarks:getVal('cRemarks'),locationImageData:imageData
+        email:clientEmailClean(getVal('cEmail')),
+        salesOrderStatus:getSelectOrOther('cSalesOrderStatus')||'In Pipeline',
+        visitType:computedVisitCount>1 ? 'Follow Up' : getSelectOrOther('cVisitType'),visitCount:computedVisitCount,
+        activityDate:getVal('cEntryDate')
       };
 
       const salesDone=String(payload.salesOrderStatus).trim().toLowerCase()==='done';
@@ -4917,11 +4957,6 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
     }
   }
 
-  function previewLocationImage(ev){
-    const file=ev.target.files&&ev.target.files[0], img=document.getElementById('cLocationPreview');
-    if(!file||!img)return; img.src=URL.createObjectURL(file); img.style.display='block';
-  }
-
   function populateSelect(id,items,placeholder='-- Select --'){
     const e=document.getElementById(id); if(!e)return; const isMulti=e.multiple;
     e.innerHTML=isMulti?'':'<option value="">'+placeholder+'</option>';
@@ -5320,7 +5355,7 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
 
   function clearSelectedClient(){
     ['cSelectedClientId','clientId'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-    ['cOrgName','cContactName','cMobile','cOfficeMobile','cEmail','cGstin','cRequirements','cRemarks','cPinManual','cAddress'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    ['cOrgName','cContactName','cMobile','cOfficeMobile','cEmail','cGstin','cRequirements','cRemarks','cAddress'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
     document.getElementById('clientSelectionCaption')?.classList.add('d-none'); const _clientBox=document.getElementById('clientOrgOptions'); if(_clientBox){_clientBox.classList.remove('show');_clientBox.style.display='none';}
   }
   let clientNoMatchNoticeTimer=null;
