@@ -705,6 +705,131 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
 #kosolDataRetryBar .kosol-message-close{width:30px;height:30px;flex:0 0 30px;padding:0;border:0;background:transparent;color:#475569;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
 #kosolDataRetryBar .kosol-message-close:hover{background:rgba(15,23,42,.08)}
 </style>
+<style id="srd-universal-responsive-final">
+/* SRD Sons universal responsive layer — additive only. */
+html{width:100%;min-width:320px;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{width:100%;min-width:320px;max-width:100%;overflow-x:hidden;}
+*,*::before,*::after{box-sizing:border-box;}
+img,svg,video,canvas,iframe{max-width:100%;}
+button,input,select,textarea{max-width:100%;}
+.container,.container-fluid,.row,[class*="col-"]{min-width:0;}
+.row{max-width:100%;}
+.card,.card-body,.modal-content,.dropdown-menu,.offcanvas,.accordion,.list-group{max-width:100%;min-width:0;}
+.card-body{overflow-wrap:anywhere;}
+.form-control,.form-select{min-width:0;width:100%;max-width:100%;}
+.input-group{max-width:100%;}
+.btn,.btn-group,.btn-toolbar{max-width:100%;}
+.btn-group{flex-wrap:wrap;}
+.table-responsive{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;}
+.table-responsive>table{margin-bottom:0;}
+.table td,.table th{vertical-align:middle;}
+.dropdown-menu{max-width:calc(100vw - 16px);overflow-x:hidden;overflow-y:auto;}
+.modal{padding-left:0!important;padding-right:0!important;}
+.modal-dialog{width:auto;max-width:calc(100% - 1rem);margin:.5rem auto;}
+.modal-content{max-height:calc(100vh - 1rem);max-height:calc(100svh - 1rem);overflow:hidden;}
+.modal-body{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.modal-header,.modal-footer{flex-wrap:wrap;gap:.5rem;}
+.modal-footer .btn{max-width:100%;}
+.sidebar{max-width:100%;}
+.mobile-navbar{padding-left:max(.5rem,env(safe-area-inset-left));padding-right:max(.5rem,env(safe-area-inset-right));padding-top:max(.5rem,env(safe-area-inset-top));}
+#mainAppLayout{width:100%;max-width:100%;}
+#mainAppLayout>.row{width:100%;max-width:100%;}
+#mainAppLayout>.row>main,#mainAppLayout>.row>[class*="col-"]{min-width:0;max-width:100%;}
+/* Keep dense desktop tables usable on narrow screens: scroll the table, never the page. */
+.table-responsive{scrollbar-width:thin;}
+/* Touch targets without enlarging the desktop interface. */
+@media (pointer:coarse){
+  button,.btn,.form-control,.form-select,.form-check-input,.nav-link,[role="button"]{min-height:42px;}
+  .btn-sm{min-height:38px;}
+  .form-check-input{width:1.15em;height:1.15em;}
+}
+@media (max-width:1199.98px){
+  .sidebar{padding:.75rem!important;}
+  .sidebar .nav-link{padding:.65rem .7rem;}
+  .card-body{padding:.9rem;}
+}
+@media (max-width:991.98px){
+  .desktop-user-fitment{min-width:0;max-width:calc(100vw - 110px);}
+  .logged-user-name,.logged-user-designation,.logged-user-place{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .mobile-navbar .container-fluid{min-width:0;}
+  .mobile-navbar .navbar-toggler{flex:0 0 auto;}
+  .mobile-navbar .btn{flex:0 0 auto;}
+  .offcanvas{max-width:min(88vw,360px);}
+  .offcanvas-body{overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .dashboard-data-tabs,.nav-tabs{max-width:100%;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap!important;-webkit-overflow-scrolling:touch;}
+  .dashboard-data-tabs .nav-link,.nav-tabs .nav-link{white-space:nowrap;}
+}
+@media (max-width:767.98px){
+  body{font-size:.92rem;}
+  .container,.container-fluid{--bs-gutter-x:1rem;}
+  .row{--bs-gutter-x:.75rem;--bs-gutter-y:.75rem;}
+  .card{border-radius:10px;}
+  .card-header,.card-footer{padding:.7rem .8rem;}
+  .card-body{padding:.8rem;}
+  .btn{white-space:normal;overflow-wrap:anywhere;}
+  .btn-group{width:100%;}
+  .btn-group>.btn{flex:1 1 auto;}
+  .input-group{flex-wrap:nowrap;}
+  .input-group>.form-control,.input-group>.form-select{min-width:0;}
+  .table{font-size:.78rem;}
+  .table-responsive>table{min-width:680px;}
+  .table td,.table th{padding:.45rem .4rem;}
+  .modal-dialog{max-width:calc(100% - .6rem);margin:.3rem auto;}
+  .modal-content{max-height:calc(100vh - .6rem);max-height:calc(100svh - .6rem);border-radius:12px;}
+  .modal-header,.modal-body,.modal-footer{padding:.7rem .8rem;}
+  .modal-footer .btn{flex:1 1 120px;}
+  .dropdown-menu{max-width:calc(100vw - 12px);}
+  /* Long dashboard toolbars become vertical instead of forcing horizontal page overflow. */
+  #tab-dashboard .selection-toolbar,#tab-dashboard .export-toolbar{width:100%;max-width:100%;}
+  #tab-dashboard .selection-toolbar>* ,#tab-dashboard .export-toolbar>*{min-width:0;max-width:100%;}
+  /* Charts and embedded controls must shrink with their cards. */
+  .chart-box{width:100%;max-width:100%;}
+  canvas{max-width:100%!important;}
+  /* Pipeline remains horizontally scrollable as a board, while the document stays fixed. */
+  .pipeline-board{width:100%;max-width:100%;overflow-x:auto!important;overscroll-behavior-x:contain;}
+  .pipeline-stage{flex-shrink:0;}
+  /* Avoid iOS Safari zoom when focusing form controls. */
+  input,select,textarea{font-size:16px!important;}
+}
+@media (max-width:575.98px){
+  .container,.container-fluid{--bs-gutter-x:.75rem;}
+  .table-responsive>table{min-width:720px;}
+  .table-responsive{margin-left:-.15rem;margin-right:-.15rem;width:calc(100% + .3rem);}
+  .form-label{font-size:.82rem;}
+  .modal-footer{display:flex;}
+  .modal-footer .btn{flex:1 1 100%;}
+  .chat-shell{width:100%;max-width:100%;}
+  .chat-window,.chat-users{min-width:0;max-width:100%;}
+}
+@media (max-width:380px){
+  .mobile-navbar{padding-left:.35rem;padding-right:.35rem;}
+  .mobile-navbar .navbar-toggler{padding:.25rem .4rem;}
+  .mobile-navbar .btn{padding:.3rem .45rem;}
+  .desktop-user-fitment{max-width:calc(100vw - 92px);}
+  .table{font-size:.74rem;}
+}
+@media (orientation:landscape) and (max-height:600px){
+  .mobile-navbar{position:sticky;top:0;z-index:1030;}
+  .offcanvas{max-height:100vh;}
+  .modal-content{max-height:calc(100vh - .5rem);}
+  .modal-body{max-height:calc(100vh - 120px);}
+}
+@supports (height:100dvh){
+  .modal-content{max-height:calc(100dvh - 1rem);}
+}
+@supports not (height:100dvh){
+  .modal-content{max-height:calc(100vh - 1rem);}
+}
+/* Safe area on iPhone/iPad without affecting browsers that do not implement env(). */
+@supports (padding:max(0px)){.mobile-navbar{padding-left:max(.5rem,env(safe-area-inset-left));padding-right:max(.5rem,env(safe-area-inset-right));}}
+@media print{
+  html,body{min-width:0!important;overflow:visible!important;}
+  .sidebar,.mobile-navbar,.btn,.navbar,.offcanvas{display:none!important;}
+  .table-responsive{overflow:visible!important;}
+  .table-responsive>table{min-width:0!important;width:100%!important;}
+  .card{break-inside:avoid;}
+}
+</style>
 </head>
 <body>
 <div id="kosolDataRetryBar" class="alert alert-warning align-items-center gap-2 mb-0 py-2 px-3" role="alert"><span class="small flex-grow-1"><i class="bi bi-cloud-slash me-1"></i><b>Live data is not synchronized.</b> The database did not return the latest data.</span><button type="button" class="btn btn-sm btn-dark" onclick="retryCurrentDataLoad()"><i class="bi bi-arrow-clockwise me-1"></i>Retry</button><button type="button" class="kosol-message-close" aria-label="Close message" title="Close" onclick="closeDataRetryMessage()"><i class="bi bi-x-lg"></i></button></div>
@@ -8302,5 +8427,36 @@ window.KosolSupabase=Object.assign(window.KosolSupabase||{}, {mode:()=>config.na
 })();
 </script>
 
+<script id="srd-universal-viewport-final">
+(function(){
+  'use strict';
+  function setViewportVars(){
+    var h=window.innerHeight||document.documentElement.clientHeight||0;
+    var w=window.innerWidth||document.documentElement.clientWidth||0;
+    if(h) document.documentElement.style.setProperty('--app-vh',(h*0.01)+'px');
+    if(w) document.documentElement.style.setProperty('--app-vw',(w*0.01)+'px');
+    document.documentElement.classList.toggle('srd-narrow',w<768);
+    document.documentElement.classList.toggle('srd-tablet',w>=768&&w<992);
+    document.documentElement.classList.toggle('srd-desktop',w>=992);
+  }
+  var raf=0;
+  function schedule(){
+    if(raf) return;
+    var run=function(){raf=0;setViewportVars();};
+    if(window.requestAnimationFrame) raf=window.requestAnimationFrame(run); else setTimeout(run,0);
+  }
+  setViewportVars();
+  window.addEventListener('resize',schedule,{passive:true});
+  window.addEventListener('orientationchange',function(){setTimeout(schedule,60);},{passive:true});
+  if(window.visualViewport) window.visualViewport.addEventListener('resize',schedule,{passive:true});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)schedule();},{passive:true});
+  /* Prevent accidental double-tap zoom on interactive controls without disabling normal page zoom. */
+  document.addEventListener('touchend',function(e){
+    var t=e.target;
+    if(!t||!t.closest) return;
+    if(t.closest('button,.btn,.nav-link,[role="button"]')) return;
+  },{passive:true});
+})();
+</script>
 </body>
 </html>
