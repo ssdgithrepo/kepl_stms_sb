@@ -736,6 +736,45 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
 #kosolDataRetryBar .kosol-message-close{width:30px;height:30px;flex:0 0 30px;padding:0;border:0;background:transparent;color:#475569;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
 #kosolDataRetryBar .kosol-message-close:hover{background:rgba(15,23,42,.08)}
 </style>
+<style id="srd-universal-square-checkbox-dropdown-final">
+/* Universal square checkboxes — consistent across the complete application.
+   Radios remain circular. */
+input[type="checkbox"].form-check-input,
+input[type="checkbox"] {
+  appearance:none!important; -webkit-appearance:none!important;
+  width:1.08rem!important; height:1.08rem!important;
+  min-width:1.08rem!important; min-height:1.08rem!important;
+  max-width:1.08rem!important; max-height:1.08rem!important;
+  margin-top:.12rem!important; flex:0 0 1.08rem!important;
+  border:1.5px solid #94a3b8!important; border-radius:2px!important;
+  background:#fff!important; position:relative!important; cursor:pointer!important;
+  vertical-align:middle!important; box-shadow:none!important;
+}
+input[type="checkbox"]:hover{border-color:#c96f00!important;background:#fffaf0!important}
+input[type="checkbox"]:focus-visible{outline:2px solid rgba(252,148,3,.35)!important;outline-offset:2px!important}
+input[type="checkbox"]:checked{background:#fc9403!important;border-color:#d97706!important}
+input[type="checkbox"]:checked::after{
+  content:""; position:absolute; left:50%; top:47%; width:.34rem; height:.62rem;
+  border:solid #fff; border-width:0 2px 2px 0;
+  transform:translate(-50%,-55%) rotate(45deg);
+}
+input[type="checkbox"]:indeterminate{background:#fc9403!important;border-color:#d97706!important}
+input[type="checkbox"]:indeterminate::after{content:"";position:absolute;left:20%;right:20%;top:50%;height:2px;background:#fff;transform:translateY(-50%)}
+/* All custom/searchable dropdown lists remain scrollable and touch-selectable. */
+.search-option-list,.dropdown-menu,.smart-multi-menu,.smart-multi-options{
+  max-height:min(62vh,360px)!important; overflow-y:auto!important; overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important; overscroll-behavior:contain!important;
+  scrollbar-width:thin;
+}
+.search-option-list .search-option{min-height:44px!important;padding:.55rem .7rem!important;cursor:pointer!important;touch-action:manipulation!important}
+.search-option-list .search-option:hover,.search-option-list .search-option:focus{background:#fff7e8!important}
+.dropdown-menu .dropdown-item{cursor:pointer!important;touch-action:manipulation!important}
+.smart-multi-option{cursor:pointer!important;touch-action:manipulation!important}
+select.form-select,select.form-control{max-height:360px;}
+@media(max-width:767.98px){
+  .search-option-list,.dropdown-menu,.smart-multi-menu,.smart-multi-options{max-height:min(58vh,320px)!important}
+}
+</style>
 <style id="srd-universal-responsive-final">
 /* SRD Sons universal responsive layer — additive only. */
 html{width:100%;min-width:320px;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
@@ -3951,7 +3990,7 @@ button,input,select,textarea{max-width:100%;}
         orgName:getVal('cOrgName').trim(),contactName:getVal('cContactName').trim(),mobile:getVal('cMobile').trim(),
         email:clientEmailClean(getVal('cEmail')),
         salesOrderStatus:getSelectOrOther('cSalesOrderStatus')||'In Pipeline',
-        visitType:computedVisitCount>1 ? 'Follow Up' : getSelectOrOther('cVisitType'),visitCount:computedVisitCount,
+        visitType:(selectedExistingId || computedVisitCount>1) ? 'Follow Up' : getSelectOrOther('cVisitType'),visitCount:computedVisitCount,
         activityDate:getVal('cEntryDate')
       };
 
@@ -5417,10 +5456,12 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
     const e=document.getElementById('cOrgName'),box=document.getElementById('clientOrgOptions'); if(!e||!box)return;
     if(e.dataset.clientSearchBound)return;
     e.dataset.clientSearchBound='1';
-    e.addEventListener('input',()=>{document.getElementById('cSelectedClientId').value='';searchClientOrganizations(e.value);});
+    e.addEventListener('input',()=>{document.getElementById('cSelectedClientId').value='';searchClientOrganizations(e.value);setTimeout(()=>autoMatchExistingClientIdentity(),0);});
     e.addEventListener('focus',()=>{searchClientOrganizations(e.value);});
     e.addEventListener('change',async()=>{
       const value=String(e.value||'').trim(); if(!value)return;
+      const exactIdentity=autoMatchExistingClientIdentity();
+      if(exactIdentity)return;
       const list=searchClientOrganizations(value);
       const exact=list.find(c=>String(c.orgName||'').trim().toLowerCase()===value.toLowerCase());
       if(exact)selectExistingClientFromSearch(exact.id);
@@ -5435,8 +5476,46 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
     },280));
   }
   function findExistingClientByMobile(v){const n=normalizePhone(v);return n?(rawData.clients||[]).find(c=>normalizePhone(c.mobile)===n)||null:null;}
+  function findExistingClientByOrgAndMobile(org,phone){
+    const o=String(org||'').trim().toLowerCase();
+    const p=String(phone||'').replace(/\D/g,'');
+    if(!o||!p)return null;
+    return (rawData.clients||[]).find(c=>{
+      const co=String(c.orgName||c.organizationName||c.organization||'').trim().toLowerCase();
+      const cp=String(c.mobile||c.phone||c.contactNumber||'').replace(/\D/g,'');
+      return co===o && cp===p;
+    })||null;
+  }
+
+  function autoMatchExistingClientIdentity(){
+    const org=getVal('cOrgName'), phone=getVal('cMobile');
+    const c=findExistingClientByOrgAndMobile(org,phone);
+    if(!c)return false;
+    const selectedId=document.getElementById('cSelectedClientId');
+    const editingId=String(document.getElementById('clientId')?.value||'').trim();
+    // Never convert an edit of the current record into a new repeat activity.
+    if(editingId)return false;
+    if(selectedId && String(selectedId.value||'')!==String(c.id||'')){
+      selectedId.value=String(c.id||'');
+      try{loadClientIntoForm(c,false);}catch(_){}
+      selectedId.value=String(c.id||'');
+    }else if(selectedId && !selectedId.value){
+      selectedId.value=String(c.id||'');
+    }
+    const count=Math.max(1,getRepeatCountForClient(String(c.orgName||'').trim().toLowerCase(),String(c.mobile||'').replace(/\D/g,''),c.id));
+    const vc=document.getElementById('cVisitCount'); if(vc)vc.value=count;
+    const vt=document.getElementById('cVisitType'); if(vt)vt.value='Follow Up';
+    const date=document.getElementById('cEntryDate'); if(date && date.dataset.userEdited!=='1')date.value=appToday();
+    const cap=document.getElementById('clientSelectionCaption');
+    if(cap){cap.textContent=`Existing client matched by organization name + mobile number — Follow Up activity #${count}.`;cap.classList.remove('d-none');}
+    const box=document.getElementById('clientOrgOptions'); if(box){box.classList.remove('show');box.style.display='none';}
+    return true;
+  }
+
   async function autoMatchClientMobile(target){
-    const c=findExistingClientByMobile(document.getElementById(target)?.value||'');
+    const typedPhone=document.getElementById(target)?.value||'';
+    const exactIdentity=target==='cMobile' ? findExistingClientByOrgAndMobile(getVal('cOrgName'),typedPhone) : null;
+    const c=exactIdentity || findExistingClientByMobile(typedPhone);
     if(!c)return;
     if(target==='cMobile'){
       document.getElementById('cSelectedClientId').value=c.id;
