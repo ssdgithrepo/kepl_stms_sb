@@ -1793,7 +1793,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   let lastSnapshotSavedAt = 0;
   const BACKGROUND_REFRESH_REASONS = new Set(['auto-poll','tab-visible','pageshow','cross-tab','online','focus']);
   const FRESH_FETCH_REASONS = new Set(['auto-poll','cross-tab','online','focus']);
-  const POLL_BASE_MS = 45000;      // check for changes every 30s while the tab is visible
+  const POLL_BASE_MS = 30000;      // check for changes every 30s while the tab is visible
   const POLL_IDLE_MS = 120000;      // slow down after several unchanged checks
   const POLL_MAX_MS = 180000;      // back-off ceiling after failures
   function quickHash(s){let h=5381,i=s.length;while(i)h=(h*33)^s.charCodeAt(--i);return (h>>>0).toString(36)+':'+s.length;}
@@ -8613,35 +8613,46 @@ window.KOSOL_SUPABASE_CONFIG={url:"",key:"",secret:"",primary:true};
     }
   }
   async function dashboardMerged(input,init){
-    const [g,s]=await Promise.allSettled([origFetch(input,init),sbEntities()]);
-    if(s.status!=='fulfilled'){console.warn('Supabase read failed, using sheet data:',s.reason);if(g.status==='fulfilled')return g.value;throw g.reason;}
-    let res=null;
-    if(g.status==='fulfilled'&&g.value.ok){try{res=JSON.parse(await g.value.clone().text());}catch(_){res=null;}}
-    if(res&&res.success!==false){
-      const p=res.data&&typeof res.data==='object'?res.data:res;
-      Object.keys(READ_KEYS).forEach(k=>{p[k]=s.value[k];});
-      return jsonRes(res);
+    /* When Supabase is primary, NEVER query the Google Sheet for the same dashboard request.
+       The old implementation queried both backends in parallel, which made the application
+       slower and also allowed Sheet data to appear during a Supabase-first session. */
+    if(primaryOn()){
+      const s=await sbEntities();
+      const rd=typeof rawData!=='undefined'?rawData:{};
+      return jsonRes({success:true,data:Object.assign({tasks:arr(rd.tasks),approvals:arr(rd.approvals),notifications:arr(rd.notifications),teamUsers:arr(rd.teamUsers),todayAttendance:rd.todayAttendance||null},s)});
     }
-    const rd=typeof rawData!=='undefined'?rawData:{};
-    return jsonRes({success:true,data:Object.assign({tasks:arr(rd.tasks),approvals:arr(rd.approvals),notifications:arr(rd.notifications),teamUsers:arr(rd.teamUsers),todayAttendance:rd.todayAttendance||null},s.value)});
+    const g=await origFetch(input,init);
+    return g;
   }
   const origFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
-    try{
-      if(ready()&&init&&typeof init.body==='string'&&typeof SCRIPT_URL!=='undefined'&&String(input&&input.url||input).indexOf(String(SCRIPT_URL).split('?')[0])===0&&currentUser){
-        let m=null;try{m=JSON.parse(init.body);}catch(_){}
-        const a=m&&m.action;
-        if(a&&(ENT[a]||a==='getTargets'||a==='getDashboardData')){
-          await resolveMode();
-          if(primaryOn()){
-            const pl=m.payload||{};
-            if(ENT[a])return jsonRes(await handleWrite(a,pl));
-            if(a==='getTargets'){try{return jsonRes({success:true,targets:visibleScope(await fetchTable('targets'))});}catch(_){}}
-            if(a==='getDashboardData')return await dashboardMerged(input,init);
-          }
-        }
+    const isScriptRequest=init&&typeof init.body==='string'&&typeof SCRIPT_URL!=='undefined'&&String(input&&input.url||input).indexOf(String(SCRIPT_URL).split('?')[0])===0&&currentUser;
+    if(!isScriptRequest)return origFetch(input,init);
+    let m=null;try{m=JSON.parse(init.body);}catch(_){}
+    const a=m&&m.action;
+    if(!(a&&(ENT[a]||a==='getTargets'||a==='getDashboardData')))return origFetch(input,init);
+    /* Do not let a missing per-user/local configuration silently reactivate the Sheet.
+       The embedded/global primary flag is authoritative; Supabase must be configured for
+       every browser before operational data can be written. */
+    if(!ready()){
+      if(cfg.primary!==false){
+        return jsonRes({success:false,message:'Supabase is the primary database, but this browser has no Supabase public/anon key configured. Configure the shared Supabase configuration in the deployed index.html; Google Sheet fallback is disabled.'});
       }
-    }catch(e){console.warn('Supabase primary interceptor skipped:',e&&e.message||e);}
+      return origFetch(input,init);
+    }
+    await resolveMode();
+    if(!primaryOn())return origFetch(input,init);
+    const pl=m.payload||{};
+    try{
+      if(ENT[a])return jsonRes(await handleWrite(a,pl));
+      if(a==='getTargets')return jsonRes({success:true,targets:visibleScope(await fetchTable('targets'))});
+      if(a==='getDashboardData')return await dashboardMerged(input,init);
+    }catch(e){
+      /* Critical: once Supabase is primary, a Supabase failure must NOT fall through to
+         the Google Sheet. Returning an error preserves the single-source-of-truth rule. */
+      console.error('Supabase primary operation failed:',e);
+      return jsonRes({success:false,message:e?.message||'Supabase primary database operation failed.'});
+    }
     return origFetch(input,init);
   };
 
