@@ -10,8 +10,6 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
   <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="preconnect" href="https://script.google.com" crossorigin>
-  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <title>Kosol Energie Pvt Ltd - Sales Team Management System</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -870,6 +868,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
             <div class="col-12 mb-1">
               <label class="form-label small">Target Role *</label>
               <select class="form-select form-select-sm" id="suRole" required>
+                <option value="Team Coordinator">Team Coordinator</option>
                 <option value="National Head">National Head (CEO)</option>
                 <option value="State Head">State Head (State Manager)</option>
                 <option value="Regional Head">Regional Head (Regional Manager)</option>
@@ -1017,7 +1016,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
             <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom flex-wrap gap-2">
               <div>
                 <h2 class="h4 mb-0 fw-bold">Executive Dashboard</h2>
-                <small class="text-muted fw-bold" id="dashboardScopeHeader">Scope: Country-wide</small><span id="dashboardSyncState" class="dashboard-sync-state synced ms-2"><i class="bi bi-cloud-check"></i> Backend synchronized</span><span id="dashboardActiveDb" class="badge ms-2 d-none" role="button" title="Active database for all users – click to switch" style="cursor:pointer" onclick="KosolSupabase.openSwitch(event)"><i class="bi bi-database-fill me-1"></i>Active DB: <b class="kosol-db-mode-label">…</b></span>
+                <small class="text-muted fw-bold" id="dashboardScopeHeader">Scope: Country-wide</small><span id="dashboardSyncState" class="dashboard-sync-state synced ms-2"><i class="bi bi-cloud-check"></i> Backend synchronized</span><span id="dashboardActiveDb" class="badge ms-2 d-none" role="button" title="Active database for all users – click to switch" style="cursor:pointer" onclick="KosolSupabase.openSwitch(event)"><i class="bi bi-database-fill me-1"></i>Active DB: <b class="kosol-db-mode-label">…</b></span><span id="dashboardActiveRole" class="badge text-bg-dark ms-1 d-none"><i class="bi bi-person-badge me-1"></i>Role: <b></b></span>
               </div>
               <div class="d-flex align-items-center gap-1 flex-wrap w-100 w-md-auto">
                 <div id="dashboardUserFilters" class="d-flex align-items-center gap-1 flex-wrap"></div>
@@ -1414,7 +1413,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
         <div class="col-md-6"><label class="form-label small fw-bold">Email / Login ID *</label><input id="muEmail" type="email" class="form-control form-control-sm" required></div>
         <div class="col-md-6"><label class="form-label small fw-bold">Phone *</label><input id="muPhone" class="form-control form-control-sm" required></div>
         <div class="col-md-6"><label class="form-label small fw-bold">Password *</label><div class="password-field-wrap w-100"><input id="muPassword" type="password" class="form-control form-control-sm" minlength="4" required autocomplete="new-password"><button type="button" class="password-eye-inside" aria-label="Show password" onclick="togglePasswordVisibility('muPassword','muPasswordIcon')"><i class="bi bi-eye-slash" id="muPasswordIcon"></i></button></div></div>
-        <div class="col-md-6"><label class="form-label small fw-bold">Role *</label><select id="muRole" class="form-select form-select-sm" required><option>Admin</option><option>National Head</option><option>State Head</option><option>Regional Head</option><option>Area Sales Officer</option><option>Senior Sales Executive</option><option>Area Sales Officer</option><option selected>Sales Executive</option></select></div>
+        <div class="col-md-6"><label class="form-label small fw-bold">Role *</label><select id="muRole" class="form-select form-select-sm" required><option>Admin</option><option>Team Coordinator</option><option>National Head</option><option>State Head</option><option>Regional Head</option><option>Area Sales Officer</option><option>Senior Sales Executive</option><option>Area Sales Officer</option><option selected>Sales Executive</option></select></div>
         <div class="col-md-6"><label class="form-label small fw-bold">State(s) *</label><select id="muStates" multiple size="5" class="form-select form-select-sm" required></select></div>
         <div class="col-md-6"><label class="form-label small fw-bold">Region(s) *</label><select id="muRegions" multiple size="8" class="form-select form-select-sm" required></select></div><div class="col-12"><label class="form-label small fw-bold">Reporting Manager(s)</label><select id="muReportingManagers" multiple size="5" class="form-select form-select-sm"></select><small class="text-muted">Select one or multiple reporting managers.</small></div>
         <div class="col-md-6"><label class="form-label small fw-bold">District(s)</label><input id="muDistricts" class="form-control form-control-sm" placeholder="Comma separated"></div>
@@ -1445,6 +1444,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
             <label class="form-label small fw-bold">Role *</label>
             <select class="form-select form-select-sm" id="editUserRole" required>
               <option value="Master Admin">Master Admin</option>
+              <option value="Team Coordinator">Team Coordinator</option>
               <option value="National Head">National Head</option>
               <option value="State Head">State Head</option>
               <option value="Regional Head">Regional Head</option>
@@ -1763,9 +1763,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     return true;
   }
 
-  // PASTE YOUR PUBLISHED APPS SCRIPT WEB APP ENDPOINT URL HERE
-  const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_anT2dp4hpxsP_MelMvhR_55EGcyop2d9OIBARvJs1AIWaNUlcEEv-lEj08jTZYBb/exec";
-  const SCRIPT_URL = (localStorage.getItem('solar_erp_script_url') || new URLSearchParams(location.search).get('backend') || DEFAULT_SCRIPT_URL).trim();
+  // Supabase is the only application database/API.
 
   let currentUser = null;
   let rawData = { clients: [], tasks: [], coldCalls: [], approvals: [], salesOrders: [], targets: [], notifications: [], todayAttendance: null };
@@ -1915,18 +1913,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     }
   });
 
-  function isValidScriptUrl(value){
-    try { const u=new URL(String(value||'')); return u.protocol==='https:' && u.hostname==='script.google.com' && /^\/macros\/s\/[^/]+\/exec$/.test(u.pathname); } catch(e){ return false; }
-  }
-
-  function openBackendSettings(){
-    const current=localStorage.getItem('solar_erp_script_url')||DEFAULT_SCRIPT_URL;
-    const value=prompt('Enter the deployed backend Web App /exec URL:',current);
-    if(value===null)return;
-    const v=value.trim();
-    if(!isValidScriptUrl(v)){showOperationMessage('Invalid backend URL','Please enter the full backend Web App URL ending in /exec.','error');return;}
-    localStorage.setItem('solar_erp_script_url',v); location.reload();
-  }
+  function openBackendSettings(){ if(window.KosolSupabase&&window.KosolSupabase.open) window.KosolSupabase.open(); }
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -6931,68 +6918,15 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       requestPayload.ownerId=record.userId||record.ownerId||record.createdByUserId||'';
       requestPayload.ownerEmail=record.userEmail||record.ownerEmail||record.createdBy||'';
     }
-    if(!['login','selfRegister','health','getReportingManagers','requestPasswordResetOtp','resetPasswordWithOtp'].includes(action)){
-      if(!currentUser?.email || !currentUser?.authToken){
-        clearPersistedSession(); currentUser=null;
-        return {success:false,message:'Your login session is missing its security token. Please sign in again.'};
-      }
-      requestPayload.email=requestPayload.email||currentUser.email;
-      requestPayload.authToken=requestPayload.authToken||currentUser.authToken;
-      requestPayload.userId=requestPayload.userId||currentUser.id;
-      requestPayload.userRole=requestPayload.userRole||currentUser.role;
-      requestPayload.userEmail=requestPayload.userEmail||currentUser.email;
+    try{
+      if(!window.KosolSupabaseAPI) return {success:false,message:'Supabase data layer is not loaded. Please reload the application.'};
+      const result=await window.KosolSupabaseAPI.call(action,requestPayload);
+      if(result&&result.success===false&&result.sessionExpired){ clearPersistedSession(); currentUser=null; }
+      return cleanNullText(result||{success:false,message:'Empty Supabase response.'});
+    }catch(err){
+      console.error('Supabase API request failed:',action,err);
+      return {success:false,message:err?.name==='AbortError'?'Supabase request timed out. Please check the connection.':(err?.message||String(err))};
     }
-    if(!isValidScriptUrl(SCRIPT_URL)) return {success:false,message:'Invalid backend /exec URL. Open Backend Settings and enter the deployed Web App URL.'};
-
-    const canRetry=/^(get|fetch|load|list|search|check|validate|dashboard|health)/i.test(String(action||''));
-    // Do not retry writes. Reads may retry transient network/Apps Script cold-start failures.
-    const maxAttempts=canRetry?3:1;
-    let lastError=null;
-    for(let attempt=1;attempt<=maxAttempts;attempt++){
-      const controller=new AbortController();
-      // Apps Script may cold-start and read large Sheets. Give it enough time to finish,
-      // but still fail cleanly instead of hanging forever.
-      const timeoutMs=canRetry?(attempt===1?120000:150000):90000;
-      const timer=setTimeout(()=>controller.abort(),timeoutMs);
-      try{
-        const response=await fetch(SCRIPT_URL,{
-          method:'POST',
-          mode:'cors',
-          credentials:'omit',
-          redirect:'follow',
-          headers:{'Content-Type':'text/plain;charset=utf-8'},
-          body:JSON.stringify({action,payload:requestPayload}),
-          signal:controller.signal,
-          cache:'no-store'
-        });
-        const text=await response.text();
-        if(!response.ok){
-          if(canRetry && attempt<maxAttempts && [408,425,429,500,502,503,504].includes(response.status)){
-            await new Promise(r=>setTimeout(r,900*attempt)); continue;
-          }
-          return {success:false,message:`Backend HTTP ${response.status}. Verify that the existing Apps Script Web App deployment is active and accessible to anyone with the link.`};
-        }
-        let result;
-        try{result=JSON.parse(text);}catch(_){
-          const sample=String(text||'').replace(/\s+/g,' ').slice(0,220);
-          if(canRetry && attempt<maxAttempts){await new Promise(r=>setTimeout(r,900*attempt));continue;}
-          return {success:false,message:'The existing backend returned a non-JSON response. The browser reached the URL, but the deployed /exec endpoint did not return the expected API response.'+(sample?' Response starts with: '+sample:'')};
-        }
-        if(!result || typeof result!=='object') return {success:false,message:'The existing backend returned an empty/invalid response.'};
-        result=cleanNullText(result);
-        if(result.success===false && /session expired|authentication required|unauthorized user/i.test(String(result.message||''))){clearPersistedSession();currentUser=null;}
-        return result;
-      }catch(err){
-        lastError=err;
-        if(canRetry && attempt<maxAttempts){await new Promise(r=>setTimeout(r,1000*attempt));continue;}
-        const msg=err?.name==='AbortError'
-          ? `Backend request timed out after ${Math.round(timeoutMs/1000)} seconds. The existing Google Apps Script is taking too long to return the requested data.`
-          : 'Unable to reach the existing Google Apps Script backend. If this HTML is opened directly as file://, open it from an HTTPS web host; browsers can block cross-origin requests from local files.';
-        console.error('Backend request failed:',action,err);
-        return {success:false,message:msg};
-      }finally{clearTimeout(timer);}
-    }
-    return {success:false,message:lastError?.message||'Unable to load data from the existing backend.'};
   }
 
   async function testBackendConnection(show=true){
@@ -8029,42 +7963,24 @@ setInterval(()=>{
   window.closeLiveDataMessage=function(){const b=document.getElementById('kosol-live-loader-v4');if(b)b.classList.remove('show');};
   window.closeDataRetryMessage=function(){window.__kosolRetryBarDismissed=true;const b=document.getElementById('kosolDataRetryBar');if(b)b.classList.remove('show');};
   async function directDashboardFetch(payload){
-    const attempts=2;
-    let last=null;
-    for(let n=1;n<=attempts;n++){
-      V4.attempt=n; V4.started=Date.now();
-      status(n===1?'Synchronizing latest database data…':'Retrying database synchronization…',true);
-      const ctl=new AbortController();
-      const timeout=setTimeout(()=>ctl.abort(),180000);
-      try{
-        const response=await fetch(SCRIPT_URL,{method:'POST',mode:'cors',credentials:'omit',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'getDashboardData',payload}),signal:ctl.signal,cache:'no-store'});
-        const text=await response.text();
-        const elapsed=Date.now()-V4.started;
-        window.__kosolLastBackendDiagnostics={status:response.status,ok:response.ok,elapsedMs:elapsed,bytes:text.length,attempt:n,contentType:response.headers.get('content-type')||'',url:SCRIPT_URL};
-        if(!response.ok){last=new Error('Backend HTTP '+response.status+' after '+Math.round(elapsed/1000)+'s');if([408,425,429,500,502,503,504].includes(response.status)&&n<attempts){await new Promise(r=>setTimeout(r,1200));continue;}throw last;}
-        let result;try{result=JSON.parse(text);}catch(e){throw new Error('Backend returned non-JSON after '+Math.round(elapsed/1000)+'s. Response begins: '+String(text).replace(/\s+/g,' ').slice(0,180));}
-        if(!result||typeof result!=='object')throw new Error('Backend returned an invalid response.');
-        if(result.success===false)throw new Error(result.message||'The existing backend rejected the dashboard request.');
-        const p=result.data&&typeof result.data==='object'?result.data:result;
-        const missing=requiredArrays(p);
-        if(missing.length){
-          // A successful dashboard response must contain the datasets expected by the existing UI.
-          // Do not silently display a partially populated dashboard.
-          throw new Error('Dashboard response is incomplete. Missing: '+missing.join(', ')+'.');
-        }
-        V4.lastSuccess=Date.now();V4.lastError='';
-        status('Database synchronized in '+Math.round(elapsed/1000)+'s.',false);
-        setTimeout(()=>status('',false),1200);
-        return result;
-      }catch(e){
-        last=e;V4.lastError=e?.message||String(e);
-        const elapsed=Date.now()-V4.started;
-        window.__kosolLastBackendDiagnostics=Object.assign({},window.__kosolLastBackendDiagnostics||{},{elapsedMs:elapsed,attempt:n,error:V4.lastError});
-        if(n<attempts){await new Promise(r=>setTimeout(r,1200));continue;}
-      }finally{clearTimeout(timeout);}
+    V4.attempt=1; V4.started=Date.now();
+    status('Synchronizing latest database data…',true);
+    try{
+      if(!window.KosolSupabaseAPI) throw new Error('Supabase data layer is not loaded.');
+      const result=await window.KosolSupabaseAPI.call('getDashboardData',payload||{});
+      if(!result||result.success===false) throw new Error(result?.message||'Supabase dashboard request failed.');
+      const p=result.data&&typeof result.data==='object'?result.data:result;
+      const missing=requiredArrays(p);
+      if(missing.length) throw new Error('Dashboard response is incomplete. Missing: '+missing.join(', ')+'.');
+      V4.lastSuccess=Date.now();V4.lastError='';
+      status('Database synchronized in '+Math.round((Date.now()-V4.started)/1000)+'s.',false);
+      setTimeout(()=>status('',false),1200);
+      return result;
+    }catch(e){
+      V4.lastError=e?.message||String(e); status(V4.lastError,false); throw e;
     }
-    throw last||new Error('Unable to load live dashboard data.');
   }
+
   window.__kosolDirectDashboardFetch=directDashboardFetch;
 
   // Replace only the dashboard refresh function. All existing GS actions and all other
@@ -8244,512 +8160,105 @@ setInterval(()=>{
 })();
 </script>
 <script id="kosol-supabase-config">
-/* Paste your Supabase values here ONCE so every user's browser saves to Supabase
-   (Backend & Database > "Copy config for all users" prints this exact line). */
-window.KOSOL_SUPABASE_CONFIG={url:"https://ziqvdesjgphxeasxmruh.supabase.co",key:"sb_publishable_tOSUJlFLZY-k-4qpwP3bBA_cXyNeGhF",secret:"",primary:true};
+window.KOSOL_SUPABASE_CONFIG={url:"https://ziqvdesjgphxeasxmruh.supabase.co",key:"sb_publishable_tOSUJlFLZY-k-4qpwP3bBA_cXyNeGhF",name:"Supabase",primary:true};
 </script>
-<style id="kosol-supabase-v1-style">
-#kosol-sb-panel,.kosol-sb-overlay{position:fixed;inset:0;z-index:12500;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:10px}
-#kosol-sb-panel.show,.kosol-sb-overlay.show{display:flex}
-#kosol-sb-panel .sb-card,.kosol-sb-overlay .sb-card{background:#fff;border-radius:12px;width:min(96vw,580px);max-height:92vh;overflow:auto;padding:14px 16px;border-top:4px solid #3ecf8e;font-size:.85rem}
-#kosol-sb-panel pre{background:#0f172a;color:#cbd5e1;border-radius:8px;padding:8px;max-height:200px;overflow:auto;font-size:.72rem;white-space:pre-wrap;margin:8px 0 0}
+<script id="kosol-supabase-inline">
+/* KOSOL / SRD Sons Supabase-only application data layer.
+   No Google Apps Script URL is used. Browser stores only a publishable/anon key. */
+(function(){'use strict';
+const CFG='kosol_supabase_database_v2';
+const EMBED=window.KOSOL_SUPABASE_CONFIG||{};
+let config=Object.assign({url:'',key:'',name:'Supabase',primary:true},EMBED);
+try{Object.assign(config,JSON.parse(localStorage.getItem(CFG)||'{}'));}catch(_){}
+if(EMBED.url)config.url=EMBED.url;if(EMBED.key)config.key=EMBED.key;
+let token=localStorage.getItem('kosol_supabase_session')||'';
+const base=()=>String(config.url||'').replace(/\/+$/,'');
+const headers=()=>({apikey:config.key,Authorization:'Bearer '+config.key,'Content-Type':'application/json'});
+/* Fast, safe client-side performance layer: de-duplicate identical reads and keep
+   very short-lived read results. Writes/login are never cached. */
+const READ_CACHE_TTL=8000, READ_TIMEOUT=30000;
+const readActions=new Set(['health','get_active_database','getdatabaseconfig','getdashboarddata','getallusersdirectory','getreportingmanagers','gettargets','getnotifications','getpendingusers','getimportschema','lookuppincode','getpendingattendanceapprovals','getlocationdata','getprojectdata','gettaskhistory','getchatusers','getchatmessages']);
+const readCache=new Map(), inFlight=new Map();
+function readKey(action,payload){
+  const clean=Object.assign({},payload||{});delete clean._sessionToken;
+  return action+'|'+JSON.stringify(clean)+'|'+(token?'session':'public');
+}
+function invalidate(action){
+  if(!action){readCache.clear();return;}
+  for(const k of readCache.keys())if(k.startsWith(action+'|'))readCache.delete(k);
+}
+async function rpc(action,payload){
+  if(!base()||!config.key)throw new Error('Supabase connection is not configured.');
+  const a=String(action||'').toLowerCase(), canCache=readActions.has(a), key=canCache?readKey(a,payload):'';
+  if(canCache){
+    const hit=readCache.get(key);
+    if(hit&&Date.now()-hit.at<READ_CACHE_TTL)return hit.value;
+    const pending=inFlight.get(key);if(pending)return pending;
+  }
+  const run=(async()=>{
+    const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),READ_TIMEOUT);
+    try{
+      const body={p_action:action,p_payload:Object.assign({},payload||{},token?{_sessionToken:token}:{})};
+      const r=await fetch(base()+'/rest/v1/rpc/app_api',{method:'POST',headers:headers(),body:JSON.stringify(body),signal:ctl.signal,cache:'no-store',keepalive:false});
+      const tx=await r.text();let j=null;try{j=JSON.parse(tx);}catch(_){}
+      if(!r.ok)throw new Error('Supabase '+r.status+': '+(tx||'Request failed').slice(0,500));
+      if(j&&j.authToken){token=j.authToken;try{localStorage.setItem('kosol_supabase_session',token);}catch(_){} }
+      if(j&&j.sessionToken){token=j.sessionToken;try{localStorage.setItem('kosol_supabase_session',token);}catch(_){} }
+      if(j&&j.sessionExpired){clearSession();invalidate();}
+      const out=j&&typeof j==='object'?j:{success:true,data:j};
+      if(canCache)readCache.set(key,{at:Date.now(),value:out});
+      return out;
+    }finally{clearTimeout(tm);}
+  })();
+  if(canCache)inFlight.set(key,run);
+  try{return await run;}finally{if(canCache)inFlight.delete(key);}
+}
+async function call(action,payload){const r=await rpc(action,payload);if(!readActions.has(String(action||'').toLowerCase()))invalidate();return r;}
+async function test(){return rpc('health',{});} 
+
+function isReady(){return !!(base()&&config.key);}
+function getConfig(){return Object.assign({},config,{key:config.key?'***':'',session:token?'***':''});}
+function setConfig(next){config=Object.assign({},config,next||{});try{localStorage.setItem(CFG,JSON.stringify(config));}catch(_){}return getConfig();}
+function clearSession(){token='';invalidate();try{localStorage.removeItem('kosol_supabase_session');}catch(_){} }
+async function getActiveDatabase(){try{return await rpc('get_active_database',{});}catch(e){return {success:false,message:e.message};}}
+async function migrateTo(destination,progress){
+  const source=Object.assign({},config), sourceToken=token;
+  if(!destination||!destination.url||!destination.key)throw new Error('Destination Supabase URL and publishable key are required.');
+  progress&&progress('Reading data from the current database…');
+  const data={};
+  const dash=await rpc('getDashboardData',{}); if(!dash.success)throw new Error(dash.message||'Could not read dashboard data.');
+  const d=dash.data||dash; Object.assign(data,{clients:d.clients||[],cold_calls:d.coldCalls||[],sales_orders:d.salesOrders||[],targets:d.targets||[],tasks:d.tasks||[],approvals:d.approvals||[],notifications:d.notifications||[],app_users:d.teamUsers||[]});
+  for(const [action,key] of [['getProjectData','projects'],['getLocationData','location_master'],['getPendingAttendanceApprovals','attendance_records']]){
+    try{const r=await rpc(action,{});if(action==='getProjectData'){data.projects=r.projects||[];data.project_tasks=r.tasks||[];data.project_invoices=r.invoices||[];}else if(action==='getLocationData'){data.location_master=Object.entries(r.locations||{}).map(([k,v])=>({id:'loc:'+k,key:k,value:v}));}else data.attendance_records=r.records||[];}catch(_){}
+  }
+  progress&&progress('Connecting to destination database…');
+  config=Object.assign({},destination);token='';
+  await test();
+  const entities=Object.keys(data);
+  let total=0;for(const k of entities)total+=Array.isArray(data[k])?data[k].length:0;
+  let done=0;
+  for(const k of entities){const rows=Array.isArray(data[k])?data[k]:[];for(let i=0;i<rows.length;i+=200){const r=await rpc('importModuleData',{entity:k,rows:rows.slice(i,i+200)});if(!r.success)throw new Error((r.message||'Import failed')+' ['+k+']');done+=Math.min(200,rows.length-i);progress&&progress('Migrating '+k+': '+done+'/'+total);}}
+  await rpc('set_active_database',Object.assign({},destination,{migratedFrom:source.name||source.url}));
+  progress&&progress('Migration completed successfully.');
+  return {success:true,source,destination,total};
+}
+window.KosolSupabaseAPI={call,rpc,test,isReady,getConfig,setConfig,clearSession,getActiveDatabase,migrateTo,invalidate,config:()=>config};
+window.KosolSupabase=Object.assign(window.KosolSupabase||{}, {mode:()=>config.name||'Supabase',isReady,getConfig,config:getConfig,setConfig,test,call,clearSession,migrateTo,getActiveDatabase,invalidate});
+})();
+
+</script>
+<style id="kosol-supabase-ui-style">
+.kosol-db-mode-label{font-weight:700}.kosol-db-active-pill{display:inline-flex;align-items:center;gap:.35rem}.kosol-db-modal{position:fixed;inset:0;z-index:13000;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:12px}.kosol-db-modal.show{display:flex}.kosol-db-card{background:#fff;border-radius:14px;width:min(96vw,720px);max-height:92vh;overflow:auto;padding:16px;border-top:4px solid #3ecf8e}.kosol-db-card .form-control{font-size:.86rem}
 </style>
-<script id="kosol-supabase-v1">
+<script>
 (function(){
-  'use strict';
-  /* Supabase data layer. The existing Google Apps Script backend keeps working exactly as before.
-     This module (1) copies ALL existing data into Supabase, (2) optionally mirrors every change,
-     (3) can serve data from Supabase if the old backend is unreachable (Master Admin only). */
-  const CFG_KEY='kosol_supabase_cfg_v1';
-  const DEF={url:'',key:'',secret:'',auto:false,fallback:true,history:true,primary:true};
-  const EMBED=(window.KOSOL_SUPABASE_CONFIG&&typeof window.KOSOL_SUPABASE_CONFIG==='object')?window.KOSOL_SUPABASE_CONFIG:{};
-  const CORE={clients:'clients',coldCalls:'cold_calls',tasks:'tasks',approvals:'approvals',salesOrders:'sales_orders',targets:'targets',notifications:'notifications',teamUsers:'app_users'};
-  const PRIMARY_TABLES=['clients','cold_calls','sales_orders','targets'];
-  const RECONCILE=['clients','cold_calls','tasks','approvals','sales_orders','targets','app_users'];
-  const ALL_TABLES=['app_users','clients','cold_calls','tasks','task_history','approvals','sales_orders','targets','notifications','attendance_records','projects','project_tasks','project_invoices','chat_messages','location_master'];
-  const SENSITIVE=/pass(word)?|hash|salt|authtoken|^token$|otp|secret/i;
-  let cfg=loadCfg(), lastCounts={}, lastHashes={}, mirroring=false, mirrorTimer=null, busy=false;
-
-  function loadCfg(){
-    let l={};try{l=JSON.parse(localStorage.getItem(CFG_KEY)||'{}')||{};}catch(_){}
-    /* The deployed GitHub Pages configuration is authoritative for the connection.
-       Older APK/WebView localStorage must never override the current public key or URL. */
-    const c=Object.assign({},DEF,l||{},EMBED);
-    if(EMBED.url)c.url=String(EMBED.url).trim();
-    if(EMBED.key)c.key=String(EMBED.key).trim();
-    if(Object.prototype.hasOwnProperty.call(EMBED,'primary'))c.primary=!!EMBED.primary;
-    c.secret='';
-    return c;
-  }
-  function saveCfg(){try{localStorage.setItem(CFG_KEY,JSON.stringify(cfg));}catch(_){}}
-  const ready=()=>!!(cfg.url&&cfg.key);
-  const isAdmin=()=>{try{const r=String(currentUser&&currentUser.role||'').trim().toLowerCase();return r==='master admin'||r==='admin';}catch(_){return false;}};
-  const arr=x=>Array.isArray(x)?x:[];
-  function hash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36);}
-  function pick(o,ks){for(const k of ks){const v=o[k];if(v!==undefined&&v!==null&&String(v)!=='')return String(v);}return null;}
-  function firstArray(res,prefer){
-    if(Array.isArray(res))return res;
-    const src=res&&typeof res.data==='object'&&res.data?Object.assign({},res,res.data):(res||{});
-    for(const k of (prefer||[]))if(Array.isArray(src[k]))return src[k];
-    for(const k of Object.keys(src))if(Array.isArray(src[k]))return src[k];
-    return [];
-  }
-
-  /* ---------- REST client (PostgREST) ---------- */
-  function headers(extra){
-    const h={apikey:cfg.key,Authorization:'Bearer '+cfg.key,'Content-Type':'application/json'};
-    return Object.assign(h,extra||{});
-  }
-  async function req(path,opt,ms){
-    const timeoutMs=ms||25000;
-    let lastErr=null;
-    const attempts=(opt&&opt.method&&opt.method!=='GET')?1:2;
-    for(let attempt=1;attempt<=attempts;attempt++){
-      const canAbort=typeof AbortController!=='undefined';
-      const c=canAbort?new AbortController():null;
-      const t=canAbort?setTimeout(()=>c.abort(),timeoutMs):null;
-      try{
-        const r=await fetch(cfg.url.replace(/\/+$/,'')+'/rest/v1/'+path,Object.assign({},opt,{headers:headers(opt&&opt.headers),...(c?{signal:c.signal}:{})}));
-        if(!r.ok){let m='';try{m=await r.text();}catch(_){}throw new Error('Supabase '+r.status+': '+m.slice(0,320));}
-        return r;
-      }catch(e){
-        lastErr=e;
-        if(attempt<attempts){await new Promise(r=>setTimeout(r,350*attempt));continue;}
-      }finally{if(t)clearTimeout(t);}
-    }
-    throw lastErr||new Error('Supabase request failed.');
-  }
-  async function upsert(table,rows,onStep,ignore){
-    for(let i=0;i<rows.length;i+=400){
-      await req(table+'?on_conflict=id',{method:'POST',headers:{Prefer:'resolution='+(ignore?'ignore':'merge')+'-duplicates,return=minimal'},body:JSON.stringify(rows.slice(i,i+400))});
-      if(onStep)onStep(Math.min(i+400,rows.length),rows.length);
-    }
-  }
-  async function softDelete(table,ids){
-    for(let i=0;i<ids.length;i+=80){
-      const list=ids.slice(i,i+80).map(x=>'"'+String(x).replace(/"/g,'\\"')+'"').join(',');
-      await req(table+'?id=in.('+encodeURIComponent(list)+')',{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({deleted_at:new Date().toISOString()})});
-    }
-  }
-  async function activeIds(table){
-    const out=[];for(let off=0;;off+=1000){
-      const j=await (await req(table+'?select=id&deleted_at=is.null&order=id.asc&limit=1000&offset='+off)).json();
-      j.forEach(x=>out.push(x.id));if(j.length<1000)break;}
-    return out;
-  }
-  async function fetchTable(table){
-    let out=[];for(let off=0;;off+=1000){
-      const j=await (await req(table+'?select=data&deleted_at=is.null&order=id.asc&limit=1000&offset='+off)).json();
-      out=out.concat(j.map(x=>x.data));if(j.length<1000)break;}
-    return out;
-  }
-  async function countTable(table){
-    const r=await req(table+'?select=id&deleted_at=is.null&limit=1',{headers:{Prefer:'count=exact'}});
-    const m=/\/(\d+)$/.exec(r.headers.get('content-range')||'');return m?Number(m[1]):0;
-  }
-
-  /* ---------- record -> row ---------- */
-  function toRow(table,rec,fallbackId){
-    if(!rec||typeof rec!=='object'||Array.isArray(rec))return null;
-    let data=rec;
-    if(table==='app_users'){data={};Object.keys(rec).forEach(k=>{if(!SENSITIVE.test(k))data[k]=rec[k];});}
-    const id=fallbackId||pick(rec,['id','ID','orderId','taskId','messageId','userId'])||('h'+hash(JSON.stringify(rec)));
-    return {id:id,
-      owner_user_id:pick(rec,['userId','ownerId','createdByUserId','assignedTo','fromUserId']),
-      owner_email:pick(rec,['userEmail','ownerEmail','createdBy','email']),
-      status:pick(rec,['status','Status','stage']),
-      record_date:pick(rec,['activityDate','entryDate','orderDate','date','createdAt','timestamp']),
-      data:data,deleted_at:null,synced_at:new Date().toISOString()};
-  }
-  function toRows(table,list,idFn){
-    const m=new Map();
-    arr(list).forEach((r,i)=>{const row=toRow(table,r,idFn?idFn(r,i):null);if(row)m.set(row.id,row);});
-    return [...m.values()];
-  }
-  const rowHash=row=>hash(JSON.stringify(row.data)+'|'+row.status+'|'+row.owner_user_id);
-
-  /* ---------- FULL MIGRATION: existing backend -> Supabase ---------- */
-  async function migrate(log,opts){
-    if(!ready())throw new Error('Enter the Supabase URL and anon key first.');
-    if(typeof currentUser==='undefined'||!currentUser)throw new Error('Please sign in first.');
-    if(!isAdmin())throw new Error('Only Admin / Master Admin can migrate data.');
-    opts=opts||{};const u=currentUser,sets={};
-    log('1/6 Fetching all records from the existing backend…');
-    const payload={email:u.email,authToken:u.authToken,userId:u.id||u.userId||'',userEmail:u.email,userRole:u.role||''};
-    const res=await window.__kosolDirectDashboardFetch(payload);
-    const p=res&&res.data&&typeof res.data==='object'?res.data:res;
-    Object.keys(CORE).forEach(k=>{sets[CORE[k]]=toRows(CORE[k],p[k]);});
-    if(p.todayAttendance)sets.attendance_records=toRows('attendance_records',[p.todayAttendance]);
-    log('   dashboard: '+Object.keys(CORE).map(k=>CORE[k]+'='+sets[CORE[k]].length).join(', '));
-
-    log('2/6 Users directory, pending attendance, projects, locations…');
-    try{const r=await callBackendRaw('getAllUsersDirectory',u);
-      if(r&&r.success!==false){const m=new Map((sets.app_users||[]).map(x=>[x.id,x]));toRows('app_users',firstArray(r,['users'])).forEach(x=>m.set(x.id,x));sets.app_users=[...m.values()];}}
-    catch(e){log('   ! users directory skipped: '+e.message);}
-    try{const r=await callBackendRaw('getPendingAttendanceApprovals',u);
-      const m=new Map((sets.attendance_records||[]).map(x=>[x.id,x]));toRows('attendance_records',firstArray(r,['records','approvals','items'])).forEach(x=>m.set(x.id,x));sets.attendance_records=[...m.values()];}
-    catch(e){log('   ! attendance skipped: '+e.message);}
-    try{const r=await callBackendRaw('getProjectData',{});
-      if(r&&r.success!==false){sets.projects=toRows('projects',r.projects);sets.project_tasks=toRows('project_tasks',r.tasks);sets.project_invoices=toRows('project_invoices',r.invoices);}}
-    catch(e){log('   ! projects skipped: '+e.message);}
-    try{const r=await callBackendRaw('getLocationData',{});
-      if(r&&r.locations)sets.location_master=Object.keys(r.locations).map(k=>toRow('location_master',{key:k,value:r.locations[k]},'loc:'+k));}
-    catch(e){log('   ! locations skipped: '+e.message);}
-
-    if(opts.history){
-      log('3/6 Task history…');
-      const hist=[],tasks=arr(p.tasks);let done=0;
-      const worker=async()=>{while(tasks.length){const t=tasks.shift();if(!t||!t.id)continue;
-        try{const r=await callBackendRaw('getTaskHistory',{taskId:t.id});
-          firstArray(r,['history','items']).forEach((h,i)=>{const row=toRow('task_history',Object.assign({taskId:t.id},h),t.id+':'+(h&&h.id?h.id:'h'+hash(JSON.stringify(h)+i)));if(row)hist.push(row);});}
-        catch(_){} if(++done%25===0)log('   task history '+done+'…');}};
-      await Promise.all([worker(),worker(),worker(),worker()]);
-      sets.task_history=[...new Map(hist.map(x=>[x.id,x])).values()];
-      log('4/6 Chat messages (conversations of the signed-in admin)…');
-      try{const cu=await callBackendRaw('getChatUsers',{userId:u.id,email:u.email});const msgs=[];
-        for(const peer of firstArray(cu,['users'])){const pid=peer&&(peer.id||peer.userId);if(!pid)continue;
-          try{const mr=await callBackendRaw('getChatMessages',{userId:u.id,email:u.email,peerId:pid});
-            firstArray(mr,['messages']).forEach(m=>{const row=toRow('chat_messages',m);if(row)msgs.push(row);});}catch(_){}}
-        sets.chat_messages=[...new Map(msgs.map(x=>[x.id,x])).values()];}
-      catch(e){log('   ! chat skipped: '+e.message);}
-    }else log('3/6–4/6 Task history & chat skipped (option off).');
-
-    log('5/6 Writing to Supabase…');
-    const summary={},skipped={};
-    for(const t of Object.keys(sets)){
-      const rows=sets[t];summary[t]=0;if(!rows.length)continue;
-      const ignore=primaryOn()&&PRIMARY_TABLES.includes(t);
-      try{
-        await upsert(t,rows,(a,b)=>{if(b>400)log('   '+t+' '+a+'/'+b);},ignore);
-        summary[t]=rows.length;
-        lastHashes[t]=lastHashes[t]||{};rows.forEach(r=>{lastHashes[t][r.id]=rowHash(r);});
-        log('   ✓ '+t+': '+rows.length+' records');
-      }catch(e){
-        const msg=e&&e.message||String(e);
-        skipped[t]=rows.length;
-        // Notifications are generated/rebuilt by the application and are protected by RLS.
-        // Do not weaken RLS or expose a service-role key just to import this derived table.
-        if(t==='notifications' && /42501|row-level security|violates row-level security/i.test(msg)){
-          log('   ⚠ '+t+': skipped '+rows.length+' protected records (RLS). Notification feed will be rebuilt from migrated business data.');
-          continue;
-        }
-        log('   ⚠ '+t+': skipped '+rows.length+' records — '+msg);
-      }
-    }
-    summary.__skipped=skipped;
-    log('6/6 Marking records deleted in the old backend as deleted in Supabase…');
-    for(const t of RECONCILE){
-      if(!sets[t]||!sets[t].length)continue;
-      if(primaryOn()&&PRIMARY_TABLES.includes(t))continue; /* Supabase is the source of truth for these */ /* never wipe a table because of an empty response */
-      const keep=new Set(sets[t].map(r=>r.id));
-      try{const gone=(await activeIds(t)).filter(id=>!keep.has(id));if(gone.length){await softDelete(t,gone);log('   '+t+': '+gone.length+' soft-deleted');}}catch(e){log('   ! reconcile '+t+': '+e.message);}
-    }
-    lastCounts=Object.assign({},summary);delete lastCounts.__skipped;
-    try{await req('sync_log',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({source:'full-migration:'+(u.email||''),summary:summary})});}catch(_){}
-    return summary;
-  }
-
-  /* ---------- verification ---------- */
-  async function verify(log){
-    if(!ready())throw new Error('Enter the Supabase URL and anon key first.');
-    log('Comparing record counts (Supabase vs last migration / current screen data)…');
-    let ok=true;
-    for(const t of ALL_TABLES){
-      const c=await countTable(t);
-      let exp=lastCounts[t];
-      if(exp===undefined){const k=Object.keys(CORE).find(k=>CORE[k]===t);if(k&&typeof rawData!=='undefined')exp=arr(rawData[k]).length;}
-      const flag=exp===undefined?'':(c>=exp?' ✓':' ✗ expected '+exp);if(exp!==undefined&&c<exp)ok=false;
-      log('   '+t+': '+c+flag);
-    }
-    log(ok?'Verification passed.':'Verification found missing records – run the migration again.');
-    return ok;
-  }
-
-  /* ---------- ongoing mirror (Master Admin sessions) ---------- */
-  function scheduleMirror(){if(!cfg.auto||primaryOn()||!ready()||!isAdmin())return;clearTimeout(mirrorTimer);mirrorTimer=setTimeout(mirrorNow,4000);}
-  async function mirrorNow(){
-    if(mirroring||busy||!cfg.auto||!ready()||!isAdmin()||typeof rawData==='undefined')return;
-    mirroring=true;
-    try{
-      for(const k of Object.keys(CORE)){
-        const t=CORE[k],rows=toRows(t,rawData[k]);if(!Array.isArray(rawData[k]))continue;
-        const prev=lastHashes[t]||null,next={},changed=[];
-        rows.forEach(r=>{const h=rowHash(r);next[r.id]=h;if(!prev||prev[r.id]!==h)changed.push(r);});
-        if(changed.length)await upsert(t,changed);
-        if(prev&&RECONCILE.includes(t)){const gone=Object.keys(prev).filter(id=>!(id in next));if(gone.length)await softDelete(t,gone);}
-        lastHashes[t]=next;
-      }
-    }catch(e){console.warn('Supabase mirror skipped:',e.message||e);}
-    finally{mirroring=false;}
-  }
-
-  /* ---------- fallback read: Supabase -> application ---------- */
-  async function loadFromSupabase(){
-    if(!ready()||!isAdmin())return false;
-    const d={};for(const k of Object.keys(CORE))d[k]=await fetchTable(CORE[k]);
-    if(!d.clients.length&&!d.salesOrders.length&&!d.tasks.length)return false;
-    Object.keys(d).forEach(k=>{rawData[k]=d[k];});
-    allUsersList=rawData.teamUsers.slice();
-    try{lastDataFingerprint=fastDashboardFingerprint(rawData);dashboardStatsCacheKey='';dashboardStatsCacheValue=null;}catch(_){}
-    try{applyDashboardFilters();}catch(_){}
-    try{const m={clients:renderClients,tasks:renderTasks,approvals:renderApprovals,coldcalls:renderColdCalls,salesorders:renderSalesOrders,targets:renderTargetModule};if(m[activeTabId])m[activeTabId]();}catch(_){}
-    try{showDataSyncStatus('pending','Old backend unreachable – showing data from Supabase.');}catch(_){}
-    return true;
-  }
-  const prevRefresh=window.refreshData;
-  if(typeof prevRefresh==='function'){
-    window.refreshData=async function(o){
-      const ok=await prevRefresh.apply(this,arguments);
-      try{
-        if(ok)scheduleMirror();
-        else if(cfg.fallback&&ready()&&isAdmin()&&o&&(o.reason==='initial-load'||o.reason==='manual-retry'))await loadFromSupabase();
-      }catch(e){console.warn('Supabase fallback skipped:',e.message||e);}
-      return ok;
-    };
-  }
-
-
-  /* ---------- GLOBAL PRIMARY-DATABASE SWITCH (Admin / Master Admin) ---------- */
-  const SETTING_KEY='primary_db';
-  let remoteMode=null, remoteAt=0;
-  async function resolveMode(force){
-    if(!ready())return;
-    if(!force&&Date.now()-remoteAt<30000)return;
-    try{
-      const j=await (await req('app_settings?key=eq.'+SETTING_KEY+'&select=value&limit=1',null,8000)).json();
-      remoteMode=(j[0]&&j[0].value)||null;
-    }catch(_){/* keep last known mode; table may not exist yet */}
-    remoteAt=Date.now();
-  }
-  const primaryOn=()=>remoteMode?remoteMode==='supabase':!!cfg.primary;
-  const modeName=()=>primaryOn()?'Supabase':'Google Sheet';
-  function updateModeLabels(){
-    document.querySelectorAll('.kosol-db-mode-label').forEach(e=>{e.textContent=modeName();});
-    const b=document.getElementById('dashboardActiveDb');if(b){b.classList.toggle('text-bg-success',primaryOn());b.classList.toggle('text-bg-secondary',!primaryOn());}
-  }
-  async function setMode(mode){
-    if(!isAdmin())throw new Error('Only Admin / Master Admin can switch the primary database.');
-    if(mode==='supabase'&&!ready())throw new Error('Configure the Supabase URL and key first (Backend & Database).');
-    let remoteOk=false;
-    if(ready()){
-      try{
-        await req('app_settings?on_conflict=key',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
-          body:JSON.stringify([{key:SETTING_KEY,value:mode,updated_by:(currentUser&&currentUser.email)||'',updated_at:new Date().toISOString()}])});
-        remoteOk=true;
-      }catch(e){
-        if(mode==='supabase')throw new Error('Could not save the switch in Supabase. Run supabase_switch_update.sql in the SQL Editor. ('+(e.message||e)+')');
-      }
-    }
-    if(remoteOk){remoteMode=mode;remoteAt=Date.now();}else{remoteMode=null;}
-    cfg.primary=(mode==='supabase');saveCfg();updateModeLabels();
-    try{invalidateBackendReadCache();}catch(_){}
-    try{await refreshData({silent:false,reason:'manual-retry',force:true});}catch(_){}
-    updateModeLabels();
-    return remoteOk;
-  }
-  function openSwitch(ev){
-    if(ev&&ev.preventDefault)ev.preventDefault();
-    if(!isAdmin())return;
-    let o=document.getElementById('kosol-dbsw');
-    if(!o){
-      o=document.createElement('div');o.id='kosol-dbsw';o.className='kosol-sb-overlay';
-      o.innerHTML='<div class="sb-card"><div class="d-flex align-items-center mb-2"><h6 class="fw-bold m-0"><i class="bi bi-arrow-left-right me-1"></i>Primary Database</h6><button type="button" class="btn-close ms-auto" id="dbswClose" aria-label="Close"></button></div>'+
-      '<div class="mb-2">Current: <span class="badge text-bg-success kosol-db-mode-label"></span></div>'+
-      '<div class="text-muted mb-2" style="font-size:.75rem">Applies to every user (Clients, Cold Calls, Sales Orders &amp; Targets). Data is not copied automatically between the two databases when you switch.</div>'+
-      '<div class="d-grid gap-2"><button class="btn btn-outline-success text-start" id="dbswSb"><b><i class="bi bi-lightning-charge me-1"></i>Supabase</b><br><small>Save and read records in Supabase</small></button>'+
-      '<button class="btn btn-outline-secondary text-start" id="dbswSheet"><b><i class="bi bi-file-earmark-spreadsheet me-1"></i>Google Sheet (existing backend)</b><br><small>Save and read records in the Apps Script sheet</small></button></div>'+
-      '<div class="d-flex gap-2 mt-2"><button class="btn btn-sm btn-link p-0" id="dbswCfg">Supabase settings &amp; migration…</button></div><div id="dbswMsg" class="small mt-2"></div></div>';
-      document.body.appendChild(o);
-      const $=id=>document.getElementById(id),msg=(t,c)=>{$('dbswMsg').className='small mt-2 '+(c||'');$('dbswMsg').textContent=t;};
-      $('dbswClose').onclick=()=>o.classList.remove('show');
-      $('dbswCfg').onclick=()=>{o.classList.remove('show');open();};
-      const go=async(mode)=>{
-        if(busy)return;
-        if((mode==='supabase')===primaryOn()){msg(modeName()+' is already the primary database.','text-muted');return;}
-        try{
-          if(mode==='supabase'){
-            if(!ready())throw new Error('Configure the Supabase URL and key first (Supabase settings).');
-            msg('Checking Supabase…','text-muted');
-            const counts=await Promise.all(PRIMARY_TABLES.map(countTable));
-            const inSb=counts.reduce((a,b)=>a+b,0);
-            const inApp=['clients','coldCalls','salesOrders','targets'].reduce((a,k)=>a+arr(rawData[k]).length,0);
-            if(inSb<inApp&&!confirm('Supabase currently holds '+inSb+' records but the sheet shows '+inApp+'.\nRun "Migrate all data" first, otherwise older records will not appear.\n\nSwitch to Supabase anyway?'))return msg('Switch cancelled.','text-muted');
-          }else if(!confirm('Switch back to the Google Sheet?\nRecords created while Supabase was primary will NOT appear in the sheet.'))return msg('Switch cancelled.','text-muted');
-          busy=true;msg('Switching…','text-muted');
-          const global=await setMode(mode);
-          msg('Primary database is now '+modeName()+(global?' for all users.':' (this browser only – run supabase_switch_update.sql to apply to all users).'),global?'text-success':'text-warning');
-        }catch(e){msg(e.message||String(e),'text-danger');}finally{busy=false;}
-      };
-      $('dbswSb').onclick=()=>go('supabase');$('dbswSheet').onclick=()=>go('sheet');
-    }
-    document.getElementById('dbswMsg').textContent='';
-    resolveMode(true).then(updateModeLabels);updateModeLabels();
-    o.classList.add('show');
-  }
-
-  /* ---------- PRIMARY MODE: Clients / Cold Calls / Sales Orders / Targets are saved in Supabase ---------- */
-  const ENT={
-    saveClient:{t:'clients',op:'save',pre:'CL',label:'Client entry'},updateClient:{t:'clients',op:'update',label:'Client entry'},deleteClient:{t:'clients',op:'delete',label:'Client'},
-    saveColdCall:{t:'cold_calls',op:'save',pre:'CC',label:'Cold call'},updateColdCall:{t:'cold_calls',op:'update',label:'Cold call'},deleteColdCall:{t:'cold_calls',op:'delete',label:'Cold call'},
-    saveSalesOrder:{t:'sales_orders',op:'save',pre:'SO',label:'Sales order'},updateSalesOrder:{t:'sales_orders',op:'update',label:'Sales order'},deleteSalesOrder:{t:'sales_orders',op:'delete',label:'Sales order'},
-    saveTarget:{t:'targets',op:'save',pre:'TG',label:'Target'},deleteTarget:{t:'targets',op:'delete',label:'Target'}
-  };
-  const READ_KEYS={clients:'clients',coldCalls:'cold_calls',tasks:'tasks',approvals:'approvals',salesOrders:'sales_orders',targets:'targets',notifications:'notifications',teamUsers:'app_users'};
-  const OWN=['userId','userEmail','createdBy','createdByUserId','ownerId','ownerEmail','createdAt'];
-  const low=v=>String(v==null?'':v).trim().toLowerCase();
-  const jsonRes=o=>new Response(JSON.stringify(o),{status:200,headers:{'Content-Type':'application/json'}});
-  const rawKey=t=>Object.keys(READ_KEYS).find(k=>READ_KEYS[k]===t);
-  function visibleScope(list){
-    if(isAdmin())return list;
-    const ids=new Set();const add=u=>{if(u)[u.id,u.userId,u.email,u.name,u.employeeId].forEach(v=>{if(low(v))ids.add(low(v));});};
-    add(currentUser);
-    try{const team=typeof dashboardHeadTeam==='function'?dashboardHeadTeam(currentUser,(typeof allUsersList!=='undefined'&&allUsersList)||[]):[];arr(team).forEach(add);}catch(_){}
-    return list.filter(r=>[r.userId,r.createdByUserId,r.ownerId,r.userEmail,r.createdBy,r.ownerEmail,r.owner].some(v=>low(v)&&ids.has(low(v))));
-  }
-  async function sbEntities(){
-    const out={};
-    const results=await Promise.all(Object.keys(READ_KEYS).map(async k=>{
-      try{return {k,value:visibleScope(await fetchTable(READ_KEYS[k]))};}
-      catch(e){return {k,error:e};}
-    }));
-    const failures=[];
-    results.forEach(r=>{if(r.error)failures.push(r.k+': '+(r.error.message||r.error));else out[r.k]=r.value;});
-    if(failures.length)throw new Error('Supabase dashboard sync failed for '+failures.join('; '));
-    return out;
-  }
-  async function handleWrite(action,p){
-    const d=ENT[action],t=d.t,now=new Date().toISOString();
-    try{
-      const clean=Object.assign({},p);delete clean.authToken;
-      const id=String(clean.id||clean.orderId||'').trim();
-      if(d.op==='delete'){
-        if(!id)return{success:false,message:d.label+' id is missing.'};
-        await softDelete(t,[id]);
-        return{success:true,message:d.label+' deleted successfully.'};
-      }
-      if((t==='clients'||t==='cold_calls')&&clean.email&&low(clean.email)===low(currentUser&&currentUser.email))clean.email='';
-      let base=null;
-      if(id){
-        const j=await (await req(t+'?id=eq.'+encodeURIComponent(id)+'&select=data&limit=1')).json();
-        base=j[0]&&j[0].data||null;
-        if(!base){const k=rawKey(t);base=arr(typeof rawData!=='undefined'?rawData[k]:[]).find(x=>String(x.id||x.orderId)===id)||null;}
-      }
-      const nid=id||(d.pre+'-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase());
-      const rec=Object.assign({},base||{},clean,{id:nid});
-      if(t==='sales_orders')rec.orderId=nid;
-      if(clean.locationImageData){rec.locationImageUrl=clean.locationImageData;}   // stored inline (data URL)
-      delete rec.locationImageData;
-      if(base){OWN.forEach(k=>{if(base[k]!==undefined&&base[k]!==null&&base[k]!=='')rec[k]=base[k];});}
-      else{
-        rec.userId=rec.userId||currentUser.id;rec.userEmail=rec.userEmail||currentUser.email;
-        rec.createdBy=rec.createdBy||currentUser.email;rec.createdByUserId=rec.createdByUserId||currentUser.id;rec.createdAt=now;
-      }
-      rec.updatedAt=now;rec.updatedBy=currentUser&&currentUser.email||'';
-      await upsert(t,[toRow(t,rec,nid)]);
-      return{success:true,message:d.label+(base?' updated':' saved')+' successfully in Supabase.',id:nid,clientId:nid,orderId:nid,data:rec};
-    }catch(e){
-      console.error('Supabase save failed:',e);
-      return{success:false,message:'Supabase save failed: '+(e&&e.message||e)};
-    }
-  }
-  async function dashboardMerged(input,init){
-    /* When Supabase is primary, NEVER query the Google Sheet for the same dashboard request.
-       The old implementation queried both backends in parallel, which made the application
-       slower and also allowed Sheet data to appear during a Supabase-first session. */
-    if(primaryOn()){
-      const s=await sbEntities();
-      const rd=typeof rawData!=='undefined'?rawData:{};
-      return jsonRes({success:true,data:Object.assign({tasks:arr(rd.tasks),approvals:arr(rd.approvals),notifications:arr(rd.notifications),teamUsers:arr(rd.teamUsers),todayAttendance:rd.todayAttendance||null},s)});
-    }
-    const g=await origFetch(input,init);
-    return g;
-  }
-  const origFetch=window.fetch.bind(window);
-  window.fetch=async function(input,init){
-    const isScriptRequest=init&&typeof init.body==='string'&&typeof SCRIPT_URL!=='undefined'&&String(input&&input.url||input).indexOf(String(SCRIPT_URL).split('?')[0])===0&&currentUser;
-    if(!isScriptRequest)return origFetch(input,init);
-    let m=null;try{m=JSON.parse(init.body);}catch(_){}
-    const a=m&&m.action;
-    if(!(a&&(ENT[a]||a==='getTargets'||a==='getDashboardData')))return origFetch(input,init);
-    /* Do not let a missing per-user/local configuration silently reactivate the Sheet.
-       The embedded/global primary flag is authoritative; Supabase must be configured for
-       every browser before operational data can be written. */
-    if(!ready()){
-      if(cfg.primary!==false){
-        return jsonRes({success:false,message:'Supabase is the primary database, but this browser has no Supabase public/anon key configured. Configure the shared Supabase configuration in the deployed index.html; Google Sheet fallback is disabled.'});
-      }
-      return origFetch(input,init);
-    }
-    await resolveMode();
-    if(!primaryOn())return origFetch(input,init);
-    const pl=m.payload||{};
-    try{
-      if(ENT[a])return jsonRes(await handleWrite(a,pl));
-      if(a==='getTargets')return jsonRes({success:true,targets:visibleScope(await fetchTable('targets'))});
-      if(a==='getDashboardData')return await dashboardMerged(input,init);
-    }catch(e){
-      /* Critical: once Supabase is primary, a Supabase failure must NOT fall through to
-         the Google Sheet. Returning an error preserves the single-source-of-truth rule. */
-      console.error('Supabase primary operation failed:',e);
-      return jsonRes({success:false,message:e?.message||'Supabase primary database operation failed.'});
-    }
-    return origFetch(input,init);
-  };
-
-  /* ---------- Master Admin panel ---------- */
-  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  function open(){
-    let o=document.getElementById('kosol-sb-panel');
-    if(!o){
-      o=document.createElement('div');o.id='kosol-sb-panel';
-      o.innerHTML='<div class="sb-card"><div class="d-flex align-items-center mb-2"><h6 class="fw-bold m-0"><i class="bi bi-database-gear me-1" style="color:#3ecf8e"></i>Backend &amp; Database (Supabase)</h6><button type="button" class="btn-close ms-auto" id="sbClose" aria-label="Close"></button></div>'+
-      '<div class="text-muted mb-2" style="font-size:.75rem">1) Run <b>supabase_schema.sql</b> in Supabase SQL Editor. 2) Paste the project URL, anon key and the shared secret you set in that file. 3) Migrate.</div>'+
-      '<label class="form-label mb-0 small">Project URL</label><input class="form-control form-control-sm mb-2" id="sbUrl" placeholder="https://xxxx.supabase.co" autocomplete="off">'+
-      '<label class="form-label mb-0 small">Anon (public) key</label><input class="form-control form-control-sm mb-2" id="sbKey" autocomplete="off">'+
-      '<input type="hidden" id="sbSecret" value="" autocomplete="off">'+
-      '<div class="mb-2">Primary database: <span class="badge text-bg-success kosol-db-mode-label"></span> <button type="button" class="btn btn-sm btn-outline-dark ms-1" id="sbSwitch"><i class="bi bi-arrow-left-right me-1"></i>Switch…</button></div>'+
-      '<div class="form-check"><input class="form-check-input" type="checkbox" id="sbHist"><label class="form-check-label" for="sbHist">Include task history &amp; chat in migration</label></div>'+
-      '<div class="form-check"><input class="form-check-input" type="checkbox" id="sbAuto"><label class="form-check-label" for="sbAuto">Auto-sync every change to Supabase (Master Admin session)</label></div>'+
-      '<div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="sbFall"><label class="form-check-label" for="sbFall">Load from Supabase if the old backend is unreachable</label></div>'+
-      '<div class="d-flex flex-wrap gap-2"><button class="btn btn-sm btn-outline-secondary" id="sbSave">Save</button><button class="btn btn-sm btn-outline-info" id="sbTest">Test</button><button class="btn btn-sm btn-success" id="sbMig"><i class="bi bi-cloud-arrow-up me-1"></i>Migrate all data</button><button class="btn btn-sm btn-outline-primary" id="sbVer">Verify counts</button><button class="btn btn-sm btn-outline-dark" id="sbCopy">Copy config for all users</button></div><pre id="sbLog">Ready.</pre></div>';
-      document.body.appendChild(o);
-      const $=id=>document.getElementById(id);
-      const log=m=>{const l=$('sbLog');l.textContent+='\n'+m;l.scrollTop=l.scrollHeight;};
-      const collect=()=>{cfg.url=$('sbUrl').value.trim();cfg.key=$('sbKey').value.trim();cfg.secret='';cfg.auto=$('sbAuto').checked;cfg.fallback=$('sbFall').checked;cfg.history=$('sbHist').checked;saveCfg();};
-      const run=(btn,fn)=>async()=>{if(busy)return;busy=true;const label=btn.innerHTML;btn.disabled=true;$('sbLog').textContent='';
-        try{collect();await fn();}catch(e){log('ERROR: '+(e&&e.message||e));}finally{busy=false;btn.disabled=false;btn.innerHTML=label;}};
-      $('sbClose').onclick=()=>o.classList.remove('show');
-      $('sbSwitch').onclick=()=>{o.classList.remove('show');openSwitch();};
-      $('sbSave').onclick=()=>{collect();$('sbLog').textContent='Saved.';if(cfg.auto)scheduleMirror();};
-      $('sbTest').onclick=run($('sbTest'),async()=>{await req('clients?select=id&limit=1');log('Connection OK – Supabase REST API and publishable key are working.');});
-      $('sbMig').onclick=run($('sbMig'),async()=>{const s=await migrate(log,{history:cfg.history});const skipped=s.__skipped||{};const copied=Object.keys(s).filter(k=>k!=='__skipped').map(k=>k+'='+s[k]).join(', ');log('DONE. Records copied: '+copied);if(Object.keys(skipped).length)log('Migration completed with protected/skipped tables: '+Object.keys(skipped).map(k=>k+'='+skipped[k]).join(', '));await verify(log);});
-      $('sbVer').onclick=run($('sbVer'),()=>verify(log));
-      $('sbCopy').onclick=()=>{collect();const line='window.KOSOL_SUPABASE_CONFIG='+JSON.stringify({url:cfg.url,key:cfg.key,secret:cfg.secret,primary:primaryOn()})+';';
-        $('sbLog').textContent='Paste this line into index.html inside <script id="kosol-supabase-config"> (replacing the existing line), then redeploy. Every user will then save to Supabase:\n\n'+line;
-        try{navigator.clipboard.writeText(line);}catch(_){}};
-    }
-    document.getElementById('sbUrl').value=cfg.url;document.getElementById('sbKey').value=cfg.key;document.getElementById('sbSecret').value='';
-    document.getElementById('sbAuto').checked=!!cfg.auto;document.getElementById('sbFall').checked=!!cfg.fallback;document.getElementById('sbHist').checked=!!cfg.history;updateModeLabels();
-    o.classList.add('show');
-  }
-  /* Backend & Database access: sidebar/mobile menu entries + the card itself, shown for Master Admin
-     (case-insensitive role check) regardless of which tab or login path was used. */
-  function syncAdminUi(){
-    const show=isAdmin();
-    ['menuBackendDatabase','mobileMenuBackendDatabase','menuDbSwitch','mobileMenuDbSwitch','dashboardActiveDb'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('d-none',!show);});
-    const card=document.getElementById('masterAdminBackendTools');if(card&&show)card.classList.remove('d-none');
-    if(show){resolveMode().then(updateModeLabels);updateModeLabels();}
-  }
-  function showBackend(ev){
-    if(ev&&ev.preventDefault)ev.preventDefault();
-    if(!isAdmin())return;
-    syncAdminUi();
-    try{const oc=document.querySelector('.offcanvas.show');if(oc&&window.bootstrap)bootstrap.Offcanvas.getOrCreateInstance(oc).hide();}catch(_){}
-    open();
-  }
-  setInterval(function(){if(document.visibilityState==='visible')syncAdminUi();},1500);
-  syncAdminUi();
-  window.KosolSupabase={openSwitch:openSwitch,setMode:setMode,mode:modeName,showBackend:showBackend,syncAdminUi:syncAdminUi,open:open,migrate:migrate,verify:verify,loadFromSupabase:loadFromSupabase,config:()=>Object.assign({},cfg,{key:cfg.key?'***':'',secret:cfg.secret?'***':''})};
+ function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+ function admin(){return typeof isAdmin==='function'&&isAdmin();}
+ function sync(){const ok=admin();['menuBackendDatabase','menuDbSwitch','dashboardActiveDb','mobileMenuBackendDatabase','mobileMenuDbSwitch'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('d-none',!ok)});const name=(window.KosolSupabase&&window.KosolSupabase.config)?(window.KosolSupabase.config().name||'Supabase'):'Supabase';document.querySelectorAll('.kosol-db-mode-label').forEach(e=>e.textContent=name);const role=document.getElementById('dashboardActiveRole');if(role){const r=String(window.currentUser?.role||'').trim();role.classList.toggle('d-none',!r);const b=role.querySelector('b');if(b)b.textContent=r;}}
+ function open(){if(!admin())return;let m=document.getElementById('kosolDbManager');if(!m){m=document.createElement('div');m.id='kosolDbManager';m.className='kosol-db-modal';m.innerHTML='<div class="kosol-db-card"><div class="d-flex align-items-center"><h5 class="m-0"><i class="bi bi-database-gear me-2"></i>Database Manager</h5><button class="btn-close ms-auto" id="kosolDbClose"></button></div><div class="small text-muted mt-1 mb-3">Supabase is the only application backend. Admin and Master Admin can configure, test, switch and migrate between compatible Supabase databases. Only publishable/anon keys belong here.</div><div class="row g-2"><div class="col-12"><label class="form-label small mb-1">Database name</label><input id="kosolDbName" class="form-control" placeholder="Production Supabase"></div><div class="col-12"><label class="form-label small mb-1">Project URL</label><input id="kosolDbUrl" class="form-control" placeholder="https://xxxx.supabase.co"></div><div class="col-12"><label class="form-label small mb-1">Publishable / anon key</label><input id="kosolDbKey" class="form-control" autocomplete="off"></div></div><div class="mt-3 d-flex flex-wrap gap-2"><button class="btn btn-outline-info btn-sm" id="kosolDbTest">Test connection</button><button class="btn btn-outline-primary btn-sm" id="kosolDbSave">Save configuration</button><button class="btn btn-success btn-sm" id="kosolDbSwitch">Make active database</button><button class="btn btn-outline-danger btn-sm" id="kosolDbMigrate">Migrate current data</button></div><div id="kosolDbStatus" class="small mt-3 text-muted"></div><div class="alert alert-info small mt-3 mb-0"><b>Active database:</b> <span id="kosolDbActive">Supabase</span><br>The active database label is shown to signed-in users. Database credentials are kept in this browser; no secret/service-role key is stored in the application.</div></div>';document.body.appendChild(m);m.querySelector('#kosolDbClose').onclick=()=>m.classList.remove('show');m.querySelector('#kosolDbTest').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const c=window.KosolSupabase.config();const n=m.querySelector('#kosolDbName').value.trim(),u=m.querySelector('#kosolDbUrl').value.trim(),k=m.querySelector('#kosolDbKey').value.trim();if(!u||!k)throw Error('Enter database URL and publishable key.');window.KosolSupabase.setConfig({name:n||'Supabase',url:u,key:k});await window.KosolSupabase.test();st.textContent='Connection successful.';}catch(e){st.textContent='Connection failed: '+e.message;}};m.querySelector('#kosolDbSave').onclick=()=>{window.KosolSupabase.setConfig({name:m.querySelector('#kosolDbName').value.trim()||'Supabase',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()});m.querySelector('#kosolDbStatus').textContent='Configuration saved locally. Test it before switching.';sync();};m.querySelector('#kosolDbSwitch').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const c={name:m.querySelector('#kosolDbName').value.trim()||'Supabase',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()};window.KosolSupabase.setConfig(c);await window.KosolSupabase.test();await window.KosolSupabase.call('set_active_database',c);st.textContent='Active database switched successfully. Reloading data…';setTimeout(()=>location.reload(),500);}catch(e){st.textContent='Switch failed: '+e.message;}};m.querySelector('#kosolDbMigrate').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const d={name:m.querySelector('#kosolDbName').value.trim()||'Supabase',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()};await window.KosolSupabase.migrateTo(d,msg=>st.textContent=msg);st.textContent='Migration completed. The destination is now active.';sync();setTimeout(()=>location.reload(),700);}catch(e){st.textContent='Migration failed: '+e.message;}};}
+ const c=window.KosolSupabase&&window.KosolSupabase.config?window.KosolSupabase.config():{};m.querySelector('#kosolDbName').value=c.name||'Supabase';m.querySelector('#kosolDbUrl').value=c.url||'';m.querySelector('#kosolDbKey').value=c.key&&c.key!=='***'?c.key:'';m.querySelector('#kosolDbActive').textContent=c.name||'Supabase';m.classList.add('show');}
+ function switchDb(ev){if(ev)ev.preventDefault();open();}
+ window.KosolSupabase=window.KosolSupabase||{};window.KosolSupabase.open=open;window.KosolSupabase.openSwitch=switchDb;window.addEventListener('load',sync,{once:true});window.addEventListener('focus',sync,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync();},{passive:true});setInterval(sync,15000);
 })();
 </script>
 
