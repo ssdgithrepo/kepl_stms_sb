@@ -884,7 +884,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
             <div class="col-6 col-md-3 mb-2"><label class="form-label small">City / Village</label><input id="suCityVillage" class="form-control form-control-sm" list="suCityVillageList" placeholder="Type or select city / village"><datalist id="suCityVillageList"></datalist></div>
             <div class="col-6 col-md-3 mb-2"><label class="form-label small">PIN Code</label><input type="text" id="suPinCode" class="form-control form-control-sm" inputmode="numeric" maxlength="6" list="suPinCodeList" placeholder="Type or select 6 digit PIN"><datalist id="suPinCodeList"></datalist></div>
           </div>
-          <div class="col-12 mb-2"><label class="form-label small">Reporting Manager(s)</label><select id="suReportingManagers" multiple size="4" class="form-select form-select-sm"></select><small class="text-muted">Multiple reporting managers can be selected when available.</small></div>
+          <div class="col-12 mb-2"><label class="form-label small">Reporting Manager(s) — All Registered Users</label><select id="suReportingManagers" multiple size="6" class="form-select form-select-sm"></select><small class="text-muted">Select from all registered active/approved users. Multiple reporting managers can be selected.</small></div>
           <button type="submit" class="btn btn-success w-100 py-2 mt-2">Submit Account Registration</button>
         </form>
         <div class="text-center mt-3">
@@ -1406,14 +1406,14 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
 <!-- MASTER ADMIN CREATE USER MODAL -->
 <div class="modal fade" id="createUserModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
-    <div class="modal-header bg-dark text-white"><h6 class="modal-title"><i class="bi bi-person-plus-fill me-1"></i> Master Admin — Create User Credentials</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-header bg-dark text-white"><h6 class="modal-title"><i class="bi bi-person-plus-fill me-1"></i> Create User & Credentials</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
     <div class="modal-body">
       <form id="masterCreateUserForm"><div class="row g-2">
         <div class="col-md-6"><label class="form-label small fw-bold">Full Name *</label><input id="muName" class="form-control form-control-sm" required></div>
         <div class="col-md-6"><label class="form-label small fw-bold">Email / Login ID *</label><input id="muEmail" type="email" class="form-control form-control-sm" required></div>
         <div class="col-md-6"><label class="form-label small fw-bold">Phone *</label><input id="muPhone" class="form-control form-control-sm" required></div>
         <div class="col-md-6"><label class="form-label small fw-bold">Password *</label><div class="password-field-wrap w-100"><input id="muPassword" type="password" class="form-control form-control-sm" minlength="4" required autocomplete="new-password"><button type="button" class="password-eye-inside" aria-label="Show password" onclick="togglePasswordVisibility('muPassword','muPasswordIcon')"><i class="bi bi-eye-slash" id="muPasswordIcon"></i></button></div></div>
-        <div class="col-md-6"><label class="form-label small fw-bold">Role *</label><select id="muRole" class="form-select form-select-sm" required><option>Admin</option><option>Team Coordinator</option><option>National Head</option><option>State Head</option><option>Regional Head</option><option>Area Sales Officer</option><option>Senior Sales Executive</option><option>Area Sales Officer</option><option selected>Sales Executive</option></select></div>
+        <div class="col-md-6"><label class="form-label small fw-bold">Role *</label><select id="muRole" class="form-select form-select-sm" required><option>Admin</option><option>Team Coordinator</option><option>National Head</option><option>State Head</option><option>Regional Head</option><option>Area Sales Officer</option><option>Senior Sales Executive</option><option selected>Sales Executive</option></select></div>
         <div class="col-md-6"><label class="form-label small fw-bold">State(s) *</label><select id="muStates" multiple size="5" class="form-select form-select-sm" required></select></div>
         <div class="col-md-6"><label class="form-label small fw-bold">Region(s) *</label><select id="muRegions" multiple size="8" class="form-select form-select-sm" required></select></div><div class="col-12"><label class="form-label small fw-bold">Reporting Manager(s)</label><select id="muReportingManagers" multiple size="5" class="form-select form-select-sm"></select><small class="text-muted">Select one or multiple reporting managers.</small></div>
         <div class="col-md-6"><label class="form-label small fw-bold">District(s)</label><input id="muDistricts" class="form-control form-control-sm" placeholder="Comma separated"></div>
@@ -1439,7 +1439,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
           <div class="mb-2"><label class="form-label small fw-bold">Full Name *</label><input type="text" id="editUserName" class="form-control form-control-sm" required></div>
           <div class="mb-2"><label class="form-label small fw-bold">Email Address *</label><input type="email" id="editUserEmail" class="form-control form-control-sm" required></div>
           <div class="mb-2"><label class="form-label small fw-bold">Phone Number</label><input type="text" id="editUserPhone" class="form-control form-control-sm"></div>
-          <div class="mb-2"><label class="form-label small fw-bold">Password *</label><div class="password-field-wrap w-100"><input type="password" id="editUserPassword" class="form-control form-control-sm" required autocomplete="new-password"><button type="button" class="password-eye-inside" aria-label="Show password" onclick="togglePasswordVisibility('editUserPassword','editUserPasswordIcon')"><i class="bi bi-eye-slash" id="editUserPasswordIcon"></i></button></div></div>
+          <div class="mb-2"><label class="form-label small fw-bold">New Password <span class="text-muted">(optional)</span></label><div class="password-field-wrap w-100"><input type="password" id="editUserPassword" class="form-control form-control-sm" autocomplete="new-password"><button type="button" class="password-eye-inside" aria-label="Show password" onclick="togglePasswordVisibility('editUserPassword','editUserPasswordIcon')"><i class="bi bi-eye-slash" id="editUserPasswordIcon"></i></button></div></div>
           <div class="mb-2">
             <label class="form-label small fw-bold">Role *</label>
             <select class="form-select form-select-sm" id="editUserRole" required>
@@ -1451,6 +1451,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
               <option value="Senior Sales Executive">Senior Sales Executive</option>
               <option value="Area Sales Officer">Area Sales Officer</option>
               <option value="Sales Executive">Sales Executive</option>
+              <option value="User">User</option>
             </select>
           </div>
           <div class="row g-2 mb-2">
@@ -2012,19 +2013,18 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     document.getElementById('mobileNavUserPlace').innerText=navFitment.place;
     document.getElementById('dashboardScopeHeader').innerText = `Scope: ${formattedRole}`;
 
-    if(currentUser.role === "Master Admin" || currentUser.canCreateUsers) {
-      document.getElementById('menuUserManagement').classList.remove('d-none');
-      document.getElementById('mobileMenuUserManagement').classList.remove('d-none');
-    }
-
-    if(currentUser.role === "Master Admin") {
-      document.getElementById('adminApprovalSection').classList.remove('d-none');
-      document.getElementById('masterAdminUserDirectory').classList.remove('d-none');
-      document.getElementById('masterAdminBackendTools')?.classList.remove('d-none');
-      document.getElementById('btnRefreshLocationMaster')?.classList.remove('d-none');
-      // Do not compete with the initial dashboard request. Admin-only data is deferred.
+    const canManageUsersUI = currentUser?.canManageUsers === true || currentUser?.can_manage_users === true || currentUser?.role === "Master Admin" || currentUser?.role === "Admin";
+    if(canManageUsersUI) {
+      document.getElementById('menuUserManagement')?.classList.remove('d-none');
+      document.getElementById('mobileMenuUserManagement')?.classList.remove('d-none');
+      document.getElementById('adminApprovalSection')?.classList.remove('d-none');
+      document.getElementById('masterAdminUserDirectory')?.classList.remove('d-none');
+      if(currentUser?.role === "Master Admin") {
+        document.getElementById('masterAdminBackendTools')?.classList.remove('d-none');
+        document.getElementById('btnRefreshLocationMaster')?.classList.remove('d-none');
+      }
       if(deferredAdminTimer) clearTimeout(deferredAdminTimer);
-      deferredAdminTimer=setTimeout(()=>{if(currentUser?.role==='Master Admin') fetchPendingUsers();},3200);
+      deferredAdminTimer=setTimeout(()=>{if(currentUser&&canManageUsersUI) fetchPendingUsers();},1200);
     }
 
     // Location master is needed by entry forms, not by the initial dashboard.
@@ -2373,14 +2373,23 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   }
   function recordOwnerMatchesUser(record){
     if(!record || !currentUser) return false;
-    if(isMasterAdminUser()) return true;
-    const uid=String(currentUser.id||'').trim().toLowerCase();
-    const email=String(currentUser.email||'').trim().toLowerCase();
+    if(isMasterAdminUser() || String(currentUser?.role||'').trim().toLowerCase()==='admin') return true;
     const ownerIds=[
       record.userId, record.createdByUserId, record.ownerId,
-      record.userEmail, record.createdBy, record.ownerEmail, record.owner
+      record.userEmail, record.createdBy, record.ownerEmail, record.owner,
+      record.userName, record.createdByName, record.ownerName
     ].map(v=>String(v||'').trim().toLowerCase()).filter(Boolean);
-    return (uid && ownerIds.includes(uid)) || (email && ownerIds.includes(email));
+    const meIds=[currentUser.id,currentUser.userId,currentUser.email,currentUser.name,currentUser.employeeId]
+      .map(v=>String(v||'').trim().toLowerCase()).filter(Boolean);
+    if(ownerIds.some(v=>meIds.includes(v))) return true;
+    // Hierarchy is authoritative: a manager may operate on records owned by
+    // any direct or indirect report. Territory overlap alone never grants access.
+    const team=dashboardTeamMembers(currentUser,allUsersList||[]);
+    return team.some(u=>{
+      const ids=[u?.id,u?.userId,u?.email,u?.name,u?.employeeId]
+        .map(v=>String(v||'').trim().toLowerCase()).filter(Boolean);
+      return ownerIds.some(v=>ids.includes(v));
+    });
   }
   function requireOwnRecord(record, action='modify'){
     if(!currentUser){
@@ -2390,7 +2399,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     if(recordOwnerMatchesUser(record)) return true;
     showOperationMessage(
       'Access denied',
-      `You can ${action} only records saved by your logged-in account. Records saved by another user are read-only.`,
+      `You can ${action} only your own records or records belonging to your direct/indirect reporting hierarchy. Unrelated users' records are read-only.`,
       'error'
     );
     return false;
@@ -2524,8 +2533,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     }
   }
 
+  function canManageUsersUI(){return !!(currentUser?.canManageUsers===true||currentUser?.can_manage_users===true||currentUser?.role==='Master Admin'||currentUser?.role==='Admin');}
   function openMasterCreateUserModal(){
-    if(currentUser?.role!=='Master Admin'){showOperationMessage('Access denied','Only Master Admin can create users.','error');return;}
+    if(!canManageUsersUI()){showOperationMessage('Access denied','Only an authorized user manager can create users.','error');return;}
     ['muName','muEmail','muPhone','muPassword','muDistricts','muTehsils','muCities','muPins'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
     const st=document.getElementById('muStates'),rg=document.getElementById('muRegions');
     if(st){populateSelect('muStates',locationData.states||[],'-- Select State(s) --');st.disabled=false;}
@@ -2545,13 +2555,38 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       populateSelect('muRegions',regions,'-- Select Region(s) --');rg.disabled=!regions.length;
     });
   }
-  function reportingManagerCandidates(excludeId){const rank={'Master Admin':0,'National Head':1,'State Head':2,'Regional Head':3,'Senior Sales Executive':4};const src=(allUsersList&&allUsersList.length?allUsersList:reportingManagerDirectory)||[];return src.filter(u=>u&&rank[u.role]!==undefined&&String(u.id||u.email)!==String(excludeId||'')).sort((a,b)=>(rank[a.role]??99)-(rank[b.role]??99)||String(a.name||a.email||'').localeCompare(String(b.name||b.email||'')));}
-  function populateReportingManagerSelect(id,selected){const el=document.getElementById(id);if(!el)return;const chosen=new Set(Array.isArray(selected)?selected:String(selected||'').split(/[,|]/).map(x=>x.trim()).filter(Boolean));el.innerHTML=reportingManagerCandidates(id==='editUserReportingManagers'?document.getElementById('editUserId')?.value:'').map(u=>{const key=String(u.id||u.email);return `<option value="${escapeAttr(key)}" ${chosen.has(key)||chosen.has(String(u.email))?'selected':''}>${escapeHtml(u.name||u.email)} — ${escapeHtml(u.role)}</option>`}).join('');if(el.dataset.smartMulti==='1')el.dispatchEvent(new Event('change',{bubbles:true}));}
+  function reportingManagerCandidates(excludeId){
+    const src=(allUsersList&&allUsersList.length?allUsersList:reportingManagerDirectory)||[];
+    const blocked=String(excludeId||'').trim().toLowerCase();
+    return src.filter(u=>{
+      if(!u)return false;
+      const status=String(u.status||u.approvalStatus||'Approved').trim().toLowerCase();
+      if(['rejected','deleted','disabled','inactive'].includes(status))return false;
+      const key=String(u.id||u.email||u.name||'').trim().toLowerCase();
+      return !blocked || key!==blocked;
+    }).sort((a,b)=>{
+      const ra=String(a.role||'User'), rb=String(b.role||'User');
+      return String(a.name||a.email||'').localeCompare(String(b.name||b.email||'')) || ra.localeCompare(rb);
+    });
+  }
+  function populateReportingManagerSelect(id,selected){
+    const el=document.getElementById(id);if(!el)return;
+    const chosen=new Set(Array.isArray(selected)?selected:String(selected||'').split(/[,|]/).map(x=>x.trim()).filter(Boolean));
+    const exclude=id==='editUserReportingManagers'?document.getElementById('editUserId')?.value:'';
+    const candidates=reportingManagerCandidates(exclude);
+    el.innerHTML=candidates.map(u=>{
+      const key=String(u.id||u.email);
+      const territory=[...(Array.isArray(u.states)?u.states:[]),...(Array.isArray(u.regions)?u.regions:[])].filter(Boolean).join(' / ');
+      const label=[u.name||u.email||key,u.role||'User',u.email||''].filter(Boolean).join(' — ')+(territory?' · '+territory:'');
+      return `<option value="${escapeAttr(key)}" ${chosen.has(key)||chosen.has(String(u.email))?'selected':''}>${escapeHtml(label)}</option>`;
+    }).join('');
+    if(el.dataset.smartMulti==='1')el.dispatchEvent(new Event('change',{bubbles:true}));
+  }
   function getSelectedReportingManagers(id){return [...(document.getElementById(id)?.selectedOptions||[])].map(o=>o.value).filter(Boolean);}
   function refreshReportingManagerSelectors(){populateReportingManagerSelect('muReportingManagers');populateReportingManagerSelect('editUserReportingManagers');}
   document.getElementById('masterCreateUserForm')?.addEventListener('submit',async e=>{
     e.preventDefault();
-    if(currentUser?.role!=='Master Admin'){showOperationMessage('Access denied','Only Master Admin can create users.','error');return;}
+    if(!canManageUsersUI()){showOperationMessage('Access denied','Only an authorized user manager can create users.','error');return;}
     const payload={name:document.getElementById('muName').value.trim(),email:document.getElementById('muEmail').value.trim(),phone:document.getElementById('muPhone').value.trim(),password:document.getElementById('muPassword').value,role:document.getElementById('muRole').value,states:getSelectedValues('muStates'),regions:getSelectedValues('muRegions'),districts:masterCsv('muDistricts'),tehsils:masterCsv('muTehsils'),cities:masterCsv('muCities'),pinCodes:masterCsv('muPins'),reportingManagers:getSelectedReportingManagers('muReportingManagers'),reportingTo:getSelectedReportingManagers('muReportingManagers'),createdBy:currentUser.email,createdByUserId:currentUser.id};
     if(!payload.states.length||!payload.regions.length){showOperationMessage('Territory required','Select State(s) and Region(s) before creating the user.','error');return;}
     showProcessingMessage('Creating user','Creating login credentials and activating the user...');
@@ -2581,13 +2616,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
           <td><small>${escapeHtml(u.email)}</small></td>
           <td><small>${escapeHtml(u.phone)}</small></td>
           <td><small>${escapeHtml((u.reportingManagers||u.reportingTo||[]).join(', ')||'Not assigned')}</small></td>
-          <td><span class="badge ${String(u.status||'').toLowerCase()==='active'?'bg-success':String(u.status||'').toLowerCase()==='pending'?'bg-warning text-dark':'bg-secondary'}">${escapeHtml(u.status||'')}</span></td>
-          <td>
-            <div class="password-field-wrap" style="max-width:130px;">
-              <input type="password" id="${passId}" class="form-control form-control-sm" value="${u.password||''}" readonly>
-              <button type="button" class="password-eye-inside" aria-label="Show password" onclick="togglePasswordVisibility('${passId}', '${iconId}')"><i class="bi bi-eye-slash" id="${iconId}"></i></button>
-            </div>
-          </td>
+          <td><span class="badge ${['active','approved','enabled'].includes(String(u.status||'').toLowerCase())?'bg-success':String(u.status||'').toLowerCase()==='pending'?'bg-warning text-dark':String(u.status||'').toLowerCase()==='rejected'?'bg-danger':'bg-secondary'}">${escapeHtml(u.status||'')}</span></td>
+          <td><span class="badge text-bg-secondary">Protected</span></td>
           <td>
             <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditUserModal('${u.id}')"><i class="bi bi-pencil"></i> Edit</button>
             <button class="btn btn-sm btn-outline-danger" onclick="deleteUserAccount('${u.id}', '${u.name}')"><i class="bi bi-trash"></i> Delete</button>
@@ -2605,7 +2635,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     document.getElementById('editUserName').value = user.name;
     document.getElementById('editUserEmail').value = user.email;
     document.getElementById('editUserPhone').value = user.phone;
-    document.getElementById('editUserPassword').value = user.password;
+    document.getElementById('editUserPassword').value = '';
+    document.getElementById('editUserPassword').placeholder = 'Leave blank to keep current password';
     document.getElementById('editUserRole').value = user.role;
     document.getElementById('editUserStates').value = user.states.join(', ');
     document.getElementById('editUserRegions').value = user.regions.join(', ');
@@ -3788,11 +3819,11 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     if(res.success) {
       const tbody = document.getElementById('pendingUsersTableBody');
       tbody.innerHTML = '';
-      if(res.pendingUsers.length === 0) {
+      if((res.pendingUsers||res.users||[]).length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No pending user access requests.</td></tr>`;
         return;
       }
-      res.pendingUsers.forEach(u => {
+      (res.pendingUsers||res.users||[]).forEach(u => {
         const _s=v=>escapeHtml(Array.isArray(v)?v.filter(Boolean).join(', '):(v??''));
         let scopeFormatted = u.role === "State Head" ? `St: ${_s(u.states)}` : u.role === "Regional Head" ? `St: ${_s(u.states)} | Reg: ${_s(u.regions)}` : `St: ${_s(u.states)} | Dist: ${_s(u.districts)}`;
         tbody.innerHTML += `
@@ -3802,8 +3833,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
             <td><span class="badge bg-dark">${escapeHtml(u.role)}</span></td>
             <td><small>${scopeFormatted}</small></td>
             <td>
-              <button class="btn btn-sm btn-success me-1" onclick="approveUser('${u.id}', true)"><i class="bi bi-check-lg"></i></button>
-              <button class="btn btn-sm btn-danger" onclick="approveUser('${u.id}', false)"><i class="bi bi-x-lg"></i></button>
+              <button class="btn btn-sm btn-success me-1" title="Accept" onclick="approveUser('${u.id}', true)"><i class="bi bi-check-lg me-1"></i>Accept</button>
+              <button class="btn btn-sm btn-danger" title="Reject" onclick="approveUser('${u.id}', false)"><i class="bi bi-x-lg me-1"></i>Reject</button>
+              <button class="btn btn-sm btn-outline-primary" title="Edit" onclick="openEditUserModal('${u.id}')"><i class="bi bi-pencil"></i></button>
             </td>
           </tr>
         `;
@@ -3815,7 +3847,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     const res = await callBackend('processUserApproval', { userId: userId, approve: approve });
     if(res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
-      fetchPendingUsers();
+      await fetchPendingUsers();
+      await fetchAndRenderTree();
       refreshData();
     }
   }
@@ -3825,7 +3858,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     if(res.success) {
       allUsersList = res.users;
       renderRoleWiseTerritoryFlowchart(allUsersList, rawData.clients);
-      if(currentUser.role === "Master Admin") {
+      if(canManageUsersUI()) {
         renderMasterAdminUserDirectory(allUsersList);
       }
     }
@@ -6911,7 +6944,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       if(action.toLowerCase().includes('coldcall')) record=(rawData.coldCalls||[]).find(x=>String(x.id)===String(recordId));
       else if(action.toLowerCase().includes('client')) record=(rawData.clients||[]).find(x=>String(x.id)===String(recordId));
       else if(action.toLowerCase().includes('salesorder')) record=(rawData.salesOrders||[]).find(x=>String(x.id||x.orderId)===String(recordId));
-      if(!record || !recordOwnerMatchesUser(record)) return {success:false,message:'Access denied. You can modify or delete only records saved by your logged-in account.'};
+      if(!record || !recordOwnerMatchesUser(record)) return {success:false,message:'Access denied. You can modify or delete only your own records or records belonging to your direct/indirect reporting hierarchy.'};
       requestPayload.userId=currentUser?.id||requestPayload.userId;
       requestPayload.userEmail=currentUser?.email||requestPayload.userEmail;
       requestPayload.userRole=currentUser?.role||requestPayload.userRole;
