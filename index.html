@@ -1283,7 +1283,7 @@ button,input,select,textarea{max-width:100%;}
                 </div>
                 <div class="table-responsive">
                   <table class="table table-hover align-middle small">
-                    <thead><tr><th><input type="checkbox" class="form-check-input" id="dashboardClientSelectAll" onchange="toggleDashboardSelectAllTab('clients',this.checked)" title="Select all in this table"></th><th>Date</th><th>Organization Name</th><th>Client Name</th><th>State</th><th>Region</th><th>District</th><th>Tehsil</th><th>City / Village</th><th>Sales</th><th>Sales Order Repeat</th><th>Visit</th><th>Meeting</th></tr></thead>
+                    <thead><tr><th><input type="checkbox" class="form-check-input" id="dashboardClientSelectAll" onchange="toggleDashboardSelectAllTab('clients',this.checked)" title="Select all in this table"></th><th>Date</th><th>Organization Name</th><th>Client Name</th><th>State</th><th>Region</th><th>District</th><th>Tehsil</th><th>City / Village</th><th>Sales</th><th>Visit Repeat</th><th>Sales Order Repeat</th><th>Visit</th><th>Meeting</th></tr></thead>
                     <tbody id="dashboardHierarchyTable"></tbody>
                   </table>
                 </div>
@@ -1295,7 +1295,7 @@ button,input,select,textarea{max-width:100%;}
                   <small class="text-muted">Same dashboard filters + date period as the dashboard.</small>
                 </div>
                 <div class="table-responsive"><table class="table table-hover align-middle small">
-                  <thead><tr><th><input type="checkbox" class="form-check-input" id="dashboardColdSelectAll" onchange="toggleDashboardSelectAllTab('coldcalls',this.checked)" title="Select all in this table"></th><th>Date</th><th>Organization Name</th><th>Client Name</th><th>Mobile</th><th>State</th><th>Region</th><th>District</th><th>Outcome</th><th>Call</th><th>Lead</th><th>Remarks</th></tr></thead>
+                  <thead><tr><th><input type="checkbox" class="form-check-input" id="dashboardColdSelectAll" onchange="toggleDashboardSelectAllTab('coldcalls',this.checked)" title="Select all in this table"></th><th>Date</th><th>Organization Name</th><th>Client Name</th><th>Mobile</th><th>State</th><th>Region</th><th>District</th><th>Outcome</th><th>Call</th><th>Lead</th><th>Repeat Count</th><th>Remarks</th></tr></thead>
                   <tbody id="dashboardColdCallTable"></tbody>
                 </table></div>
               </div>
@@ -1306,7 +1306,7 @@ button,input,select,textarea{max-width:100%;}
                   <small class="text-muted">Same dashboard filters + date period as the dashboard.</small>
                 </div>
                 <div class="table-responsive"><table class="table table-hover align-middle small">
-                  <thead><tr><th><input type="checkbox" class="form-check-input" id="dashboardSOSelectAll" onchange="toggleDashboardSelectAllTab('salesorders',this.checked)" title="Select all in this table"></th><th>Date</th><th>Organization</th><th>Client</th><th>Order For</th><th>Sales Type</th><th>PV Type</th><th>DCR</th><th>N-DCR</th><th>PI Status</th><th>Amount</th></tr></thead>
+                  <thead><tr><th><input type="checkbox" class="form-check-input" id="dashboardSOSelectAll" onchange="toggleDashboardSelectAllTab('salesorders',this.checked)" title="Select all in this table"></th><th>Date</th><th>Organization</th><th>Client</th><th>Order For</th><th>Sales Type</th><th>PV Type</th><th>DCR</th><th>N-DCR</th><th>Repeat Order Count</th><th>PI Status</th><th>Amount</th></tr></thead>
                   <tbody id="dashboardSalesOrderTable"></tbody>
                 </table></div>
               </div>
@@ -1865,7 +1865,7 @@ button,input,select,textarea{max-width:100%;}
 
 <div class="modal fade" id="coldCallModal" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
-    <div class="modal-header bg-primary text-white"><div><h6 class="modal-title"><i class="bi bi-telephone-plus me-1"></i> Cold Calling Entry</h6><small>Existing clients are matched automatically by mobile.</small></div><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-header bg-primary text-white"><div><h6 class="modal-title"><i class="bi bi-telephone-plus me-1"></i> Cold Calling Entry</h6><small>Existing clients are matched automatically by organization name + mobile number.</small></div><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
     <div class="modal-body"><form id="coldCallForm"><input type="hidden" id="ccId"><input type="hidden" id="ccClientId">
       <div class="form-section-title">Client identification</div><div class="row g-2">
       <div class="col-12"><div id="coldCallLinkedPanel" class="call-sync-panel d-none"></div></div>
@@ -2058,8 +2058,11 @@ button,input,select,textarea{max-width:100%;}
     if(btn){btn.setAttribute('aria-label',show?'Hide password':'Show password');btn.style.transform='translateY(-50%)';}
   }
 
+  function databaseDisplayText(value){
+    return String(value??'').replace(/\bSupabase\b/gi,'Database');
+  }
   function showToast(message, type = "success") {
-    showOperationMessage(type === "success" ? "Operation completed" : "Operation failed", message || "", type);
+    showOperationMessage(type === "success" ? "Operation completed" : "Operation failed", databaseDisplayText(message || ""), type);
   }
 
   function getFormattedUserRoleDisplay(u) {
@@ -3249,7 +3252,8 @@ button,input,select,textarea{max-width:100%;}
     const list=(rawData.clients||[]).filter(c=>!q||[c.orgName,c.contactName,c.mobile,c.email].some(v=>String(v||'').toLowerCase().includes(q))).slice(0,30);
     if(list.length){
       if(box.__noMatchAutoCloseTimer){clearTimeout(box.__noMatchAutoCloseTimer);box.__noMatchAutoCloseTimer=null;}
-      box.innerHTML=list.map(c=>`<button type="button" class="search-option text-start w-100 bg-white border-0" data-id="${escapeAttr(c.id)}" role="option"><strong>${escapeHtml(c.orgName||'')}</strong><br><small>${escapeHtml(c.contactName||'')} · ${escapeHtml(c.mobile||'')}</small></button>`).join('');
+      box.__selectedClientId='';
+      box.innerHTML=list.map(c=>`<button type="button" class="search-option text-start w-100 bg-white border-0" data-id="${escapeAttr(c.id)}" data-client-id="${escapeAttr(c.id)}" role="option" aria-label="Select ${escapeAttr(c.orgName||'existing client')}"><strong>${escapeHtml(c.orgName||'')}</strong><br><small>${escapeHtml(c.contactName||'')} · ${escapeHtml(c.mobile||'')} · ID: ${escapeHtml(c.id||'')}</small></button>`).join('');
     }else{
       box.innerHTML=`<div class="client-no-match search-option text-muted" role="status">
         <span>${escapeHtml(emptyText||'No existing client found — continue typing to create a new one.')}</span>
@@ -3268,18 +3272,23 @@ button,input,select,textarea{max-width:100%;}
     }
     box.classList.add('show'); box.style.display='block';
     box.__backendClients=list; // compatibility for existing selectors; source remains rawData.clients
-    if(!box.dataset.existingClientSelectionBound){
+    if(box.dataset.existingClientSelectionBound!=='v2'){
       const choose=function(ev){
         const el=ev.target.closest?.('.search-option[data-id]');
         if(!el || !box.contains(el))return;
         ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();
-        onSelect(el.dataset.id,ev);
+        const id=String(el.dataset.clientId||el.dataset.id||'');
+        if(!id || box.__selectedClientId===id)return;
+        box.__selectedClientId=id;
+        box.querySelectorAll('.search-option[data-id]').forEach(x=>{x.classList.toggle('active',x===el);x.setAttribute('aria-selected',x===el?'true':'false');});
+        onSelect(id,ev);
       };
+      // Pointer events cover mouse, touch and stylus without firing the selection twice.
       box.addEventListener('pointerdown',choose,true);
-      box.addEventListener('mousedown',choose,true);
-      box.addEventListener('touchstart',choose,{capture:true,passive:false});
-      box.addEventListener('click',choose,true);
-      box.dataset.existingClientSelectionBound='1';
+      box.addEventListener('keydown',function(ev){
+        if(ev.key==='Enter'||ev.key===' '){choose(ev);}
+      },true);
+      box.dataset.existingClientSelectionBound='v2';
     }
     return list;
   }
@@ -3304,30 +3313,59 @@ button,input,select,textarea{max-width:100%;}
   }
 
   function autofillColdCallClient(clientId) {
-    if(!clientId) return;
+    const selectedId=String(clientId||'').trim();
+    if(!selectedId) return false;
     window.__coldCallClientSelectionInProgress=true;
-    const c = (document.getElementById('ccClientOptions')?.__backendClients||rawData.clients||[]).find(x => String(x.id) === String(clientId));
-    if(!c) return;
-    document.getElementById('ccClientId').value = c.id;
-    document.getElementById('ccSearchOrg').value = c.orgName || ''; document.getElementById('ccOrgName').value = c.orgName || '';
-    document.getElementById('ccSelectionCaption').textContent='Selected: '+(c.orgName||'Existing client');
-    document.getElementById('ccSelectionCaption').classList.remove('d-none');
-    document.getElementById('ccClientOptions')?.classList.remove('show');
-    document.getElementById('ccOrgName').value = c.orgName || '';
-    document.getElementById('ccContactName').value = c.contactName || '';
-    document.getElementById('ccPhone').value = c.mobile || '';
-    document.getElementById('ccOfficePhone').value = c.officeMobile || '';
-    document.getElementById('ccEmail').value = c.email || '';
-    setLocationValues('cc', c);
-    setValue('ccPinCode', c.pinCode ? String(c.pinCode).split(' | ') : []); setValue('ccPinManual',''); setValue('ccAddress', c.address || '');
-    document.getElementById('ccLeadTemp').value = c.leadTemp || 'Cold';
-    document.getElementById('ccVisitType').value = c.visitType || 'Follow Up';
-    document.getElementById('ccVisitCount').value = getRepeatCountForColdCall(String(c.orgName||'').trim().toLowerCase(),String(c.mobile||'').replace(/\D/g,''),c.id);
+    const source=document.getElementById('ccClientOptions')?.__backendClients||rawData.clients||[];
+    const c=(source||[]).find(x=>String(x.id||'').trim()===selectedId);
+    if(!c){ window.__coldCallClientSelectionInProgress=false; return false; }
+    const count=Math.max(1,getRepeatCountForColdCall(String(c.orgName||'').trim().toLowerCase(),String(c.mobile||'').replace(/\D/g,''),c.id));
+    const ids={id:'ccClientId',org:'ccOrgName',search:'ccSearchOrg',contact:'ccContactName',phone:'ccPhone',office:'ccOfficePhone',email:'ccEmail'};
+    document.getElementById(ids.id).value=String(c.id);
+    document.getElementById(ids.search).value=String(c.orgName||'');
+    document.getElementById(ids.org).value=String(c.orgName||'');
+    document.getElementById(ids.contact).value=String(c.contactName||'');
+    document.getElementById(ids.phone).value=String(c.mobile||'');
+    document.getElementById(ids.office).value=String(c.officeMobile||'');
+    document.getElementById(ids.email).value=String(c.email||'');
+    setLocationValues('cc',c);
+    setValue('ccPinCode',c.pinCode?String(c.pinCode).split(' | '):[]);
+    setValue('ccPinManual','');
+    setValue('ccAddress',c.address||'');
+    document.getElementById('ccLeadTemp').value=c.leadTemp||'Cold';
+    document.getElementById('ccVisitType').value='Follow Up';
+    document.getElementById('ccVisitType').dataset.userSelected='0';
+    document.getElementById('ccVisitCount').value=String(count);
+    const date=document.getElementById('ccEntryDate');
+    if(date && date.dataset.userEdited!=='1') date.value=appToday();
+    const cap=document.getElementById('ccSelectionCaption');
+    if(cap){cap.textContent=`Selected existing client: ${c.orgName||'Existing client'} · ${c.contactName||''} · ${c.mobile||''} — Follow Up call #${count}`;cap.classList.remove('d-none');}
+    const box=document.getElementById('ccClientOptions');
+    if(box){box.__selectedClientId=selectedId;box.classList.remove('show');box.style.display='none';}
     renderColdCallLinkedPanel();
+    // Never let the selection itself close the active Cold Call form.
+    const coldModal=document.getElementById('coldCallModal');
+    if(coldModal && typeof bootstrap!=='undefined'){
+      coldModal.dataset.closeApproved='0';
+      const cm=bootstrap.Modal.getOrCreateInstance(coldModal);
+      if(!coldModal.classList.contains('show'))cm.show();
+      requestAnimationFrame(()=>{if(!coldModal.classList.contains('show'))cm.show();});
+      setTimeout(()=>{if(!coldModal.classList.contains('show'))cm.show();},80);
+    }
     requestAnimationFrame(()=>{window.__coldCallClientSelectionInProgress=false;});
     setTimeout(()=>{window.__coldCallClientSelectionInProgress=false;},1200);
+    return true;
   }
 
+
+  // When both organization and phone identify an existing client, select that exact database record.
+  function autoSelectColdCallExactIdentity(){
+    const org=String(document.getElementById('ccSearchOrg')?.value||document.getElementById('ccOrgName')?.value||'').trim().toLowerCase();
+    const phone=String(document.getElementById('ccPhone')?.value||'').replace(/\D/g,'');
+    if(!org||!phone)return false;
+    const c=(rawData.clients||[]).find(x=>String(x.orgName||'').trim().toLowerCase()===org&&String(x.mobile||'').replace(/\D/g,'')===phone);
+    return c?autofillColdCallClient(c.id):false;
+  }
 
   document.getElementById('coldCallForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -4220,7 +4258,7 @@ button,input,select,textarea{max-width:100%;}
         const closed=orders.filter(o=>['accepted','sales done','done','completed'].includes(String(o.piStatus||'').trim().toLowerCase())).length;
         return {c,orders,calls,closed};
       });
-      const body=`<div class="small text-muted mb-2"><b>${rows.length}</b> client record(s) match <b>${escapeHtml(cfg.metric)}</b> in the current dashboard user/date scope.</div><div class="table-responsive"><table class="table table-sm table-bordered align-middle"><thead><tr><th>Date</th><th>Organization</th><th>Client</th><th>Mobile</th><th>State</th><th>Region</th><th>District</th><th>City / Village</th><th>Lead Temp</th><th>Visit</th><th>Meeting</th><th>Cold Calls</th><th>Sales Orders</th><th>Closed Orders</th><th>Requirements</th><th>Remarks</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td>${escapeHtml(r.c.activityDate||r.c.entryDate||'')}</td><td>${escapeHtml(r.c.orgName||'')}</td><td>${escapeHtml(r.c.contactName||'')}</td><td>${escapeHtml(r.c.mobile||'')}</td><td>${escapeHtml(r.c.state||'')}</td><td>${escapeHtml(r.c.region||'')}</td><td>${escapeHtml(r.c.district||'')}</td><td>${escapeHtml(r.c.city||'')}</td><td>${escapeHtml(r.c.leadTemp||'')}</td><td>${escapeHtml(r.c.visitStatus||'')}</td><td>${escapeHtml(r.c.meetingStatus||'')}</td><td>${r.calls.length}</td><td>${r.orders.length}</td><td>${r.closed}</td><td>${escapeHtml(r.c.requirements||'')}</td><td>${escapeHtml(r.c.remarks||'')}</td></tr>`).join(''):'<tr><td colspan="16" class="text-center text-muted py-4">No client data matches this count.</td></tr>'}</tbody></table></div>`;
+      const body=`<div class="small text-muted mb-2"><b>${rows.length}</b> client record(s) match <b>${escapeHtml(cfg.metric)}</b> in the current dashboard user/date scope.</div><div class="table-responsive"><table class="table table-sm table-bordered align-middle"><thead><tr><th>Date</th><th>Organization</th><th>Client</th><th>Mobile</th><th>State</th><th>Region</th><th>District</th><th>City / Village</th><th>Lead Temp</th><th>Visit Repeat</th><th>Visit</th><th>Meeting</th><th>Cold Calls</th><th>Sales Order Repeat</th><th>Sales Orders</th><th>Closed Orders</th><th>Requirements</th><th>Remarks</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td>${escapeHtml(r.c.activityDate||r.c.entryDate||'')}</td><td>${escapeHtml(r.c.orgName||'')}</td><td>${escapeHtml(r.c.contactName||'')}</td><td>${escapeHtml(r.c.mobile||'')}</td><td>${escapeHtml(r.c.state||'')}</td><td>${escapeHtml(r.c.region||'')}</td><td>${escapeHtml(r.c.district||'')}</td><td>${escapeHtml(r.c.city||'')}</td><td>${escapeHtml(r.c.leadTemp||'')}</td><td><span class="badge ${Number(r.c.visitCount||r.c.followUpCount||1)>1?'text-bg-success':'text-bg-light'}">${Math.max(1,Number(r.c.visitCount||r.c.followUpCount||1))}</span></td><td>${escapeHtml(r.c.visitStatus||'')}</td><td>${escapeHtml(r.c.meetingStatus||'')}</td><td>${r.calls.length}</td><td><span class="badge ${salesOrderRepeatCountForClient(r.c)>1?'text-bg-success':'text-bg-light'}">${Math.max(0,salesOrderRepeatCountForClient(r.c))}</span></td><td>${r.orders.length}</td><td>${r.closed}</td><td>${escapeHtml(r.c.requirements||'')}</td><td>${escapeHtml(r.c.remarks||'')}</td></tr>`).join(''):'<tr><td colspan="18" class="text-center text-muted py-4">No client data matches this count.</td></tr>'}</tbody></table></div>`;
       modal(`<div class="dashboard-popup-title"><h5 class="mb-0"><i class="bi bi-people me-2"></i>${escapeHtml(cfg.title)}</h5><small class="text-muted">Current dashboard filters are retained. Close with the header X when finished.</small></div>${body}`);
     }catch(e){showOperationMessage('Dashboard count failed',e.message||String(e),'error');}
   }
@@ -4239,7 +4277,7 @@ button,input,select,textarea{max-width:100%;}
       body=`<div class="row g-2 mb-2"><div class="col-6"><div class="border rounded p-2"><small class="text-muted">Existing Client Calls</small><div class="fw-bold fs-5">${existing.length}</div></div></div><div class="col-6"><div class="border rounded p-2"><small class="text-muted">New / Unmatched Leads</small><div class="fw-bold fs-5">${fresh.length}</div></div></div></div><div class="table-responsive"><table class="table table-sm table-bordered align-middle"><thead><tr><th>Date</th><th>Organization</th><th>Contact</th><th>Phone</th><th>State</th><th>Region</th><th>District</th><th>Visit Type</th><th>Outcome</th><th>Status</th><th>Temp</th><th>Repeat</th><th>Requirements</th><th>Remarks</th></tr></thead><tbody>${table(rows)||'<tr><td colspan="14" class="text-center text-muted py-4">No cold calls in the selected scope.</td></tr>'}</tbody></table></div>`;
     }else{
       title='Sales Order Data — DCR / N-DCR / Repeat Sales'; const rows=s.salesOrders||[];
-      const table=rows.map(o=>{const d=dcrValForDashboard(o),n=ndcrValForDashboard(o);return `<tr><td>${escapeHtml(dashboardDateKey(o.date||o.entryDate))}</td><td>${escapeHtml(o.orgName||'')}</td><td>${escapeHtml(o.clientName||'')}</td><td>${escapeHtml(o.orderFor||'')}</td><td>${escapeHtml(salesTypeLabel(o.salesType||''))}</td><td>${escapeHtml(o.pvType||'-')}</td><td>${d.qty?`${d.qty} / ${d.kw.toFixed(3)} kW / ${salesOrderMoney(d.amount)}`:'—'}</td><td>${n.qty?`${n.qty} / ${n.kw.toFixed(3)} kW / ${salesOrderMoney(n.amount)}`:'—'}</td><td>${escapeHtml(o.repeatCount||1)}</td><td>${escapeHtml(o.piStatus||'')}</td><td>${escapeHtml(salesOrderMoney(o.amount))}</td></tr>`}).join('');
+      const table=rows.map(o=>{const d=dcrValForDashboard(o),n=ndcrValForDashboard(o);return `<tr><td>${escapeHtml(dashboardDateKey(o.date||o.entryDate))}</td><td>${escapeHtml(o.orgName||'')}</td><td>${escapeHtml(o.clientName||'')}</td><td>${escapeHtml(o.orderFor||'')}</td><td>${escapeHtml(salesTypeLabel(o.salesType||''))}</td><td>${escapeHtml(o.pvType||'-')}</td><td>${d.qty?`${d.qty} / ${d.kw.toFixed(3)} kW / ${salesOrderMoney(d.amount)}`:'—'}</td><td>${n.qty?`${n.qty} / ${n.kw.toFixed(3)} kW / ${salesOrderMoney(n.amount)}`:'—'}</td><td>${escapeHtml(o.repeatCount||1)}</td><td><span class="badge ${Number(o.repeatCount||o.repeatOrderCount||1)>1?'text-bg-success':'text-bg-light'}">${Math.max(1,Number(o.repeatCount||o.repeatOrderCount||1))}</span></td><td>${escapeHtml(o.piStatus||'')}</td><td>${escapeHtml(salesOrderMoney(o.amount))}</td></tr>`}).join('');
       body=`<div class="row g-2 mb-2"><div class="col-6 col-md-3"><div class="border rounded p-2"><small class="text-muted">DCR Orders</small><div class="fw-bold">${s.dcrOrderCount} · ${s.dcrQty} panels · ${s.dcrKw.toFixed(3)} kW</div></div></div><div class="col-6 col-md-3"><div class="border rounded p-2"><small class="text-muted">N-DCR Orders</small><div class="fw-bold">${s.ndcrOrderCount} · ${s.ndcrQty} panels · ${s.ndcrKw.toFixed(3)} kW</div></div></div><div class="col-6 col-md-3"><div class="border rounded p-2"><small class="text-muted">Repeat Orders</small><div class="fw-bold">${s.repeatSalesOrders}</div></div></div><div class="col-6 col-md-3"><div class="border rounded p-2"><small class="text-muted">Repeat Clients</small><div class="fw-bold">${s.repeatSalesLeads}</div></div></div></div><div class="table-responsive"><table class="table table-sm table-bordered align-middle"><thead><tr><th>Date</th><th>Organization</th><th>Client</th><th>Order For</th><th>Sales Type</th><th>PV Type</th><th>DCR</th><th>N-DCR</th><th>Repeat #</th><th>PI Status</th><th>Total Amount</th></tr></thead><tbody>${table||'<tr><td colspan="11" class="text-center text-muted py-4">No sales orders in the selected scope.</td></tr>'}</tbody></table></div>`;
     }
     modal(`<div class="dashboard-popup-title"><h5 class="mb-0">${escapeHtml(title)}</h5><small class="text-muted">Filtered to the current dashboard user/team and date selection.</small></div>${body}`);
@@ -4654,7 +4692,7 @@ button,input,select,textarea{max-width:100%;}
 const count=document.getElementById('dashboardSalesTabCount');if(count)count.textContent=String(orders.length);const panelCount=document.getElementById('dashboardSalesPanelCount');if(panelCount)panelCount.textContent=String(orders.length);
     const fmt=(o,fn)=>{const x=fn(o);return x.qty?`${x.qty.toLocaleString('en-IN')} panels / ${x.kw.toFixed(3)} kW`:'—'};
     const sot=document.getElementById('dashboardSalesOrderTable');
-    if(sot)sot.innerHTML=orders.length?orders.slice().reverse().map(o=>{const oid=String(o.id||o.orderId||o.ID||'');const key='SO:'+oid;const checked=selectedDashboardIds.has(key)?'checked':'';return `<tr class="${checked?'dashboard-row-selected':''}"><td><input type="checkbox" class="form-check-input dashboard-record-check" data-record-type="salesorder" data-record-id="${escapeAttr(oid)}" data-dash-key="SO:${escapeAttr(oid)}" ${checked} onchange="toggleDashboardSelection('SO:${escapeAttr(oid)}',this.checked)" /></td><td>${escapeHtml(dashboardDateKey(o.date||o.entryDate))}</td><td>${escapeHtml(o.orgName||o.organization||'')}</td><td>${escapeHtml(o.clientName||'')}</td><td>${escapeHtml(o.orderFor||'')}</td><td>${escapeHtml(o.salesType||'')}</td><td>${escapeHtml(o.pvType||o.PVType||'-')}</td><td>${escapeHtml(fmt(o,dcrValForDashboard))}</td><td>${escapeHtml(fmt(o,ndcrValForDashboard))}</td><td>${escapeHtml(o.piStatus||'')}</td><td>${escapeHtml(salesOrderMoney(o.amount))}</td></tr>`}).join(''):'<tr><td colspan="11" class="text-center text-muted">No sales orders in the selected scope.</td></tr>';
+    if(sot)sot.innerHTML=orders.length?orders.slice().reverse().map(o=>{const oid=String(o.id||o.orderId||o.ID||'');const key='SO:'+oid;const checked=selectedDashboardIds.has(key)?'checked':'';return `<tr class="${checked?'dashboard-row-selected':''}"><td><input type="checkbox" class="form-check-input dashboard-record-check" data-record-type="salesorder" data-record-id="${escapeAttr(oid)}" data-dash-key="SO:${escapeAttr(oid)}" ${checked} onchange="toggleDashboardSelection('SO:${escapeAttr(oid)}',this.checked)" /></td><td>${escapeHtml(dashboardDateKey(o.date||o.entryDate))}</td><td>${escapeHtml(o.orgName||o.organization||'')}</td><td>${escapeHtml(o.clientName||'')}</td><td>${escapeHtml(o.orderFor||'')}</td><td>${escapeHtml(o.salesType||'')}</td><td>${escapeHtml(o.pvType||o.PVType||'-')}</td><td>${escapeHtml(fmt(o,dcrValForDashboard))}</td><td>${escapeHtml(fmt(o,ndcrValForDashboard))}</td><td><span class="badge ${Number(o.repeatCount||o.repeatOrderCount||1)>1?'text-bg-success':'text-bg-light'}">${Math.max(1,Number(o.repeatCount||o.repeatOrderCount||1))}</span></td><td>${escapeHtml(o.piStatus||'')}</td><td>${escapeHtml(salesOrderMoney(o.amount))}</td></tr>`}).join(''):'<tr><td colspan="12" class="text-center text-muted">No sales orders in the selected scope.</td></tr>';
       syncDashboardSelectAllHeader('salesorders','dashboardSOSelectAll');
   }
   function dashboardPvType(o){return String(o?.pvType??o?.PVType??o?.pv_type??o?.PvType??'').trim().toLowerCase().replace(/\s+/g,'');}
@@ -4674,7 +4712,11 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
     const pipeLabels=Object.keys(pipeline);
     makeDashboardChart('chartSalesOrders','bar',pipeLabels,pipeLabels.map(k=>pipeline[k]),'Sales Orders');
     makeDashboardChart('chartOperations','bar',Object.keys(ops),Object.values(ops),'Operations');
+    // KPI values are always derived from the current database-backed snapshot `s`.
+    // Never retain a previous card value after a successful database refresh.
     const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=String(v??0);};
+    set('statTotalRecords',s.total||0);
+    set('statColdCalls',(s.calls||[]).length);
     set('statVisits',s.visits); set('statMeetings',s.meetings); set('statHotLeads',s.temp?.Hot||0); set('statWarmLeads',s.temp?.Warm||0); set('statColdLeads',s.temp?.Cold||0); set('statExistingClients',s.existingClients||0); set('statRepeatVisits',s.repeatVisits||0); set('statRepeatColdCalls',s.repeatColdCalls||0); set('statNewLeads',s.newLeads||0); set('statOrdersDone',s.orders);
     set('statOrdersPipeline',Math.max(0,(s.salesOrders||[]).filter(o=>!['accepted','sales done','done','completed'].includes(String(o.piStatus||'').trim().toLowerCase())).length));
     set('statTotalSalesDone',salesOrderMoney(s.totalSalesAmount));
@@ -4718,8 +4760,8 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
   function renderDashboardColdCalls(){
     const count=document.getElementById('dashboardColdTabCount');if(count)count.textContent=String(currentDashboardColdCalls().length);
     const tbody=document.getElementById('dashboardColdCallTable');if(!tbody)return;tbody.innerHTML='';const list=(rawData.coldCalls||[]).filter(c=>dashboardDatePasses(c.activityDate||c.entryDate||c.timestamp)&&dashboardUserPasses(c));
-    if(!list.length){tbody.innerHTML='<tr><td colspan="12" class="text-center text-muted py-3">No cold-call activity for the selected period.</td></tr>';syncDashboardSelectAllHeader('coldcalls','dashboardColdSelectAll');return;}
-    list.forEach(c=>{const key='CC:'+c.id,checked=selectedDashboardIds.has(key)?'checked':'';tbody.insertAdjacentHTML('beforeend',`<tr class="${checked?'dashboard-row-selected':''}"><td><input class="form-check-input" type="checkbox" data-dash-key="CC:${escapeAttr(c.id)}" ${checked} onchange="toggleDashboardSelection('CC:${escapeAttr(c.id)}',this.checked)"></td><td>${escapeHtml(c.timestamp||c.entryDate||'')}</td><td>${escapeHtml(c.orgName||c.clientName||'')}</td><td>${escapeHtml(c.contactName||'')}</td><td>${escapeHtml(c.phone||'')}</td><td>${escapeHtml(c.state||'')}</td><td>${escapeHtml(c.region||'')}</td><td>${escapeHtml(c.district||'')}</td><td>${escapeHtml(c.outcome||'')}</td><td>${escapeHtml(c.callStatus||'')}</td><td>${escapeHtml(c.leadTemp||'')}</td><td>${escapeHtml(c.remarks||'')}</td></tr>`);});
+    if(!list.length){tbody.innerHTML='<tr><td colspan="13" class="text-center text-muted py-3">No cold-call activity for the selected period.</td></tr>';syncDashboardSelectAllHeader('coldcalls','dashboardColdSelectAll');return;}
+    list.forEach(c=>{const key='CC:'+c.id,checked=selectedDashboardIds.has(key)?'checked':'';tbody.insertAdjacentHTML('beforeend',`<tr class="${checked?'dashboard-row-selected':''}"><td><input class="form-check-input" type="checkbox" data-dash-key="CC:${escapeAttr(c.id)}" ${checked} onchange="toggleDashboardSelection('CC:${escapeAttr(c.id)}',this.checked)"></td><td>${escapeHtml(c.timestamp||c.entryDate||'')}</td><td>${escapeHtml(c.orgName||c.clientName||'')}</td><td>${escapeHtml(c.contactName||'')}</td><td>${escapeHtml(c.phone||'')}</td><td>${escapeHtml(c.state||'')}</td><td>${escapeHtml(c.region||'')}</td><td>${escapeHtml(c.district||'')}</td><td>${escapeHtml(c.outcome||'')}</td><td>${escapeHtml(c.callStatus||'')}</td><td>${escapeHtml(c.leadTemp||'')}</td><td><span class="badge ${Number(c.visitCount||c.repeatCount||1)>1?'text-bg-success':'text-bg-light'}">${Math.max(1,Number(c.visitCount||c.repeatCount||1))}</span></td><td>${escapeHtml(c.remarks||'')}</td></tr>`);});
       syncDashboardSelectAllHeader('coldcalls','dashboardColdSelectAll');
   }
   let salesOrderRepeatMapCacheKey='';
@@ -4744,7 +4786,7 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
   }
   function renderDashboardTable(){
     const count=document.getElementById('dashboardClientTabCount');if(count)count.textContent=String((filteredClients||[]).length);
-    const tbody=document.getElementById('dashboardHierarchyTable');if(!tbody)return;tbody.innerHTML='';filteredClients.forEach(c=>{const key='CL:'+c.id,checked=selectedDashboardIds.has(key)?'checked':'',repeat=salesOrderRepeatCountForClient(c);tbody.insertAdjacentHTML('beforeend',`<tr class="${checked?'dashboard-row-selected':''}"><td><input class="form-check-input" type="checkbox" data-dash-key="CL:${escapeAttr(c.id)}" ${checked} onchange="toggleDashboardSelection('CL:${escapeAttr(c.id)}',this.checked)"></td><td>${escapeHtml(c.activityDate||c.entryDate||'')}</td><td class="fw-bold">${escapeHtml(c.orgName||c.organization||c.organizationName||'')}</td><td class="fw-semibold">${escapeHtml(c.contactName||c.clientName||'')}</td><td>${escapeHtml(c.state||'')}</td><td>${escapeHtml(c.region||'')}</td><td>${escapeHtml(c.district||'')}</td><td>${escapeHtml(c.tehsil||'')}</td><td><strong>${escapeHtml(c.city||'')}</strong></td><td>${escapeHtml(c.salesOrderStatus||'')}</td><td><span class="badge ${repeat>1?'text-bg-success':'text-bg-light'}">${repeat||'—'}</span></td><td>${escapeHtml(c.visitStatus||'')}</td><td>${escapeHtml(c.meetingStatus||'')}</td></tr>`);});updateSelectionCount();
+    const tbody=document.getElementById('dashboardHierarchyTable');if(!tbody)return;tbody.innerHTML='';filteredClients.forEach(c=>{const key='CL:'+c.id,checked=selectedDashboardIds.has(key)?'checked':'',visitRepeat=Math.max(1,Number(c.visitCount||c.followUpCount||1)),repeat=salesOrderRepeatCountForClient(c);tbody.insertAdjacentHTML('beforeend',`<tr class="${checked?'dashboard-row-selected':''}"><td><input class="form-check-input" type="checkbox" data-dash-key="CL:${escapeAttr(c.id)}" ${checked} onchange="toggleDashboardSelection('CL:${escapeAttr(c.id)}',this.checked)"></td><td>${escapeHtml(c.activityDate||c.entryDate||'')}</td><td class="fw-bold">${escapeHtml(c.orgName||c.organization||c.organizationName||'')}</td><td class="fw-semibold">${escapeHtml(c.contactName||c.clientName||'')}</td><td>${escapeHtml(c.state||'')}</td><td>${escapeHtml(c.region||'')}</td><td>${escapeHtml(c.district||'')}</td><td>${escapeHtml(c.tehsil||'')}</td><td><strong>${escapeHtml(c.city||'')}</strong></td><td>${escapeHtml(c.salesOrderStatus||'')}</td><td><span class="badge ${visitRepeat>1?'text-bg-success':'text-bg-light'}">${visitRepeat}</span></td><td><span class="badge ${repeat>1?'text-bg-success':'text-bg-light'}">${repeat||0}</span></td><td>${escapeHtml(c.visitStatus||'')}</td><td>${escapeHtml(c.meetingStatus||'')}</td></tr>`);});updateSelectionCount();
       syncDashboardSelectAllHeader('clients','dashboardClientSelectAll');
   }
   function toggleDashboardSelection(id,checked){if(checked)selectedDashboardIds.add(id);else selectedDashboardIds.delete(id);renderDashboardTable();renderDashboardColdCalls();try{renderDashboardSalesOrderTable(dashboardStats());}catch(e){console.warn('Sales selection render failed',e);}updateSelectionCount();}
@@ -4928,6 +4970,7 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
 
   function showProcessingMessage(title='Processing',message='Please wait while your request is being processed...'){
     const overlay=document.getElementById('operationOverlay'); if(!overlay)return;
+    title=databaseDisplayText(title); message=databaseDisplayText(message);
     document.getElementById('operationTitle').textContent=title;
     document.getElementById('operationCaption').textContent='Processing request';
     document.getElementById('operationDetails').innerHTML='<span class="spinner-border spinner-border-sm me-2"></span>'+escapeHtml(message);
@@ -4939,6 +4982,7 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
   // CRUD handlers that really complete an operation explicitly set data-close-approved
   // before hiding their own modal, or call showOperationMessage(..., 'success', true).
   function showOperationMessage(title,message,type='success',closeModals=null){
+    title=databaseDisplayText(title); message=databaseDisplayText(message);
     const overlay=document.getElementById('operationOverlay'); if(!overlay)return showToast(message,type);
     if(window.__operationCloseTimer)clearTimeout(window.__operationCloseTimer);
     document.getElementById('operationTitle').textContent=title;
@@ -7186,10 +7230,13 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     if(result && result.success!==false){
       try{ if(dataSyncChannel) dataSyncChannel.postMessage({type:'data-changed',action:String(action),at:writeTime}); }catch(e){}
     }
-    // Safety net: most handlers already call refreshData(); if none started one, do it here.
+    // Always schedule a fresh database synchronization after a successful write.
+    // Existing handlers may already have started refreshData(); the refresh-in-flight
+    // guard prevents duplicate requests while guaranteeing that dashboard KPI cards
+    // are recalculated from the latest saved database snapshot.
     setTimeout(()=>{
-      if(currentUser && lastRefreshStartedAt<writeTime) refreshData({silent:true,reason:'after-write',force:true});
-    },700);
+      if(currentUser) refreshData({silent:true,reason:'after-write',force:true});
+    },250);
   }
 
   async function callBackend(action,payload){
@@ -7226,13 +7273,13 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       requestPayload.ownerEmail=record.userEmail||record.ownerEmail||record.createdBy||'';
     }
     try{
-      if(!window.KosolSupabaseAPI) return {success:false,message:'Supabase data layer is not loaded. Please reload the application.'};
+      if(!window.KosolSupabaseAPI) return {success:false,message:'Database data layer is not loaded. Please reload the application.'};
       const result=await window.KosolSupabaseAPI.call(action,requestPayload);
       if(result&&result.success===false&&result.sessionExpired){ clearPersistedSession(); currentUser=null; }
-      return cleanNullText(result||{success:false,message:'Empty Supabase response.'});
+      return cleanNullText(result||{success:false,message:'Empty Database response.'});
     }catch(err){
       console.error('Supabase API request failed:',action,err);
-      return {success:false,message:err?.name==='AbortError'?'Supabase request timed out. Please check the connection.':(err?.message||String(err))};
+      return {success:false,message:err?.name==='AbortError'?'Database request timed out. Please check the connection.':(err?.message||String(err))};
     }
   }
 
@@ -8266,7 +8313,7 @@ setInterval(()=>{
     if(!b){b=document.createElement('div');b.id='kosol-live-loader-v4';document.body.appendChild(b);}
     return b;
   }
-  function status(msg,show){const b=ensureBox();b.innerHTML='<div class="kosol-live-head"><span class="kosol-sync-spinner'+(show?'':' done')+'" aria-hidden="true"></span><b><i class="bi bi-database me-1"></i>Database</b><button type="button" class="kosol-live-close" aria-label="Close" title="Close" onclick="closeLiveDataMessage()"><i class="bi bi-x-lg"></i></button></div><div class="small mt-1">'+esc(msg||'')+'</div>';b.classList.toggle('show',!!show);}
+  function status(msg,show){msg=String(msg??'').replace(/\bSupabase\b/gi,'Database');const b=ensureBox();b.innerHTML='<div class="kosol-live-head"><span class="kosol-sync-spinner'+(show?'':' done')+'" aria-hidden="true"></span><b><i class="bi bi-database me-1"></i>Database</b><button type="button" class="kosol-live-close" aria-label="Close" title="Close" onclick="closeLiveDataMessage()"><i class="bi bi-x-lg"></i></button></div><div class="small mt-1">'+esc(msg||'')+'</div>';b.classList.toggle('show',!!show);}
   function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
   function requiredArrays(p){return ['clients','coldCalls','tasks','approvals','salesOrders','targets','notifications','teamUsers'].filter(k=>!Array.isArray(p?.[k]));}
   window.closeLiveDataMessage=function(){const b=document.getElementById('kosol-live-loader-v4');if(b)b.classList.remove('show');};
@@ -8275,9 +8322,9 @@ setInterval(()=>{
     V4.attempt=1; V4.started=Date.now();
     status('Synchronizing latest database data…',true);
     try{
-      if(!window.KosolSupabaseAPI) throw new Error('Supabase data layer is not loaded.');
+      if(!window.KosolSupabaseAPI) throw new Error('Database data layer is not loaded.');
       const result=await window.KosolSupabaseAPI.call('getDashboardData',payload||{});
-      if(!result||result.success===false) throw new Error(result?.message||'Supabase dashboard request failed.');
+      if(!result||result.success===false) throw new Error(result?.message||'Database dashboard request failed.');
       const p=result.data&&typeof result.data==='object'?result.data:result;
       const missing=requiredArrays(p);
       if(missing.length) throw new Error('Dashboard response is incomplete. Missing: '+missing.join(', ')+'.');
@@ -8469,7 +8516,7 @@ setInterval(()=>{
 })();
 </script>
 <script id="kosol-supabase-config">
-window.KOSOL_SUPABASE_CONFIG={url:"https://ziqvdesjgphxeasxmruh.supabase.co",key:"sb_publishable_tOSUJlFLZY-k-4qpwP3bBA_cXyNeGhF",name:"Supabase",primary:true};
+window.KOSOL_SUPABASE_CONFIG={url:"https://ziqvdesjgphxeasxmruh.supabase.co",key:"sb_publishable_tOSUJlFLZY-k-4qpwP3bBA_cXyNeGhF",name:"Database",primary:true};
 </script>
 <script id="kosol-supabase-inline">
 /* KOSOL / SRD Sons Supabase-only application data layer.
@@ -8477,7 +8524,7 @@ window.KOSOL_SUPABASE_CONFIG={url:"https://ziqvdesjgphxeasxmruh.supabase.co",key
 (function(){'use strict';
 const CFG='kosol_supabase_database_v2';
 const EMBED=window.KOSOL_SUPABASE_CONFIG||{};
-let config=Object.assign({url:'',key:'',name:'Supabase',primary:true},EMBED);
+let config=Object.assign({url:'',key:'',name:'Database',primary:true},EMBED);
 try{Object.assign(config,JSON.parse(localStorage.getItem(CFG)||'{}'));}catch(_){}
 if(EMBED.url)config.url=EMBED.url;if(EMBED.key)config.key=EMBED.key;
 let token=localStorage.getItem('kosol_supabase_session')||'';
@@ -8563,9 +8610,9 @@ window.KosolSupabase=Object.assign(window.KosolSupabase||{}, {mode:()=>config.na
 (function(){
  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
  function admin(){return typeof isAdmin==='function'&&isAdmin();}
- function sync(){const ok=admin();['menuBackendDatabase','menuDbSwitch','dashboardActiveDb','mobileMenuBackendDatabase','mobileMenuDbSwitch'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('d-none',!ok)});const name=(window.KosolSupabase&&window.KosolSupabase.config)?(window.KosolSupabase.config().name||'Supabase'):'Supabase';document.querySelectorAll('.kosol-db-mode-label').forEach(e=>e.textContent=name);const role=document.getElementById('dashboardActiveRole');if(role){const r=String(window.currentUser?.role||'').trim();role.classList.toggle('d-none',!r);const b=role.querySelector('b');if(b)b.textContent=r;}}
- function open(){if(!admin())return;let m=document.getElementById('kosolDbManager');if(!m){m=document.createElement('div');m.id='kosolDbManager';m.className='kosol-db-modal';m.innerHTML='<div class="kosol-db-card"><div class="d-flex align-items-center"><h5 class="m-0"><i class="bi bi-database-gear me-2"></i>Database Manager</h5><button class="btn-close ms-auto" id="kosolDbClose"></button></div><div class="small text-muted mt-1 mb-3">Supabase is the only application backend. Admin and Master Admin can configure, test, switch and migrate between compatible Supabase databases. Only publishable/anon keys belong here.</div><div class="row g-2"><div class="col-12"><label class="form-label small mb-1">Database name</label><input id="kosolDbName" class="form-control" placeholder="Production Supabase"></div><div class="col-12"><label class="form-label small mb-1">Project URL</label><input id="kosolDbUrl" class="form-control" placeholder="https://xxxx.supabase.co"></div><div class="col-12"><label class="form-label small mb-1">Publishable / anon key</label><input id="kosolDbKey" class="form-control" autocomplete="off"></div></div><div class="mt-3 d-flex flex-wrap gap-2"><button class="btn btn-outline-info btn-sm" id="kosolDbTest">Test connection</button><button class="btn btn-outline-primary btn-sm" id="kosolDbSave">Save configuration</button><button class="btn btn-success btn-sm" id="kosolDbSwitch">Make active database</button><button class="btn btn-outline-danger btn-sm" id="kosolDbMigrate">Migrate current data</button></div><div id="kosolDbStatus" class="small mt-3 text-muted"></div><div class="alert alert-info small mt-3 mb-0"><b>Active database:</b> <span id="kosolDbActive">Supabase</span><br>The active database label is shown to signed-in users. Database credentials are kept in this browser; no secret/service-role key is stored in the application.</div></div>';document.body.appendChild(m);m.querySelector('#kosolDbClose').onclick=()=>m.classList.remove('show');m.querySelector('#kosolDbTest').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const c=window.KosolSupabase.config();const n=m.querySelector('#kosolDbName').value.trim(),u=m.querySelector('#kosolDbUrl').value.trim(),k=m.querySelector('#kosolDbKey').value.trim();if(!u||!k)throw Error('Enter database URL and publishable key.');window.KosolSupabase.setConfig({name:n||'Supabase',url:u,key:k});await window.KosolSupabase.test();st.textContent='Connection successful.';}catch(e){st.textContent='Connection failed: '+e.message;}};m.querySelector('#kosolDbSave').onclick=()=>{window.KosolSupabase.setConfig({name:m.querySelector('#kosolDbName').value.trim()||'Supabase',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()});m.querySelector('#kosolDbStatus').textContent='Configuration saved locally. Test it before switching.';sync();};m.querySelector('#kosolDbSwitch').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const c={name:m.querySelector('#kosolDbName').value.trim()||'Supabase',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()};window.KosolSupabase.setConfig(c);await window.KosolSupabase.test();await window.KosolSupabase.call('set_active_database',c);st.textContent='Active database switched successfully. Reloading data…';setTimeout(()=>location.reload(),500);}catch(e){st.textContent='Switch failed: '+e.message;}};m.querySelector('#kosolDbMigrate').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const d={name:m.querySelector('#kosolDbName').value.trim()||'Supabase',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()};await window.KosolSupabase.migrateTo(d,msg=>st.textContent=msg);st.textContent='Migration completed. The destination is now active.';sync();setTimeout(()=>location.reload(),700);}catch(e){st.textContent='Migration failed: '+e.message;}};}
- const c=window.KosolSupabase&&window.KosolSupabase.config?window.KosolSupabase.config():{};m.querySelector('#kosolDbName').value=c.name||'Supabase';m.querySelector('#kosolDbUrl').value=c.url||'';m.querySelector('#kosolDbKey').value=c.key&&c.key!=='***'?c.key:'';m.querySelector('#kosolDbActive').textContent=c.name||'Supabase';m.classList.add('show');}
+ function sync(){const ok=admin();['menuBackendDatabase','menuDbSwitch','dashboardActiveDb','mobileMenuBackendDatabase','mobileMenuDbSwitch'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('d-none',!ok)});const name=(window.KosolSupabase&&window.KosolSupabase.config)?(window.KosolSupabase.config().name||'Database'):'Supabase';document.querySelectorAll('.kosol-db-mode-label').forEach(e=>e.textContent=name);const role=document.getElementById('dashboardActiveRole');if(role){const r=String(window.currentUser?.role||'').trim();role.classList.toggle('d-none',!r);const b=role.querySelector('b');if(b)b.textContent=r;}}
+ function open(){if(!admin())return;let m=document.getElementById('kosolDbManager');if(!m){m=document.createElement('div');m.id='kosolDbManager';m.className='kosol-db-modal';m.innerHTML='<div class="kosol-db-card"><div class="d-flex align-items-center"><h5 class="m-0"><i class="bi bi-database-gear me-2"></i>Database Manager</h5><button class="btn-close ms-auto" id="kosolDbClose"></button></div><div class="small text-muted mt-1 mb-3">Database is the application backend. Admin and Master Admin can configure, test, switch and migrate between compatible databases. Only publishable/anon keys belong here.</div><div class="row g-2"><div class="col-12"><label class="form-label small mb-1">Database name</label><input id="kosolDbName" class="form-control" placeholder="Production Database"></div><div class="col-12"><label class="form-label small mb-1">Project URL</label><input id="kosolDbUrl" class="form-control" placeholder="https://xxxx.supabase.co"></div><div class="col-12"><label class="form-label small mb-1">Publishable / anon key</label><input id="kosolDbKey" class="form-control" autocomplete="off"></div></div><div class="mt-3 d-flex flex-wrap gap-2"><button class="btn btn-outline-info btn-sm" id="kosolDbTest">Test connection</button><button class="btn btn-outline-primary btn-sm" id="kosolDbSave">Save configuration</button><button class="btn btn-success btn-sm" id="kosolDbSwitch">Make active database</button><button class="btn btn-outline-danger btn-sm" id="kosolDbMigrate">Migrate current data</button></div><div id="kosolDbStatus" class="small mt-3 text-muted"></div><div class="alert alert-info small mt-3 mb-0"><b>Active database:</b> <span id="kosolDbActive">Database</span><br>The active database label is shown to signed-in users. Database credentials are kept in this browser; no secret/service-role key is stored in the application.</div></div>';document.body.appendChild(m);m.querySelector('#kosolDbClose').onclick=()=>m.classList.remove('show');m.querySelector('#kosolDbTest').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const c=window.KosolSupabase.config();const n=m.querySelector('#kosolDbName').value.trim(),u=m.querySelector('#kosolDbUrl').value.trim(),k=m.querySelector('#kosolDbKey').value.trim();if(!u||!k)throw Error('Enter database URL and publishable key.');window.KosolSupabase.setConfig({name:n||'Database',url:u,key:k});await window.KosolSupabase.test();st.textContent='Connection successful.';}catch(e){st.textContent='Connection failed: '+databaseDisplayText(e.message);}};m.querySelector('#kosolDbSave').onclick=()=>{window.KosolSupabase.setConfig({name:m.querySelector('#kosolDbName').value.trim()||'Database',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()});m.querySelector('#kosolDbStatus').textContent='Configuration saved locally. Test it before switching.';sync();};m.querySelector('#kosolDbSwitch').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const c={name:m.querySelector('#kosolDbName').value.trim()||'Database',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()};window.KosolSupabase.setConfig(c);await window.KosolSupabase.test();await window.KosolSupabase.call('set_active_database',c);st.textContent='Active database switched successfully. Reloading data…';setTimeout(()=>location.reload(),500);}catch(e){st.textContent='Switch failed: '+databaseDisplayText(e.message);}};m.querySelector('#kosolDbMigrate').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const d={name:m.querySelector('#kosolDbName').value.trim()||'Database',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()};await window.KosolSupabase.migrateTo(d,msg=>st.textContent=databaseDisplayText(msg));st.textContent='Migration completed. The destination is now active.';sync();setTimeout(()=>location.reload(),700);}catch(e){st.textContent='Migration failed: '+databaseDisplayText(e.message);}};}
+ const c=window.KosolSupabase&&window.KosolSupabase.config?window.KosolSupabase.config():{};m.querySelector('#kosolDbName').value=c.name||'Database';m.querySelector('#kosolDbUrl').value=c.url||'';m.querySelector('#kosolDbKey').value=c.key&&c.key!=='***'?c.key:'';m.querySelector('#kosolDbActive').textContent=c.name||'Database';m.classList.add('show');}
  function switchDb(ev){if(ev)ev.preventDefault();open();}
  window.KosolSupabase=window.KosolSupabase||{};window.KosolSupabase.open=open;window.KosolSupabase.openSwitch=switchDb;window.addEventListener('load',sync,{once:true});window.addEventListener('focus',sync,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sync();},{passive:true});setInterval(sync,15000);
 })();
