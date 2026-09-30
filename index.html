@@ -4263,7 +4263,10 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       stateSel=add('dashboardStateFilter','State',states.map(x=>({value:x,text:x})));
     }
 
-    const isHead=(currentUser.role==='Master Admin'||currentUser.role==='Admin'||/head/i.test(String(currentUser.role||'')));
+    // Only Master Admin/Admin are globally unrestricted. Every other user
+    // gets team scope strictly from the reporting hierarchy, regardless of
+    // whether the role name contains "Head", "Manager", or another title.
+    const isHead=(currentUser.role==='Master Admin'||currentUser.role==='Admin');
     // Reporting managers must get the complete reporting hierarchy from the
     // user directory, not only the users present in the current dashboard
     // snapshot. This keeps every direct/indirect team member available for
@@ -4350,7 +4353,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   function dashboardSelectableUsersForCurrentUser(){
     const me=currentUser||{};
     const users=Array.isArray(allUsersList)&&allUsersList.length ? allUsersList : dashboardEligibleUsers();
-    const isHead=me.role==='Master Admin'||me.role==='Admin'||/head/i.test(String(me.role||''));
+    // Master Admin/Admin are globally unrestricted. Team Coordinator and
+    // every reporting manager use the recursive direct+indirect hierarchy.
+    const isHead=me.role==='Master Admin'||me.role==='Admin';
     const team=isHead ? dashboardHeadTeam(me,users) : dashboardTeamMembers(me,users);
     const out=[me];
     const seen=new Set();
@@ -6944,7 +6949,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       if(action.toLowerCase().includes('coldcall')) record=(rawData.coldCalls||[]).find(x=>String(x.id)===String(recordId));
       else if(action.toLowerCase().includes('client')) record=(rawData.clients||[]).find(x=>String(x.id)===String(recordId));
       else if(action.toLowerCase().includes('salesorder')) record=(rawData.salesOrders||[]).find(x=>String(x.id||x.orderId)===String(recordId));
-      if(!record || !recordOwnerMatchesUser(record)) return {success:false,message:'Access denied. You can modify or delete only your own records or records belonging to your direct/indirect reporting hierarchy.'};
+      if(!record || !recordOwnerMatchesUser(record)) return {success:false,message:'Access denied. You can modify or delete only records saved by your logged-in account.'};
       requestPayload.userId=currentUser?.id||requestPayload.userId;
       requestPayload.userEmail=currentUser?.email||requestPayload.userEmail;
       requestPayload.userRole=currentUser?.role||requestPayload.userRole;
@@ -7709,8 +7714,10 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     return String(u?.id||u?.userId||u?.employeeId||u?.email||u?.name||u?.loginId||u?.username||'');
   }
   function dashIsHead(){
-    const r=String(currentUser?.role||'');
-    return r==='Master Admin'||r==='Admin'||/head/i.test(r);
+    // Dashboard team scope is hierarchy-based. Only Master Admin/Admin have
+    // organization-wide scope; all other roles are limited to own + descendants.
+    const r=String(currentUser?.role||'').trim().toLowerCase();
+    return r==='master admin'||r==='admin';
   }
   function getDashboardFilterContext(){
     const uf=document.getElementById('dashboardUserFilter')?.value||'ALL';
