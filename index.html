@@ -1017,7 +1017,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
             <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom flex-wrap gap-2">
               <div>
                 <h2 class="h4 mb-0 fw-bold">Executive Dashboard</h2>
-                <small class="text-muted fw-bold" id="dashboardScopeHeader">Scope: Country-wide</small><span id="dashboardSyncState" class="dashboard-sync-state synced ms-2"><i class="bi bi-cloud-check"></i> Backend synchronized</span>
+                <small class="text-muted fw-bold" id="dashboardScopeHeader">Scope: Country-wide</small><span id="dashboardSyncState" class="dashboard-sync-state synced ms-2"><i class="bi bi-cloud-check"></i> Backend synchronized</span><span id="dashboardActiveDb" class="badge ms-2 d-none" role="button" title="Active database for all users – click to switch" style="cursor:pointer" onclick="KosolSupabase.openSwitch(event)"><i class="bi bi-database-fill me-1"></i>Active DB: <b class="kosol-db-mode-label">…</b></span>
               </div>
               <div class="d-flex align-items-center gap-1 flex-wrap w-100 w-md-auto">
                 <div id="dashboardUserFilters" class="d-flex align-items-center gap-1 flex-wrap"></div>
@@ -8489,7 +8489,10 @@ window.KOSOL_SUPABASE_CONFIG={url:"",key:"",secret:"",primary:true};
   }
   const primaryOn=()=>remoteMode?remoteMode==='supabase':!!cfg.primary;
   const modeName=()=>primaryOn()?'Supabase':'Google Sheet';
-  function updateModeLabels(){document.querySelectorAll('.kosol-db-mode-label').forEach(e=>{e.textContent=modeName();});}
+  function updateModeLabels(){
+    document.querySelectorAll('.kosol-db-mode-label').forEach(e=>{e.textContent=modeName();});
+    const b=document.getElementById('dashboardActiveDb');if(b){b.classList.toggle('text-bg-success',primaryOn());b.classList.toggle('text-bg-secondary',!primaryOn());}
+  }
   async function setMode(mode){
     if(!isAdmin())throw new Error('Only Admin / Master Admin can switch the primary database.');
     if(mode==='supabase'&&!ready())throw new Error('Configure the Supabase URL and key first (Backend & Database).');
@@ -8682,7 +8685,7 @@ window.KOSOL_SUPABASE_CONFIG={url:"",key:"",secret:"",primary:true};
      (case-insensitive role check) regardless of which tab or login path was used. */
   function syncAdminUi(){
     const show=isAdmin();
-    ['menuBackendDatabase','mobileMenuBackendDatabase','menuDbSwitch','mobileMenuDbSwitch'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('d-none',!show);});
+    ['menuBackendDatabase','mobileMenuBackendDatabase','menuDbSwitch','mobileMenuDbSwitch','dashboardActiveDb'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('d-none',!show);});
     const card=document.getElementById('masterAdminBackendTools');if(card&&show)card.classList.remove('d-none');
     if(show){resolveMode().then(updateModeLabels);updateModeLabels();}
   }
