@@ -8395,14 +8395,28 @@ window.KOSOL_SUPABASE_CONFIG={url:"",key:"",secret:"",primary:true};
     }else log('3/6–4/6 Task history & chat skipped (option off).');
 
     log('5/6 Writing to Supabase…');
-    const summary={};
+    const summary={},skipped={};
     for(const t of Object.keys(sets)){
-      const rows=sets[t];summary[t]=rows.length;if(!rows.length)continue;
+      const rows=sets[t];summary[t]=0;if(!rows.length)continue;
       const ignore=primaryOn()&&PRIMARY_TABLES.includes(t);
-      await upsert(t,rows,(a,b)=>{if(b>400)log('   '+t+' '+a+'/'+b);},ignore);
-      lastHashes[t]=lastHashes[t]||{};rows.forEach(r=>{lastHashes[t][r.id]=rowHash(r);});
-      log('   ✓ '+t+': '+rows.length+' records');
+      try{
+        await upsert(t,rows,(a,b)=>{if(b>400)log('   '+t+' '+a+'/'+b);},ignore);
+        summary[t]=rows.length;
+        lastHashes[t]=lastHashes[t]||{};rows.forEach(r=>{lastHashes[t][r.id]=rowHash(r);});
+        log('   ✓ '+t+': '+rows.length+' records');
+      }catch(e){
+        const msg=e&&e.message||String(e);
+        skipped[t]=rows.length;
+        // Notifications are generated/rebuilt by the application and are protected by RLS.
+        // Do not weaken RLS or expose a service-role key just to import this derived table.
+        if(t==='notifications' && /42501|row-level security|violates row-level security/i.test(msg)){
+          log('   ⚠ '+t+': skipped '+rows.length+' protected records (RLS). Notification feed will be rebuilt from migrated business data.');
+          continue;
+        }
+        log('   ⚠ '+t+': skipped '+rows.length+' records — '+msg);
+      }
     }
+    summary.__skipped=skipped;
     log('6/6 Marking records deleted in the old backend as deleted in Supabase…');
     for(const t of RECONCILE){
       if(!sets[t]||!sets[t].length)continue;
@@ -8410,7 +8424,7 @@ window.KOSOL_SUPABASE_CONFIG={url:"",key:"",secret:"",primary:true};
       const keep=new Set(sets[t].map(r=>r.id));
       try{const gone=(await activeIds(t)).filter(id=>!keep.has(id));if(gone.length){await softDelete(t,gone);log('   '+t+': '+gone.length+' soft-deleted');}}catch(e){log('   ! reconcile '+t+': '+e.message);}
     }
-    lastCounts=summary;
+    lastCounts=Object.assign({},summary);delete lastCounts.__skipped;
     try{await req('sync_log',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({source:'full-migration:'+(u.email||''),summary:summary})});}catch(_){}
     return summary;
   }
@@ -8682,7 +8696,7 @@ window.KOSOL_SUPABASE_CONFIG={url:"",key:"",secret:"",primary:true};
       $('sbSwitch').onclick=()=>{o.classList.remove('show');openSwitch();};
       $('sbSave').onclick=()=>{collect();$('sbLog').textContent='Saved.';if(cfg.auto)scheduleMirror();};
       $('sbTest').onclick=run($('sbTest'),async()=>{await req('clients?select=id&limit=1');log('Connection OK – tables reachable, secret accepted.');});
-      $('sbMig').onclick=run($('sbMig'),async()=>{const s=await migrate(log,{history:cfg.history});log('DONE. Records copied: '+Object.keys(s).map(k=>k+'='+s[k]).join(', '));await verify(log);});
+      $('sbMig').onclick=run($('sbMig'),async()=>{const s=await migrate(log,{history:cfg.history});const skipped=s.__skipped||{};const copied=Object.keys(s).filter(k=>k!=='__skipped').map(k=>k+'='+s[k]).join(', ');log('DONE. Records copied: '+copied);if(Object.keys(skipped).length)log('Migration completed with protected/skipped tables: '+Object.keys(skipped).map(k=>k+'='+skipped[k]).join(', '));await verify(log);});
       $('sbVer').onclick=run($('sbVer'),()=>verify(log));
       $('sbCopy').onclick=()=>{collect();const line='window.KOSOL_SUPABASE_CONFIG='+JSON.stringify({url:cfg.url,key:cfg.key,secret:cfg.secret,primary:primaryOn()})+';';
         $('sbLog').textContent='Paste this line into index.html inside <script id="kosol-supabase-config"> (replacing the existing line), then redeploy. Every user will then save to Supabase:\n\n'+line;
