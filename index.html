@@ -2575,6 +2575,11 @@ button,input,select,textarea{max-width:100%;}
   function isMasterAdminUser(){
     return String(currentUser?.role||'').trim().toLowerCase()==='master admin';
   }
+  function isAdmin(){
+    const r=String(currentUser?.role||'').trim().toLowerCase();
+    return r==='master admin'||r==='admin';
+  }
+  try{window.isAdmin=isAdmin;}catch(_){}
   function recordOwnerMatchesUser(record){
     if(!record || !currentUser) return false;
     if(isMasterAdminUser() || String(currentUser?.role||'').trim().toLowerCase()==='admin') return true;
@@ -6580,7 +6585,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
 @media(min-width:768px){
  .desktop-user-fitment{max-width:min(420px,34vw)}
 }
-</style><style id="pipeline-card-refinement">
+</style><style id="pipeline-card-refinement-2">
 .pipeline-card{min-height:0!important;padding:12px!important;display:flex!important;flex-direction:column!important;gap:10px!important;cursor:grab!important}
 .pipeline-card-summary{display:flex;flex-direction:column;gap:7px;min-width:0}
 .pipeline-card-org{font-weight:800;font-size:.94rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:10px}
@@ -7827,6 +7832,7 @@ document.addEventListener('click',function(ev){
     for(let i=0;i<stages.length;i++){const r=stages[i].getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return stages[i];}
     return null;
   }
+  var pipelinePointerDrag=null;
   function pipelinePointerCleanup(){
     if(pipelinePointerDrag){
       if(pipelinePointerDrag.ghost&&pipelinePointerDrag.ghost.parentNode)pipelinePointerDrag.ghost.parentNode.removeChild(pipelinePointerDrag.ghost);
@@ -8468,7 +8474,7 @@ setInterval(()=>{
 .kosol-inline-no-match,.client-no-match{display:flex;align-items:center;justify-content:space-between;gap:.75rem;width:100%;padding:.55rem .7rem}
 .kosol-inline-no-match .btn-close,.client-no-match .btn-close{flex:0 0 auto;font-size:.72rem}
 </style>
-<script id="kosol-form-behavior-v8">
+<script id="kosol-form-behavior-v8-js">
 (function(){
   'use strict';
   const SAVE_WORDS=/\b(saved|save|updated|update|created|create|submitted|submit|added|add|deleted|delete|completed|complete)\b/i;
