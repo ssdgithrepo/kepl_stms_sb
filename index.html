@@ -15,271 +15,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-/* ================================================================
-   SUPABASE DATA LAYER
-   All application database operations are performed in this index.html.
-   Replace only these two public Supabase project values.
-   Never put a Supabase service_role key in this browser file.
-   ================================================================ */
-const SUPABASE_CONFIG = Object.freeze({
-  url: localStorage.getItem('kosol_supabase_url') || 'https://mxcjuncxdnaxzclrpetb.supabase.co',
-  anonKey: localStorage.getItem('kosol_supabase_anon_key') || 'YOUR_SUPABASE_ANON_KEY'
-});
-const SUPABASE_STORAGE_BUCKET = 'kosol-files';
-let supabaseClient = null;
-function initSupabase(){
-  if(supabaseClient) return supabaseClient;
-  if(!window.supabase || !SUPABASE_CONFIG.url || SUPABASE_CONFIG.url.includes('YOUR-PROJECT') || !SUPABASE_CONFIG.anonKey || SUPABASE_CONFIG.anonKey.includes('YOUR_SUPABASE')) return null;
-  supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
-    auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'kosol-supabase-auth'}
-  });
-  return supabaseClient;
-}
-function supabaseConfigured(){return !!initSupabase();}
-function sbError(e,fallback='Supabase request failed'){return e?.message||e?.error_description||fallback;}
-function sbNow(){return new Date().toISOString();}
-function moduleName(action){
-  const a=String(action||'');
-  if(/Client/.test(a)) return 'clients';
-  if(/ColdCall/.test(a)) return 'coldCalls';
-  if(/SalesOrder/.test(a)) return 'salesOrders';
-  if(/Target/.test(a)) return 'targets';
-  if(/Task/.test(a)) return 'tasks';
-  if(/Approval/.test(a)) return 'approvals';
-  if(/Notification/.test(a)) return 'notifications';
-  if(/Attendance/.test(a)) return 'attendance';
-  if(/ProjectInvoice/.test(a)) return 'projectInvoices';
-  if(/ProjectTask/.test(a)) return 'projectTasks';
-  if(/Project/.test(a)) return 'projects';
-  return '';
-}
-function cleanPayloadObject(v){
-  if(!v || typeof v!=='object') return v;
-  if(Array.isArray(v)) return v.map(cleanPayloadObject);
-  const out={};
-  Object.keys(v).forEach(k=>{ if(!['password','passwd','authToken','token','sessionToken','refreshToken'].includes(k)) out[k]=cleanPayloadObject(v[k]); });
-  return out;
-}
-function withOwner(data,user=currentUser){
-  const d=Object.assign({},data||{});
-  if(user){
-    d.userId=d.userId||user.id||'';
-    d.userEmail=d.userEmail||user.email||'';
-    d.userRole=d.userRole||user.role||'';
-    d.createdByUserId=d.createdByUserId||user.id||'';
-    d.createdBy=d.createdBy||user.email||'';
-    d.ownerId=d.ownerId||user.id||'';
-    d.ownerEmail=d.ownerEmail||user.email||'';
-  }
-  return d;
-}
-function rowToRecord(row){
-  const d=Object.assign({},row?.data||{});
-  d.id=d.id||row?.id;
-  if(row?.owner_id && !d.userId)d.userId=row.owner_id;
-  if(row?.owner_email && !d.userEmail)d.userEmail=row.owner_email;
-  if(row?.created_at && !d.createdAt)d.createdAt=row.created_at;
-  if(row?.updated_at && !d.updatedAt)d.updatedAt=row.updated_at;
-  return d;
-}
-async function sbSession(){
-  const sb=initSupabase(); if(!sb) throw new Error('Supabase is not configured. Enter SUPABASE_CONFIG.url and SUPABASE_CONFIG.anonKey in index.html.');
-  const {data,error}=await sb.auth.getSession();
-  if(error) throw error;
-  return data?.session||null;
-}
-async function sbRequireSession(){
-  const session=await sbSession();
-  if(!session?.user) throw new Error('Your Supabase login session is missing or expired. Please sign in again.');
-  return session;
-}
-async function sbProfiles(select='*'){
-  const sb=initSupabase();
-  const {data,error}=await sb.from('profiles').select(select).order('name',{ascending:true});
-  if(error)throw error; return data||[];
-}
-async function sbModuleRows(module,options={}){
-  const sb=initSupabase();
-  let q=sb.from('app_records').select('id,owner_id,owner_email,data,created_at,updated_at').eq('module',module).order('created_at',{ascending:false});
-  if(options.id)q=q.eq('id',options.id);
-  const {data,error}=await q; if(error)throw error; return (data||[]).map(rowToRecord);
-}
-async function sbSaveRecord(module,payload,id){
-  const sb=initSupabase(), session=await sbRequireSession();
-  const clean=withOwner(cleanPayloadObject(payload),currentUser);
-  delete clean.authToken;
-  const recordId=id||clean.id||crypto.randomUUID();
-  clean.id=recordId;
-  const row={id:recordId,module,owner_id:clean.ownerId||clean.userId||session.user.id,owner_email:clean.ownerEmail||clean.userEmail||session.user.email,data:clean,updated_at:sbNow()};
-  const {data,error}=await sb.from('app_records').upsert(row,{onConflict:'id'}).select('id,owner_id,owner_email,data,created_at,updated_at').single();
-  if(error)throw error;
-  return rowToRecord(data);
-}
-async function sbDeleteRecord(module,id){
-  const sb=initSupabase();
-  const {error}=await sb.from('app_records').delete().eq('id',id).eq('module',module);
-  if(error)throw error; return true;
-}
-async function sbProfileForUser(userId){
-  const sb=initSupabase();
-  const {data,error}=await sb.from('profiles').select('*').eq('id',userId).maybeSingle();
-  if(error)throw error; return data;
-}
-function profileToUser(p,session){
-  return Object.assign({},p||{}, {id:p?.id||session?.user?.id, email:p?.email||session?.user?.email, authToken:session?.access_token||''});
-}
-async function sbGetDashboard(){
-  await sbRequireSession();
-  const modules=['clients','tasks','coldCalls','approvals','salesOrders','targets','notifications','attendance','projects','projectTasks','projectInvoices'];
-  const results=await Promise.all(modules.map(m=>sbModuleRows(m)));
-  const out={}; modules.forEach((m,i)=>out[m]=results[i]);
-  out.teamUsers=await sbProfiles('*');
-  out.todayAttendance=(out.attendance||[]).find(x=>String(x.userId||x.userEmail||'')===String(currentUser?.id||currentUser?.email||'') && String(x.date||x.attendanceDate||x.entryDate||'').slice(0,10)===new Date().toISOString().slice(0,10))||null;
-  out.notifications=out.notifications||[];
-  return {success:true,data:out};
-}
-async function sbLogin(payload){
-  const sb=initSupabase(); if(!sb) return {success:false,message:'Supabase is not configured in index.html.'};
-  const {data,error}=await sb.auth.signInWithPassword({email:String(payload.email||'').trim(),password:String(payload.password||'')});
-  if(error) return {success:false,message:error.message||'Invalid credentials.'};
-  const profile=await sbProfileForUser(data.user.id);
-  if(!profile){await sb.auth.signOut();return {success:false,message:'Account profile not found. Ask Master Admin to complete your profile.'};}
-  const status=String(profile.status||'').toLowerCase();
-  if(status && !['approved','active','enabled'].includes(status)){await sb.auth.signOut();return {success:false,message:'Your account is waiting for Master Admin approval.'};}
-  const user=profileToUser(profile,data.session); return {success:true,user,authToken:data.session?.access_token||''};
-}
-async function sbSelfRegister(payload){
-  const main=initSupabase();
-  const email=String(payload.email||'').trim().toLowerCase();
-  /* When Master Admin creates a user, use an isolated Supabase client so the
-     administrator's active browser session is never replaced by the new user's session. */
-  const adminCreating=!!currentUser && ['Master Admin','Admin'].includes(String(currentUser.role||''));
-  const sb=adminCreating ? window.supabase.createClient(SUPABASE_CONFIG.url,SUPABASE_CONFIG.anonKey,{auth:{persistSession:false,autoRefreshToken:false,storageKey:'kosol-admin-user-create-'+Date.now()}}) : main;
-  const {data,error}=await sb.auth.signUp({email,password:String(payload.password||''),options:{data:{name:payload.name||'',phone:payload.phone||'',role:payload.role||'Sales Executive',states:payload.states||[],regions:payload.regions||[],districts:payload.districts||[],tehsils:payload.tehsils||[],cities:payload.cities||[],pin_codes:payload.pinCodes||[],reporting_managers:payload.reportingManagers||[],reporting_to:payload.reportingTo||[]}}});
-  if(error) return {success:false,message:error.message};
-  const uid=data.user?.id; if(!uid)return {success:false,message:'Supabase did not return a user id.'};
-  const profile=Object.assign({},payload,{id:uid,email,name:payload.name||'',status:adminCreating?'Approved':'Pending',approved:adminCreating,createdBy:currentUser?.email||payload.createdBy||'',createdByUserId:currentUser?.id||payload.createdByUserId||''}); delete profile.password;
-  const {error:pe}=await main.from('profiles').upsert(profile,{onConflict:'id'}); if(pe)return {success:false,message:pe.message};
-  if(!adminCreating) await main.auth.signOut();
-  return {success:true,user:profile,message:adminCreating?'User account created successfully.':'Registration submitted. Master Admin approval is required before login.'};
-}
-async function sbSaveProfile(payload,id){
-  const sb=initSupabase(); const target=id||payload.id||crypto.randomUUID();
-  const clean=cleanPayloadObject(payload); delete clean.password;
-  clean.id=target;
-  const {data,error}=await sb.from('profiles').upsert(clean,{onConflict:'id'}).select('*').single();
-  if(error)throw error; return data;
-}
-async function sbChangeAuthPassword(newPassword){
-  const sb=initSupabase(); const {data,error}=await sb.auth.updateUser({password:newPassword}); if(error)throw error; return data;
-}
-async function sbChatMessages(peerId){
-  const sb=initSupabase(); const me=currentUser?.id;
-  const {data,error}=await sb.from('chat_messages').select('*').or(`and(sender_id.eq.${me},receiver_id.eq.${peerId}),and(sender_id.eq.${peerId},receiver_id.eq.${me})`).order('created_at',{ascending:true});
-  if(error)throw error; return data||[];
-}
-async function externalDatabaseDispatch(action,payload={}){
-  const c=dbStoredConfig();
-  if(!c.bridgeUrl) return {success:false,message:'No secure database bridge/API URL is configured for the selected database.'};
-  const body={action,payload,provider:c.provider||'custom',connection:{host:c.host||'',port:c.port||'',database:c.database||'',username:c.username||'',options:c.options||''},accessToken:currentUser?.authToken||''};
-  const response=await fetch(c.bridgeUrl,{method:'POST',headers:{'Content-Type':'application/json','X-Kosol-Database-Provider':String(c.provider||'custom'),'Authorization':currentUser?.authToken?`Bearer ${currentUser.authToken}`:''},body:JSON.stringify(body),cache:'no-store'});
-  const text=await response.text();let result;try{result=JSON.parse(text)}catch(_){result={success:false,message:text||`Database bridge returned HTTP ${response.status}`}};
-  if(!response.ok && result.success!==false)result={success:false,message:`Database bridge HTTP ${response.status}`};
-  return result;
-}
-async function sbDispatch(action,payload={}){
-  const active=dbActiveProvider();
-  if(active!=='supabase'){
-    try{return await externalDatabaseDispatch(action,payload)}catch(e){console.error('External database bridge failed:',action,e);return {success:false,message:sbError(e,`Unable to reach the ${DB_PROVIDER_DEFAULTS[active]?.label||active} database bridge.`)}}
-  }
-  const sb=initSupabase(); if(!sb)return {success:false,message:'Supabase is not configured. Open this index.html and set SUPABASE_CONFIG.'};
-  try{
-    if(action==='health') return {success:true,version:'Supabase / '+(SUPABASE_CONFIG.url.split('//')[1]||'project')};
-    if(action==='login') return await sbLogin(payload);
-    if(action==='selfRegister') return await sbSelfRegister(payload);
-    if(action==='requestPasswordResetOtp'){
-      const identifier=String(payload.identifier||'').trim();
-      const {error}=await sb.auth.resetPasswordForEmail(identifier,{redirectTo:location.origin+location.pathname+'?supabase_recovery=1'});
-      if(error)throw error;
-      return {success:true,masked:identifier.replace(/^(.{2}).*(@.*)$/,'$1***$2'),message:'Password recovery instructions have been sent to the registered email.'};
-    }
-    if(action==='resetPasswordWithOtp'){
-      const {data}=await sb.auth.getSession();
-      if(!data?.session) return {success:false,message:'Open the password-recovery email link first, then set the new password.'};
-      await sbChangeAuthPassword(String(payload.newPassword||''));
-      return {success:true,message:'Your password has been changed successfully.'};
-    }
-    if(action==='getReportingManagers'){
-      const users=await sbProfiles('*');
-      const managers=users.filter(u=>['Master Admin','Admin','National Head','State Head','Regional Head','Area Sales Officer','Senior Sales Executive'].includes(String(u.role||'')) && ['approved','active','enabled',''].includes(String(u.status||'').toLowerCase()));
-      return {success:true,managers};
-    }
-    await sbRequireSession();
-    if(action==='getDashboardData') return await sbGetDashboard();
-    if(action==='getAllUsersDirectory'||action==='getPendingUsers'){
-      const users=await sbProfiles('*');
-      return {success:true,users:action==='getPendingUsers'?users.filter(u=>!['approved','active','enabled'].includes(String(u.status||'').toLowerCase())):users};
-    }
-    if(action==='updateUser'){
-      const p=Object.assign({},payload); const id=p.id; delete p.authToken; const user=await sbSaveProfile(p,id); return {success:true,user,message:'User updated successfully.'};
-    }
-    if(action==='deleteUser'){
-      const {error}=await sb.from('profiles').delete().eq('id',payload.id); if(error)throw error; return {success:true,message:'User deleted successfully.'};
-    }
-    if(action==='processUserApproval'){
-      const user=await sbSaveProfile({id:payload.userId,status:payload.approve?'Approved':'Rejected',approved:!!payload.approve,approvedAt:payload.approve?sbNow():null});
-      return {success:true,user,message:payload.approve?'User approved successfully.':'User rejected successfully.'};
-    }
-    if(action==='getTargets') return {success:true,targets:await sbModuleRows('targets')};
-    if(action==='getNotifications') return {success:true,notifications:await sbModuleRows('notifications')};
-    if(action==='getTaskHistory') return {success:true,history:await sbModuleRows('taskHistory')};
-    if(action==='getPendingAttendanceApprovals') return {success:true,attendance:await sbModuleRows('attendance')};
-    if(action==='getProjectData') return {success:true,projects:await sbModuleRows('projects'),tasks:await sbModuleRows('projectTasks'),invoices:await sbModuleRows('projectInvoices')};
-    if(action==='getChatUsers'){
-      const users=await sbProfiles('*'); return {success:true,users:users.filter(u=>String(u.id)!==String(currentUser?.id))};
-    }
-    if(action==='getChatMessages') return {success:true,messages:await sbChatMessages(payload.peerId||payload.userId)};
-    if(action==='sendChatMessage'){
-      const {data,error}=await sb.from('chat_messages').insert({sender_id:payload.senderId||currentUser.id,sender_email:payload.senderEmail||currentUser.email,receiver_id:payload.receiverId,message:payload.message}).select('*').single();
-      if(error)throw error; return {success:true,message:data};
-    }
-    if(action==='markNotificationRead'){const r=await sbModuleRows('notifications',{id:payload.id}); if(r[0]){r[0].read=true;r[0].readAt=sbNow();await sbSaveRecord('notifications',r[0],payload.id);} return {success:true};}
-    if(action==='touchUserActivity'){await sb.from('profiles').update({last_activity_at:sbNow()}).eq('id',currentUser.id);return {success:true};}
-    if(action==='lookupPinCode'){return {success:true,location:null,message:'PIN master is not populated yet. Import the location master into Supabase to enable PIN lookup.'};}
-    if(action==='getLocationData'){return {success:true,locations:{states:INDIA_STATES,districts:{},tehsils:{},cities:{},regions:{},pins:{}}};}
-    if(action==='refreshLGDLocationMaster')return {success:false,message:'Location master refresh requires an imported LGD dataset. The Supabase conversion does not scrape external government data from the browser.'};
-    if(action==='getImportSchema')return {success:true,schema:{note:'Import rows are stored as JSONB and retain the existing module field names.'}};
-    if(action==='importModuleData'){
-      const module=payload.module||''; const rows=Array.isArray(payload.rows)?payload.rows:[]; let count=0; for(const row of rows){await sbSaveRecord(module,row);count++;} return {success:true,message:`Imported ${count} record(s) into ${module}.`};
-    }
-    if(action==='migrateDatabase')return {success:true,message:'Supabase database is already the active data store. No Google Sheet migration is performed by the browser.'};
-    if(action==='processAttendanceApproval'||action==='submitLateExplanation'){
-      const id=payload.attendanceId||payload.id||crypto.randomUUID(); const existing=(await sbModuleRows('attendance',{id}))[0]||{}; const row=Object.assign({},existing,payload,{id}); return {success:true,record:await sbSaveRecord('attendance',row,id),message:'Attendance record updated.'};
-    }
-    if(action==='markAttendance'){const row={id:crypto.randomUUID(),date:appToday(),email:currentUser.email,userId:currentUser.id,markedAt:sbNow(),status:'Present'};return {success:true,record:await sbSaveRecord('attendance',row,row.id),message:'Attendance marked successfully.'};}
-    if(action==='submitApprovalRequest')return {success:true,record:await sbSaveRecord('approvals',payload,payload.id),message:'Approval request submitted.'};
-    if(action==='processGeneralApproval'){const row=Object.assign({},payload,{status:payload.approve?'Approved':'Rejected'});return {success:true,record:await sbSaveRecord('approvals',row,payload.requestId),message:'Approval processed.'};}
-    if(action==='addTaskReply'){const row=Object.assign({},payload,{id:crypto.randomUUID(),createdAt:sbNow()});return {success:true,record:await sbSaveRecord('taskHistory',row,row.id),message:'Reply added.'};}
-    if(action==='assignTask'||action==='updateTaskStatus'){const id=payload.id||crypto.randomUUID();return {success:true,record:await sbSaveRecord('tasks',withOwner(payload),id),message:'Task updated successfully.'};}
-    if(action==='saveClient'||action==='updateClient'){const id=payload.id||crypto.randomUUID();return {success:true,record:await sbSaveRecord('clients',payload,id),message:'Client saved successfully.'};}
-    if(action==='deleteClient'){await sbDeleteRecord('clients',payload.id);return {success:true,message:'Client deleted successfully.'};}
-    if(action==='saveColdCall'||action==='updateColdCall'){const id=payload.id||crypto.randomUUID();return {success:true,record:await sbSaveRecord('coldCalls',payload,id),message:'Cold call saved successfully.'};}
-    if(action==='deleteColdCall'){await sbDeleteRecord('coldCalls',payload.id);return {success:true,message:'Cold call deleted successfully.'};}
-    if(action==='saveSalesOrder'||action==='updateSalesOrder'){const id=payload.id||payload.orderId||crypto.randomUUID();return {success:true,record:await sbSaveRecord('salesOrders',payload,id),message:'Sales order saved successfully.'};}
-    if(action==='deleteSalesOrder'){await sbDeleteRecord('salesOrders',payload.id||payload.orderId);return {success:true,message:'Sales order deleted successfully.'};}
-    if(action==='saveTarget'){const id=payload.id||crypto.randomUUID();return {success:true,record:await sbSaveRecord('targets',payload,id),message:'Target saved successfully.'};}
-    if(action==='deleteTarget'){await sbDeleteRecord('targets',payload.id);return {success:true,message:'Target deleted successfully.'};}
-    if(action==='saveProject'){const id=payload.id||crypto.randomUUID();return {success:true,record:await sbSaveRecord('projects',payload,id),message:'Project saved successfully.'};}
-    if(action==='saveProjectTask'){const id=payload.id||crypto.randomUUID();return {success:true,record:await sbSaveRecord('projectTasks',payload,id),message:'Project task saved successfully.'};}
-    if(action==='updateProjectStage'){const row=(await sbModuleRows('projects',{id:payload.projectId}))[0]||{}; row.stage=payload.stage; return {success:true,record:await sbSaveRecord('projects',row,payload.projectId),message:'Project stage updated.'};}
-    if(action==='generateProjectInvoice'){const id=crypto.randomUUID();return {success:true,invoice:await sbSaveRecord('projectInvoices',Object.assign({},payload,{id,invoiceNo:'INV-'+Date.now()}),id),message:'Invoice generated successfully.'};}
-    return {success:false,message:`Supabase adapter does not yet implement action: ${action}`};
-  }catch(e){console.error('Supabase action failed:',action,e);return {success:false,message:sbError(e,`Supabase operation failed: ${action}`)};}
-}
-</script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --primary-dark: #0F172A;
@@ -536,10 +272,6 @@ async function sbDispatch(action,payload={}){
     .sales-order-crud-actions .btn:hover{transform:translateY(-1px);box-shadow:0 .25rem .5rem rgba(0,0,0,.08)}
     .sales-order-readonly{font-size:.78rem;color:#6c757d}
 
-
-/* Database settings UI */
-.db-provider-card{border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff}.db-provider-card.active{border-color:#fc9403;box-shadow:0 0 0 2px rgba(252,148,3,.12)}
-.db-secret-note{font-size:.78rem;color:#6b7280}.db-status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#94a3b8;margin-right:6px}.db-status-dot.ok{background:#16a34a}.db-status-dot.bad{background:#dc2626}.db-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem;white-space:pre-wrap}
 </style>
 
 <style id="solitaire-pipeline-theme">
@@ -1606,17 +1338,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
               </div>
             </div>
 
-            <div id="masterAdminBackendTools" class="card card-dashboard p-2 p-md-3 mb-3 border-start border-danger border-4 d-none">
-<h6 class="fw-bold"><i class="bi bi-database-gear text-danger me-1"></i> Master Admin — Database Settings & Migration</h6>
-<div class="small text-muted mb-2">Only Master Admin can configure the active database, test connections, switch database providers and run migrations. Supabase URL + anon/public key are supported directly in this browser application. MySQL, PostgreSQL, Oracle, SQL Server and other server databases require a secure HTTPS database bridge/API because browsers cannot safely connect to native database ports.</div>
-<div class="d-flex gap-2 flex-wrap">
-<button class="btn btn-sm btn-outline-primary" onclick="openDatabaseSettings()"><i class="bi bi-database-gear me-1"></i> Database Settings</button>
-<button class="btn btn-sm btn-outline-info" onclick="testActiveDatabase(true)"><i class="bi bi-activity me-1"></i> Test Active Database</button>
-<button class="btn btn-sm btn-outline-warning" onclick="openDatabaseMigration()"><i class="bi bi-arrow-left-right me-1"></i> Migrate Database</button>
-<button class="btn btn-sm btn-outline-secondary" onclick="exportDatabaseSnapshot()"><i class="bi bi-download me-1"></i> Export Snapshot</button>
-</div>
-<div id="masterDbStatus" class="small mt-2 text-muted"><span class="db-status-dot"></span>Database status not tested.</div>
-</div>
+            <div id="masterAdminBackendTools" class="card card-dashboard p-2 p-md-3 mb-3 border-start border-danger border-4 d-none"><h6 class="fw-bold"><i class="bi bi-database-gear text-danger me-1"></i> Master Admin Backend & Database</h6><div class="small text-muted mb-2">Backend controls are available only to Master Admin. Use migration after updating the application schema; existing records are preserved.</div><div class="d-flex gap-2 flex-wrap"><button class="btn btn-sm btn-outline-primary" onclick="openBackendSettings()"><i class="bi bi-link-45deg me-1"></i> Backend Settings</button><button class="btn btn-sm btn-outline-info" onclick="testBackendConnection(true)"><i class="bi bi-activity me-1"></i> Test Backend</button><button class="btn btn-sm btn-outline-danger" onclick="migrateDatabaseNow()"><i class="bi bi-database-check me-1"></i> Database Migration</button></div></div>
 
 <div id="masterAdminUserDirectory" class="card card-dashboard p-2 p-md-3 d-none">
               <h6 class="fw-bold text-dark mb-2"><i class="bi bi-people-fill text-primary me-1"></i> Registered Users Directory (Master Admin Control)</h6>
@@ -2037,9 +1759,20 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     return true;
   }
 
-  // Supabase is now the only application database. The old Apps Script URL is intentionally unused.
-  const DEFAULT_SCRIPT_URL = '';
-  const SCRIPT_URL = '';
+  // SUPABASE CONFIGURATION
+  // The anon/publishable key is safe for browser use when Row Level Security is enabled.
+  // NEVER place a Supabase service_role key in this file.
+  const SUPABASE_CONFIG = {
+    url: "https://mxcjuncxdnaxzclrpetb.supabase.co",
+    anonKey: "sb_publishable_0djjQgzLtl5Geuj3RcinoA_P5WgrMeS"
+  };
+  const SUPABASE_ENABLED = !!(SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey && window.supabase);
+  const supabaseClient = SUPABASE_ENABLED ? window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  }) : null;
+  // Kept for compatibility with the legacy backend-settings UI. Supabase is now the primary backend.
+  const DEFAULT_SCRIPT_URL = "";
+  const SCRIPT_URL = "";
 
   let currentUser = null;
   let rawData = { clients: [], tasks: [], coldCalls: [], approvals: [], salesOrders: [], targets: [], notifications: [], todayAttendance: null };
@@ -2189,128 +1922,16 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     }
   });
 
-  function isValidScriptUrl(){ return false; }
+  function isValidScriptUrl(value){ return false; }
 
-  const DB_PROVIDER_DEFAULTS={
-    supabase:{label:'Supabase',direct:true,port:'443'},
-    postgresql:{label:'PostgreSQL',direct:false,port:'5432'},
-    mysql:{label:'MySQL',direct:false,port:'3306'},
-    oracle:{label:'Oracle',direct:false,port:'1521'},
-    sqlserver:{label:'Microsoft SQL Server',direct:false,port:'1433'},
-    mariadb:{label:'MariaDB',direct:false,port:'3306'},
-    mongodb:{label:'MongoDB',direct:false,port:'27017'},
-    custom:{label:'Other / Custom Database',direct:false,port:''}
-  };
-  function dbStoredConfig(){
-    try{return JSON.parse(localStorage.getItem('kosol_database_config')||'{}')}catch(_){return {}}
+  function openBackendSettings(){
+    const current=localStorage.getItem('solar_erp_script_url')||DEFAULT_SCRIPT_URL;
+    const value=prompt('Enter the deployed backend Web App /exec URL:',current);
+    if(value===null)return;
+    const v=value.trim();
+    if(!isValidScriptUrl(v)){showOperationMessage('Invalid backend URL','Please enter the full backend Web App URL ending in /exec.','error');return;}
+    localStorage.setItem('solar_erp_script_url',v); location.reload();
   }
-  function dbActiveProvider(){return dbStoredConfig().provider||'supabase'}
-  function maskSecret(v){v=String(v||'');return v?('•'.repeat(Math.min(12,Math.max(6,v.length-2)))+v.slice(-2)):'Not set'}
-  function databaseProviderOptions(selected){return Object.entries(DB_PROVIDER_DEFAULTS).map(([k,v])=>`<option value="${k}" ${k===selected?'selected':''}>${escapeHtml(v.label)}</option>`).join('')}
-  function openDatabaseSettings(){
-    if(currentUser?.role!=='Master Admin'){showOperationMessage('Access denied','Only Master Admin can change database settings.','error');return;}
-    const c=dbStoredConfig(), p=c.provider||'supabase';
-    const html=`<div class="modal-header"><h5 class="modal-title"><i class="bi bi-database-gear me-2"></i>Database Settings</h5><button type="button" class="btn-close" onclick="closeModal()"></button></div>
-    <div class="modal-body"><form id="databaseSettingsForm">
-      <div class="db-provider-card active mb-3"><label class="form-label fw-bold">Active Database Provider</label><select id="dbProvider" class="form-select" onchange="renderDatabaseProviderFields()">${databaseProviderOptions(p)}</select><div class="small text-muted mt-1">Changing this setting does not delete your existing database. Use Migration after testing the target.</div></div>
-      <div id="databaseProviderFields"></div>
-      <div class="alert alert-warning small mb-0"><b>Security:</b> Never enter a Supabase service_role key in this HTML file. For MySQL/Oracle/etc., database passwords are not saved in browser localStorage. Use the secure bridge/API URL to perform server-side connections and migrations.</div>
-      <div class="text-end mt-3"><button type="button" class="btn btn-outline-secondary me-2" onclick="closeModal()">Close</button><button type="button" class="btn btn-outline-info me-2" onclick="testDatabaseFormConnection()">Test Connection</button><button class="btn btn-warning fw-bold">Save Database Settings</button></div>
-    </form></div>`;
-    modal(html); renderDatabaseProviderFields();
-    document.getElementById('databaseSettingsForm').onsubmit=async e=>{e.preventDefault();await saveDatabaseSettingsFromForm()};
-  }
-  function renderDatabaseProviderFields(){
-    const el=document.getElementById('databaseProviderFields');if(!el)return;
-    const c=dbStoredConfig(), p=document.getElementById('dbProvider')?.value||'supabase';
-    if(p==='supabase'){
-      el.innerHTML=`<div class="row g-2"><div class="col-12"><label class="form-label small fw-bold">Supabase Project URL *</label><input id="dbUrl" class="form-control" placeholder="https://xxxxxxxx.supabase.co" value="${escapeAttr(c.url||SUPABASE_CONFIG.url.includes('YOUR-PROJECT')?'':SUPABASE_CONFIG.url)}" required></div><div class="col-12"><label class="form-label small fw-bold">Supabase anon/public key *</label><input id="dbAnonKey" class="form-control" type="password" placeholder="eyJ..." value="${escapeAttr(c.anonKey||SUPABASE_CONFIG.anonKey.includes('YOUR_SUPABASE')?'':SUPABASE_CONFIG.anonKey)}" required></div><div class="col-12 db-secret-note">The anon/public key is intended for browser use. It must be protected by Supabase RLS policies. Do not use the service_role key here.</div></div>`;
-    }else{
-      const d=DB_PROVIDER_DEFAULTS[p];
-      el.innerHTML=`<div class="row g-2"><div class="col-12 col-md-8"><label class="form-label small fw-bold">Secure Database Bridge / API URL *</label><input id="dbBridgeUrl" class="form-control" placeholder="https://your-server.example.com/api/database" value="${escapeAttr(c.bridgeUrl||'')}" required></div><div class="col-4 col-md-4"><label class="form-label small fw-bold">Port</label><input id="dbPort" class="form-control" value="${escapeAttr(c.port||d.port||'')}"></div><div class="col-8"><label class="form-label small fw-bold">Host / Server</label><input id="dbHost" class="form-control" value="${escapeAttr(c.host||'')}"></div><div class="col-4"><label class="form-label small fw-bold">Database / Service</label><input id="dbName" class="form-control" value="${escapeAttr(c.database||'')}"></div><div class="col-6"><label class="form-label small fw-bold">Username</label><input id="dbUsername" class="form-control" value="${escapeAttr(c.username||'')}"></div><div class="col-6"><label class="form-label small fw-bold">Password</label><input id="dbPassword" class="form-control" type="password" placeholder="Enter only when testing/migrating"></div><div class="col-12"><label class="form-label small fw-bold">SSL / Connection Options</label><input id="dbOptions" class="form-control" value="${escapeAttr(c.options||'ssl=true')}"></div><div class="col-12"><label class="form-label small fw-bold">Bridge Administration / Connection Secret</label><input id="dbBridgeSecret" class="form-control" type="password" placeholder="Optional secret/token supplied by your secure bridge"></div><div class="col-12 db-secret-note">${escapeHtml(d.label)} is not connected directly from the browser. The bridge should keep the actual database password in server-side secrets. This application sends the connection metadata and bridge secret only to your configured HTTPS bridge.</div></div>`;
-    }
-  }
-  function collectDatabaseSettingsForm(includeSecret=false){
-    const p=document.getElementById('dbProvider')?.value||'supabase';
-    const c={provider:p,label:DB_PROVIDER_DEFAULTS[p]?.label||p,updatedAt:new Date().toISOString()};
-    if(p==='supabase'){c.url=document.getElementById('dbUrl')?.value.trim();c.anonKey=document.getElementById('dbAnonKey')?.value.trim();}
-    else {c.bridgeUrl=document.getElementById('dbBridgeUrl')?.value.trim();c.host=document.getElementById('dbHost')?.value.trim();c.port=document.getElementById('dbPort')?.value.trim();c.database=document.getElementById('dbName')?.value.trim();c.username=document.getElementById('dbUsername')?.value.trim();c.options=document.getElementById('dbOptions')?.value.trim();c.bridgeSecret=document.getElementById('dbBridgeSecret')?.value||'';if(includeSecret)c.password=document.getElementById('dbPassword')?.value||'';}
-    return c;
-  }
-  async function saveDatabaseSettingsFromForm(){
-    if(currentUser?.role!=='Master Admin')return;
-    const c=collectDatabaseSettingsForm(false);
-    if(!c.provider){showOperationMessage('Database settings','Select a database provider.','error');return;}
-    if(c.provider==='supabase' && (!/^https:\/\/[^\s]+\.supabase\.co(?:\/.*)?$/.test(c.url)||!c.anonKey)){showOperationMessage('Invalid Supabase settings','Enter a valid Supabase Project URL and anon/public key.','error');return;}
-    if(c.provider!=='supabase' && !c.bridgeUrl){showOperationMessage('Bridge URL required','External databases require a secure HTTPS bridge/API URL.','error');return;}
-    const transientSecret=c.bridgeSecret||'';delete c.bridgeSecret;localStorage.setItem('kosol_database_config',JSON.stringify(c));
-    if(c.provider!=='supabase' && transientSecret){try{await fetch(c.bridgeUrl,{method:'POST',headers:{'Content-Type':'application/json','X-Kosol-Bridge-Secret':transientSecret},body:JSON.stringify({action:'configure',provider:c.provider,connection:{host:c.host,port:c.port,database:c.database,username:c.username,options:c.options}})})}catch(e){console.warn('Bridge configuration request failed:',e)}}
-    if(c.provider==='supabase'){localStorage.setItem('kosol_supabase_url',c.url);localStorage.setItem('kosol_supabase_anon_key',c.anonKey);}
-    try{await persistDatabaseSettingsMetadata(c)}catch(e){console.warn('Database settings metadata could not be persisted:',e)}
-    closeModal(true); showOperationMessage('Database settings saved',`${c.label} is now configured as the active database provider. Test the connection before migrating.`, 'success'); updateMasterDatabaseStatus();
-    if(c.provider==='supabase')setTimeout(()=>location.reload(),500);
-  }
-  async function persistDatabaseSettingsMetadata(c){
-    if(!supabaseConfigured()||!currentUser?.id)return;
-    const sb=initSupabase();
-    const safe={provider:c.provider,label:c.label,bridgeUrl:c.bridgeUrl||'',host:c.host||'',port:c.port||'',database:c.database||'',username:c.username||'',options:c.options||'',updatedAt:c.updatedAt};
-    await sb.from('database_settings').upsert({id:'active',provider:c.provider,settings:safe,updated_at:sbNow()},{onConflict:'id'});
-  }
-  async function testDatabaseFormConnection(){
-    const c=collectDatabaseSettingsForm(true); await testDatabaseConfig(c,true);
-  }
-  async function testDatabaseConfig(c,fromForm=false){
-    try{
-      if(c.provider==='supabase'){
-        const test=window.supabase.createClient(c.url,c.anonKey,{auth:{persistSession:false,autoRefreshToken:false,storageKey:'kosol-db-test-'+Date.now()}});
-        const {error}=await test.from('profiles').select('id',{head:true,count:'exact'}); if(error)throw error;
-        showOperationMessage('Connection successful','Supabase project is reachable and the profiles table is accessible.','success');
-        return true;
-      }
-      if(!c.bridgeUrl)throw new Error('Secure database bridge/API URL is required.');
-      const payload={action:'health',provider:c.provider,connection:{host:c.host,port:c.port,database:c.database,username:c.username,options:c.options},credentials:{password:c.password||''}};
-      const headers={'Content-Type':'application/json'};if(c.bridgeSecret)headers['X-Kosol-Bridge-Secret']=c.bridgeSecret;
-      const r=await fetch(c.bridgeUrl,{method:'POST',headers,body:JSON.stringify(payload)}); const text=await r.text(); let data;try{data=JSON.parse(text)}catch(_){data={message:text}};if(!r.ok||data.success===false)throw new Error(data.message||`Bridge HTTP ${r.status}`);showOperationMessage('Connection successful',`${c.label} bridge reported a healthy connection.`,'success');return true;
-    }catch(e){showOperationMessage('Connection failed',sbError(e,'Unable to connect to the configured database.'),'error');return false;}
-  }
-  async function testActiveDatabase(showMessage=true){
-    if(currentUser?.role!=='Master Admin'){if(showMessage)showOperationMessage('Access denied','Only Master Admin can test the active database.','error');return false;}
-    const c=dbStoredConfig(); if(!c.provider)c.provider='supabase'; const ok=await testDatabaseConfig(c,false); updateMasterDatabaseStatus(ok); return ok;
-  }
-  async function updateMasterDatabaseStatus(ok){
-    const el=document.getElementById('masterDbStatus');if(!el)return;const c=dbStoredConfig();const label=DB_PROVIDER_DEFAULTS[c.provider||'supabase']?.label||c.provider||'Supabase';el.innerHTML=`<span class="db-status-dot ${ok===true?'ok':ok===false?'bad':''}"></span>Active provider: <b>${escapeHtml(label)}</b>${ok===true?' — connection verified.':ok===false?' — connection test failed.':' — not tested in this session.'}`;
-  }
-  async function openDatabaseMigration(){
-    if(currentUser?.role!=='Master Admin'){showOperationMessage('Access denied','Only Master Admin can migrate databases.','error');return;}
-    const c=dbStoredConfig();
-    const html=`<div class="modal-header"><h5 class="modal-title"><i class="bi bi-arrow-left-right me-2"></i>Database Migration</h5><button class="btn-close" onclick="closeModal()"></button></div><div class="modal-body"><div class="alert alert-info small">Current application data is stored in Supabase. Migration copies the application dataset to the selected target. Existing data is preserved unless you explicitly choose replacement behavior in the target bridge.</div><div class="row g-2"><div class="col-12 col-md-6"><label class="form-label fw-bold">Target provider</label><select id="migProvider" class="form-select">${databaseProviderOptions(c.provider||'supabase')}</select></div><div class="col-12 col-md-6"><label class="form-label fw-bold">Mode</label><select id="migMode" class="form-select"><option value="upsert">Upsert / preserve existing</option><option value="replace">Replace target dataset</option><option value="dry-run">Dry run / validate only</option></select></div><div class="col-12" id="migTargetFields"></div></div><div id="migPreview" class="small text-muted mt-3"></div><div class="text-end mt-3"><button class="btn btn-outline-secondary me-2" onclick="closeModal()">Close</button><button class="btn btn-warning fw-bold" onclick="runDatabaseMigrationFromModal()">Start Migration</button></div></div>`;
-    modal(html);renderMigrationTargetFields();document.getElementById('migProvider').addEventListener('change',renderMigrationTargetFields);previewMigrationCounts();
-  }
-  function renderMigrationTargetFields(){const p=document.getElementById('migProvider')?.value||'supabase',c=dbStoredConfig(),el=document.getElementById('migTargetFields');if(!el)return;if(p==='supabase'){el.innerHTML=`<label class="form-label small fw-bold">Target Supabase URL</label><input id="migUrl" class="form-control" value="${escapeAttr(p===c.provider?c.url||'': '')}" placeholder="https://xxxxxxxx.supabase.co"><label class="form-label small fw-bold mt-2">Target anon/public key</label><input id="migKey" class="form-control" type="password" value="${escapeAttr(p===c.provider?c.anonKey||'':'')}" placeholder="Target anon key">`}else{el.innerHTML=`<label class="form-label small fw-bold">Secure migration bridge/API URL</label><input id="migBridge" class="form-control" value="${escapeAttr(p===c.provider?c.bridgeUrl||'':'')}" placeholder="https://your-server.example.com/api/database/migrate"><div class="small text-muted mt-1">The bridge must authenticate to the target ${escapeHtml(DB_PROVIDER_DEFAULTS[p]?.label||p)} database using server-side secrets.</div>`}}
-  function previewMigrationCounts(){const total=Object.values(rawData||{}).filter(Array.isArray).reduce((n,a)=>n+a.length,0);const el=document.getElementById('migPreview');if(el)el.innerHTML=`Current in-memory dataset: <b>${total}</b> records across ${Object.keys(rawData||{}).length} collections. A fresh Supabase read will be used before migration.`}
-  async function getFullDatabaseSnapshot(){
-    const sb=initSupabase();if(!sb)throw new Error('Current Supabase configuration is unavailable.');await sbRequireSession();
-    const modules=['clients','tasks','coldCalls','approvals','salesOrders','targets','notifications','attendance','projects','projectTasks','projectInvoices'];const snapshot={schemaVersion:1,exportedAt:sbNow(),source:'supabase',modules:{}};for(const m of modules)snapshot.modules[m]=await sbModuleRows(m);snapshot.profiles=await sbProfiles('*');const {data:chat,error}=await sb.from('chat_messages').select('*');if(error)throw error;snapshot.chat_messages=chat||[];return snapshot;
-  }
-  async function runDatabaseMigrationFromModal(){
-    if(currentUser?.role!=='Master Admin')return;
-    const p=document.getElementById('migProvider')?.value||'supabase',mode=document.getElementById('migMode')?.value||'upsert';
-    if(!confirm(`Start ${mode} migration to ${DB_PROVIDER_DEFAULTS[p]?.label||p}? Existing source data will not be deleted.`))return;
-    try{showProcessingMessage('Database migration','Reading the current Supabase dataset and preparing the target migration…');const snapshot=await getFullDatabaseSnapshot();let result;
-      if(p==='supabase'){
-        const url=document.getElementById('migUrl')?.value.trim(),key=document.getElementById('migKey')?.value.trim();if(!url||!key)throw new Error('Target Supabase URL and anon/public key are required.');const target=window.supabase.createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,storageKey:'kosol-migration-'+Date.now()}});if(mode==='dry-run'){const {error}=await target.from('profiles').select('id',{head:true,count:'exact'});if(error)throw error;result={success:true,message:'Dry run successful. Target Supabase is reachable.'};}else{for(const [module,rows] of Object.entries(snapshot.modules)){for(const r of rows){const row={id:r.id,module,owner_id:r.ownerId||r.userId||null,owner_email:r.ownerEmail||r.userEmail||null,data:r,updated_at:r.updatedAt||sbNow()};const {error}=await target.from('app_records').upsert(row,{onConflict:'id'});if(error)throw error;}}for(const pr of snapshot.profiles){const {error}=await target.from('profiles').upsert(pr,{onConflict:'id'});if(error)throw error;}result={success:true,message:`Migrated ${Object.values(snapshot.modules).reduce((n,a)=>n+a.length,0)} application records and ${snapshot.profiles.length} profiles to the target Supabase project.`};}
-      }else{
-        const bridge=document.getElementById('migBridge')?.value.trim();if(!bridge)throw new Error('Migration bridge/API URL is required.');const r=await fetch(bridge,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'migrate',provider:p,mode,snapshot})});const text=await r.text();let data;try{data=JSON.parse(text)}catch(_){data={message:text}}if(!r.ok||data.success===false)throw new Error(data.message||`Bridge HTTP ${r.status}`);result=data;
-      }
-      closeOperationMessage();closeModal(true);showOperationMessage('Migration completed',result.message||'Database migration completed successfully.','success');
-    }catch(e){closeOperationMessage();showOperationMessage('Migration failed',sbError(e,'Database migration failed.'),'error');}
-  }
-  async function exportDatabaseSnapshot(){
-    if(currentUser?.role!=='Master Admin'){showOperationMessage('Access denied','Only Master Admin can export a database snapshot.','error');return;}
-    try{showProcessingMessage('Exporting database snapshot','Preparing a JSON backup of the current Supabase dataset…');const snap=await getFullDatabaseSnapshot();const blob=new Blob([JSON.stringify(snap,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`Kosol_Supabase_Backup_${appToday()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);closeOperationMessage();showOperationMessage('Snapshot exported','The current Supabase application data was exported as a JSON backup.','success');}catch(e){closeOperationMessage();showOperationMessage('Snapshot failed',e.message,'error');}
-  }
-  async function openBackendSettings(){return openDatabaseSettings()}
-
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -4952,9 +4573,8 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
     document.getElementById('sessionContinueBtn')?.addEventListener('click',closeOperationMessage);
     window.__operationCloseTimer=setTimeout(closeOperationMessage,3000);
   }
-  async function logout(){
-    const u=currentUser?Object.assign({},currentUser):{}; allowPageExit=true;
-    try{if(supabaseClient) await supabaseClient.auth.signOut();}catch(e){console.warn('Supabase signout:',e);} stopLiveDataSync(); if(userActivityTimer){clearInterval(userActivityTimer);userActivityTimer=null;}
+  function logout(){
+    const u=currentUser?Object.assign({},currentUser):{}; allowPageExit=true; stopLiveDataSync(); if(userActivityTimer){clearInterval(userActivityTimer);userActivityTimer=null;}
     clearPersistedSession(); currentUser=null; document.body.classList.remove('kosol-page-exit-pending');
     document.getElementById('mainApp').classList.add('d-none'); document.getElementById('authScreen').classList.remove('d-none'); toggleAuthView('login'); showUserSessionPopup('goodbye',u);
   }
@@ -6198,7 +5818,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
   }
   async function markOneNotification(id){return notificationCardClick(id);}
   async function openAttendanceNotificationAction(notificationId){closeModal(true);await switchTab('attendance');setTimeout(()=>document.getElementById('attendanceActionContainer')?.scrollIntoView({behavior:'smooth',block:'center'}),250);}
-  async function migrateDatabaseNow(){return openDatabaseMigration();}
+  async function migrateDatabaseNow(){if(currentUser?.role!=='Master Admin'){showOperationMessage('Access denied','Only Master Admin can run database migration.','error');return;}if(!confirm('Run database migration now? Existing records will be preserved.'))return;showProcessingMessage('Database migration','Updating backend data and normalizing existing sales order data...');const r=await callBackend('migrateDatabase',{});closeOperationMessage();showOperationMessage(r.success?'Migration completed':'Migration failed',r.message,r.success?'success':'error');if(r.success)await refreshData({silent:true});}
 
   function dashboardPeriod(){return document.getElementById('dateFilterType')?.selectedOptions?.[0]?.textContent||'All Time';}
   function dashboardSubject(){return currentUser?.name || 'User';}
@@ -6593,7 +6213,6 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       ${table('Client / Lead Data — Exact Backend Structure',clientCols,clients.map(r=>backendRows([r],clientCols)[0]))}
       ${table('Cold Calling Lead Data — Exact Backend Structure',coldCols,calls.map(r=>backendRows([r],coldCols)[0]))}
       
-
 
 </body></html>`;
   }
@@ -7299,15 +6918,306 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     return v;
   }
 
+  // ============================================================
+  // SUPABASE BACKEND ADAPTER
+  // Keeps the existing application action names intact while replacing
+  // Google Apps Script/Google Sheets operations with Supabase.
+  // ============================================================
+  const SUPABASE_MODULE_MAP = {
+    clients:'clients', coldCalls:'coldCalls', salesOrders:'salesOrders', targets:'targets',
+    tasks:'tasks', approvals:'approvals', notifications:'notifications', attendance:'attendance',
+    projects:'projects', projectTasks:'projectTasks', projectInvoices:'projectInvoices',
+    users:'users', user:'users'
+  };
+  function sbRow(row){
+    const d=row?.data && typeof row.data==='object' ? row.data : {};
+    return Object.assign({}, d, {
+      id: d.id ?? row.record_id ?? row.id,
+      userId: d.userId ?? row.owner_id ?? row.created_by,
+      ownerId: d.ownerId ?? row.owner_id,
+      userEmail: d.userEmail ?? row.owner_email,
+      ownerEmail: d.ownerEmail ?? row.owner_email,
+      createdBy: d.createdBy ?? row.created_by_email,
+      createdAt: d.createdAt ?? row.created_at,
+      updatedAt: d.updatedAt ?? row.updated_at,
+      state: d.state ?? row.state,
+      region: d.region ?? row.region,
+      district: d.district ?? row.district,
+      city: d.city ?? row.city,
+      village: d.village ?? row.village,
+      status: d.status ?? row.status
+    });
+  }
+  function sbModuleFromAction(action){
+    const a=String(action||'');
+    if(/client/i.test(a)) return 'clients';
+    if(/coldcall/i.test(a)) return 'coldCalls';
+    if(/salesorder/i.test(a)) return 'salesOrders';
+    if(/target/i.test(a)) return 'targets';
+    if(/approval/i.test(a)) return 'approvals';
+    if(/notification/i.test(a)) return 'notifications';
+    if(/attendance/i.test(a)) return 'attendance';
+    if(/^saveProject|^updateProjectStage|^getProjectData/i.test(a)) return 'projects';
+    if(/ProjectTask/i.test(a)) return 'projectTasks';
+    if(/ProjectInvoice/i.test(a)) return 'projectInvoices';
+    if(/task/i.test(a)) return 'tasks';
+    return null;
+  }
+  function sbOwnerPayload(payload={}){
+    return {
+      owner_id: payload.ownerId || payload.ownerID || payload.userId || currentUser?.id || null,
+      owner_email: payload.ownerEmail || payload.userEmail || payload.email || currentUser?.email || null,
+      owner_name: payload.ownerName || currentUser?.name || null,
+      created_by: payload.createdByUserId || payload.createdById || currentUser?.id || null,
+      created_by_email: payload.createdBy || payload.createdByEmail || currentUser?.email || null,
+      updated_by: currentUser?.id || null,
+      updated_by_email: currentUser?.email || null,
+      state: Array.isArray(payload.states)?payload.states[0]:payload.state || payload.State || null,
+      region: Array.isArray(payload.regions)?payload.regions[0]:payload.region || payload.Region || null,
+      district: Array.isArray(payload.districts)?payload.districts[0]:payload.district || payload.District || null,
+      city: Array.isArray(payload.cities)?payload.cities[0]:payload.city || payload.City || null,
+      village: payload.village || payload.Village || null,
+      record_date: payload.date || payload.entryDate || payload.startDate || null,
+      status: payload.status || null
+    };
+  }
+  async function supabaseBackendAction(action,payload={}){
+    if(!SUPABASE_ENABLED) return {success:false,message:'Supabase is not configured. Check SUPABASE_CONFIG in index.html.'};
+    try{
+      // ---------- Authentication ----------
+      if(action==='login'){
+        const {data,error}=await supabaseClient.auth.signInWithPassword({email:String(payload.email||'').trim(),password:String(payload.password||'')});
+        if(error) return {success:false,message:error.message||'Invalid credentials.'};
+        const uid=data.user.id;
+        const {data:profile,error:pe}=await supabaseClient.from('profiles').select('*').eq('id',uid).maybeSingle();
+        if(pe) return {success:false,message:pe.message};
+        if(!profile) return {success:false,message:'User profile was not found. Create the profile row or run the supplied database schema.'};
+        if(profile.approved!==true || profile.active===false || profile.status==='Pending'){
+          await supabaseClient.auth.signOut();
+          return {success:false,message:'Your account is awaiting Master Admin approval.'};
+        }
+        await supabaseClient.from('profiles').update({last_login_at:new Date().toISOString()}).eq('id',uid);
+        return {success:true,authToken:data.session?.access_token||'',user:Object.assign({},profile,{authToken:data.session?.access_token||''})};
+      }
+      if(action==='selfRegister'){
+        const {data,error}=await supabaseClient.auth.signUp({email:String(payload.email||'').trim(),password:String(payload.password||''),options:{data:{name:payload.name||'',role:payload.role||'Sales Executive',phone:payload.phone||''}}});
+        if(error) return {success:false,message:error.message};
+        if(data.user?.id){
+          const profile={id:data.user.id,email:payload.email,name:payload.name,phone:payload.phone,role:payload.role||'Sales Executive',designation:payload.designation||payload.role,status:'Pending',approved:false,active:true,states:payload.states||[],regions:payload.regions||[],districts:payload.districts||[],cities:payload.cities||payload.tehsils||[],profile_data:{reportingManagers:payload.reportingManagers||[],reportingTo:payload.reportingTo||[]}};
+          const {error:pe}=await supabaseClient.from('profiles').upsert(profile,{onConflict:'id'});
+          if(pe) return {success:false,message:pe.message};
+        }
+        return {success:true,message:data.session?'Registration submitted for Master Admin approval.':'Registration submitted. Check your email if email confirmation is enabled.'};
+      }
+      if(action==='health'){
+        const {error}=await supabaseClient.from('profiles').select('id',{count:'exact',head:true});
+        return error?{success:false,message:error.message}:{success:true,version:'Supabase',message:'Supabase database connected.'};
+      }
+      if(action==='logout'){
+        await supabaseClient.auth.signOut(); return {success:true};
+      }
+      if(action==='requestPasswordResetOtp'){
+        if(payload.method==='email'){
+          const {error}=await supabaseClient.auth.resetPasswordForEmail(String(payload.identifier||'').trim(),{redirectTo:location.href});
+          return error?{success:false,message:error.message}:{success:true,masked:'your registered email',message:'Password reset link sent to your email.'};
+        }
+        return {success:false,message:'Phone OTP reset requires Supabase phone authentication to be configured.'};
+      }
+      if(action==='resetPasswordWithOtp'){
+        const {error}=await supabaseClient.auth.updateUser({password:payload.newPassword});
+        return error?{success:false,message:error.message}:{success:true,message:'Password updated successfully.'};
+      }
+
+      // ---------- User directory ----------
+      if(action==='getAllUsersDirectory' || action==='getReportingManagers' || action==='getPendingUsers'){
+        const {data,error}=await supabaseClient.from('profiles').select('*').order('name');
+        if(error) return {success:false,message:error.message};
+        if(action==='getReportingManagers') return {success:true,managers:(data||[]).filter(x=>x.active!==false&&x.approved===true)};
+        if(action==='getPendingUsers') return {success:true,users:(data||[]).filter(x=>x.approved!==true||x.status==='Pending')};
+        return {success:true,users:data||[],data:data||[]};
+      }
+
+      // ---------- Location master ----------
+      if(action==='getLocationData'){
+        const {data,error}=await supabaseClient.from('location_master').select('*').eq('active',true).limit(50000);
+        if(error) return {success:false,message:error.message};
+        return {success:true,locations:data||[],data:data||[]};
+      }
+      if(action==='lookupPinCode'){
+        const {data,error}=await supabaseClient.from('location_master').select('*').eq('pin_code',String(payload.pin||'')).limit(20);
+        if(error) return {success:false,message:error.message};
+        return {success:true,data:data?.[0]||null,results:data||[]};
+      }
+
+      // ---------- Dashboard ----------
+      if(action==='getDashboardData'){
+        const modules=['clients','coldCalls','salesOrders','targets','tasks','approvals','notifications','attendance','projects','projectTasks','projectInvoices'];
+        const {data:rows,error}=await supabaseClient.from('app_records').select('*').in('module',modules).order('created_at',{ascending:false}).limit(10000);
+        if(error) return {success:false,message:error.message};
+        const {data:users}=await supabaseClient.from('profiles').select('*').order('name');
+        const grouped={clients:[],coldCalls:[],salesOrders:[],targets:[],tasks:[],approvals:[],notifications:[],attendance:[],projects:[],projectTasks:[],projectInvoices:[],teamUsers:users||[],todayAttendance:null};
+        (rows||[]).forEach(r=>{const k=r.module; if(grouped[k]) grouped[k].push(sbRow(r));});
+        const today=new Date().toISOString().slice(0,10); grouped.todayAttendance=grouped.attendance.find(a=>String(a.date||a.recordDate||'').slice(0,10)===today)||null;
+        return {success:true,data:grouped};
+      }
+
+      // ---------- Generic CRUD records ----------
+      const module=sbModuleFromAction(action);
+      if(module && /^(save|update|delete|add|submit|process|assign)/i.test(String(action))){
+        const id=payload.id||payload.recordId||payload.clientId||payload.orderId||payload.targetId||payload.taskId||payload.projectId||payload.approvalId||payload.notificationId;
+        if(/^delete/i.test(action)){
+          if(!id) return {success:false,message:'Record ID is required.'};
+          const {data:matches,error:findErr}=await supabaseClient.from('app_records').select('id').eq('module',module).eq('record_id',String(id)).limit(10);
+          if(findErr) return {success:false,message:findErr.message};
+          if(matches?.length){ const {error}=await supabaseClient.from('app_records').delete().in('id',matches.map(x=>x.id)); return error?{success:false,message:error.message}:{success:true,message:'Record deleted successfully.'}; }
+          return {success:true,message:'Record deleted successfully.'};
+        }
+        const meta=sbOwnerPayload(payload);
+        const row={module,record_id:id?String(id):null,...meta,data:payload,updated_at:new Date().toISOString()};
+        if(id){
+          const {data:matches,error:findErr}=await supabaseClient.from('app_records').select('id').eq('module',module).eq('record_id',String(id)).limit(1);
+          if(findErr) return {success:false,message:findErr.message};
+          let data,error;
+          if(matches?.length){ ({data,error}=await supabaseClient.from('app_records').update(row).eq('id',matches[0].id).select().single()); }
+          else { ({data,error}=await supabaseClient.from('app_records').insert(row).select().single()); }
+          if(error) return {success:false,message:error.message};
+          return {success:true,message:'Record saved successfully.',data:sbRow(data||row),record:data||row};
+        }
+        const {data,error}=await supabaseClient.from('app_records').insert(row).select().single();
+        if(error) return {success:false,message:error.message};
+        return {success:true,message:'Record saved successfully.',data:sbRow(data),record:data};
+      }
+
+      // Generic module readers used by individual screens.
+      if(module && /^(get|fetch|load|list|search)/i.test(String(action))){
+        const {data,error}=await supabaseClient.from('app_records').select('*').eq('module',module).order('created_at',{ascending:false}).limit(10000);
+        if(error) return {success:false,message:error.message};
+        return {success:true,data:(data||[]).map(sbRow),records:(data||[]).map(sbRow)};
+      }
+
+      // ---------- Chat ----------
+      if(action==='getChatUsers'){
+        const {data,error}=await supabaseClient.from('profiles').select('*').neq('id',currentUser?.id||'').eq('active',true).order('name');
+        return error?{success:false,message:error.message}:{success:true,users:data||[]};
+      }
+      if(action==='getChatMessages'){
+        const {data,error}=await supabaseClient.from('chat_messages').select('*').or(`and(sender_id.eq.${currentUser?.id},recipient_id.eq.${payload.peerId}),and(sender_id.eq.${payload.peerId},recipient_id.eq.${currentUser?.id})`).order('created_at');
+        if(error) return {success:false,message:error.message};
+        return {success:true,messages:(data||[]).map(m=>({id:m.id,senderId:m.sender_id,senderEmail:m.sender_email,message:m.message,timestamp:m.created_at,read:!!m.read_at}))};
+      }
+      if(action==='sendChatMessage'){
+        const {data,error}=await supabaseClient.from('chat_messages').insert({sender_id:currentUser?.id,sender_email:currentUser?.email,sender_name:currentUser?.name,recipient_id:payload.receiverId,recipient_email:payload.receiverEmail,message:payload.message}).select().single();
+        return error?{success:false,message:error.message}:{success:true,data};
+      }
+      if(action==='markNotificationRead'){
+        const id=payload.id||payload.notificationId; const {data,error}=await supabaseClient.from('app_records').select('id,data').eq('module','notifications').limit(10000);
+        if(error) return {success:false,message:error.message}; const row=(data||[]).find(r=>String(r.record_id||r.id)===String(id)||String(r.data?.id||'')===String(id));
+        if(!row)return {success:true}; const nd={...(row.data||{}),read:true,readAt:new Date().toISOString()}; const {error:ue}=await supabaseClient.from('app_records').update({data:nd,updated_at:new Date().toISOString()}).eq('id',row.id); return ue?{success:false,message:ue.message}:{success:true};
+      }
+
+      // ---------- User/profile update ----------
+      if(action==='updateUser' || action==='processUserApproval'){
+        const uid=payload.id||payload.userId;
+        if(!uid)return {success:false,message:'User ID is required.'};
+        const patch=Object.assign({},payload); delete patch.id; delete patch.userId; delete patch.password; delete patch.authToken;
+        if(action==='processUserApproval'){patch.approved=payload.approved!==false;patch.status=payload.status||'Approved';patch.active=payload.active!==false;}
+        const {data,error}=await supabaseClient.from('profiles').update(patch).eq('id',uid).select().single();
+        return error?{success:false,message:error.message}:{success:true,message:'User updated successfully.',user:data};
+      }
+
+      return {success:false,message:`Supabase adapter does not yet implement action: ${action}`};
+    }catch(err){
+      console.error('Supabase operation failed:',action,err);
+      return {success:false,message:err?.message||'Supabase operation failed.'};
+    }
+  }
+
   async function callBackendRaw(action, payload) {
-    return await sbDispatch(action,payload||{});
+    if(SUPABASE_ENABLED) return await supabaseBackendAction(action,payload||{});
+    const requestPayload=(payload && typeof payload==='object')?Object.assign({},payload):{};
+    const ownCrudActions=new Set(['updateClient','deleteClient','updateColdCall','deleteColdCall','updateSalesOrder','deleteSalesOrder']);
+    if(ownCrudActions.has(action) && !isMasterAdminUser()){
+      const recordId=requestPayload.id||requestPayload.recordId||requestPayload.orderId;
+      let record=null;
+      if(action.toLowerCase().includes('coldcall')) record=(rawData.coldCalls||[]).find(x=>String(x.id)===String(recordId));
+      else if(action.toLowerCase().includes('client')) record=(rawData.clients||[]).find(x=>String(x.id)===String(recordId));
+      else if(action.toLowerCase().includes('salesorder')) record=(rawData.salesOrders||[]).find(x=>String(x.id||x.orderId)===String(recordId));
+      if(!record || !recordOwnerMatchesUser(record)) return {success:false,message:'Access denied. You can modify or delete only records saved by your logged-in account.'};
+      requestPayload.userId=currentUser?.id||requestPayload.userId;
+      requestPayload.userEmail=currentUser?.email||requestPayload.userEmail;
+      requestPayload.userRole=currentUser?.role||requestPayload.userRole;
+      requestPayload.ownerId=record.userId||record.ownerId||record.createdByUserId||'';
+      requestPayload.ownerEmail=record.userEmail||record.ownerEmail||record.createdBy||'';
+    }
+    if(!['login','selfRegister','health','getReportingManagers','requestPasswordResetOtp','resetPasswordWithOtp'].includes(action)){
+      if(!currentUser?.email || !currentUser?.authToken){
+        clearPersistedSession(); currentUser=null;
+        return {success:false,message:'Your login session is missing its security token. Please sign in again.'};
+      }
+      requestPayload.email=requestPayload.email||currentUser.email;
+      requestPayload.authToken=requestPayload.authToken||currentUser.authToken;
+      requestPayload.userId=requestPayload.userId||currentUser.id;
+      requestPayload.userRole=requestPayload.userRole||currentUser.role;
+      requestPayload.userEmail=requestPayload.userEmail||currentUser.email;
+    }
+    if(!isValidScriptUrl(SCRIPT_URL)) return {success:false,message:'Invalid backend /exec URL. Open Backend Settings and enter the deployed Web App URL.'};
+
+    const canRetry=/^(get|fetch|load|list|search|check|validate|dashboard|health)/i.test(String(action||''));
+    // Do not retry writes. Reads may retry transient network/Apps Script cold-start failures.
+    const maxAttempts=canRetry?3:1;
+    let lastError=null;
+    for(let attempt=1;attempt<=maxAttempts;attempt++){
+      const controller=new AbortController();
+      // Apps Script may cold-start and read large Sheets. Give it enough time to finish,
+      // but still fail cleanly instead of hanging forever.
+      const timeoutMs=canRetry?(attempt===1?120000:150000):90000;
+      const timer=setTimeout(()=>controller.abort(),timeoutMs);
+      try{
+        const response=await fetch(SCRIPT_URL,{
+          method:'POST',
+          mode:'cors',
+          credentials:'omit',
+          redirect:'follow',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body:JSON.stringify({action,payload:requestPayload}),
+          signal:controller.signal,
+          cache:'no-store'
+        });
+        const text=await response.text();
+        if(!response.ok){
+          if(canRetry && attempt<maxAttempts && [408,425,429,500,502,503,504].includes(response.status)){
+            await new Promise(r=>setTimeout(r,900*attempt)); continue;
+          }
+          return {success:false,message:`Backend HTTP ${response.status}. Verify that the existing Apps Script Web App deployment is active and accessible to anyone with the link.`};
+        }
+        let result;
+        try{result=JSON.parse(text);}catch(_){
+          const sample=String(text||'').replace(/\s+/g,' ').slice(0,220);
+          if(canRetry && attempt<maxAttempts){await new Promise(r=>setTimeout(r,900*attempt));continue;}
+          return {success:false,message:'The existing backend returned a non-JSON response. The browser reached the URL, but the deployed /exec endpoint did not return the expected API response.'+(sample?' Response starts with: '+sample:'')};
+        }
+        if(!result || typeof result!=='object') return {success:false,message:'The existing backend returned an empty/invalid response.'};
+        result=cleanNullText(result);
+        if(result.success===false && /session expired|authentication required|unauthorized user/i.test(String(result.message||''))){clearPersistedSession();currentUser=null;}
+        return result;
+      }catch(err){
+        lastError=err;
+        if(canRetry && attempt<maxAttempts){await new Promise(r=>setTimeout(r,1000*attempt));continue;}
+        const msg=err?.name==='AbortError'
+          ? `Backend request timed out after ${Math.round(timeoutMs/1000)} seconds. The existing Google Apps Script is taking too long to return the requested data.`
+          : 'Unable to reach the existing Google Apps Script backend. If this HTML is opened directly as file://, open it from an HTTPS web host; browsers can block cross-origin requests from local files.';
+        console.error('Backend request failed:',action,err);
+        return {success:false,message:msg};
+      }finally{clearTimeout(timer);}
+    }
+    return {success:false,message:lastError?.message||'Unable to load data from the existing backend.'};
   }
 
   async function testBackendConnection(show=true){
     if(show)showProcessingMessage('Checking backend','Testing the live backend connection...');
     const res=await callBackend('health',{});
     if(show)closeOperationMessage();
-    if(res.success){if(show)showOperationMessage('Backend connected',`Supabase is reachable. ${res.version||''}`,'success');return true;}
+    if(res.success){if(show)showOperationMessage('Backend connected',`Live backend is reachable. Version ${res.version||'unknown'}.`,'success');return true;}
     if(show)showOperationMessage('Backend connection failed',res.message||'Unable to reach backend.','error');
     return false;
   }
@@ -8542,7 +8452,5 @@ setInterval(()=>{
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
-
-<script>document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{if(currentUser?.role==='Master Admin')updateMasterDatabaseStatus(),0},500)});</script>
 </body>
 </html>
