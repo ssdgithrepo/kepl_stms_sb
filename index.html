@@ -9,8 +9,6 @@
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-  <link rel="preconnect" href="https://script.google.com" crossorigin>
-  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <title>Kosol Energie Pvt Ltd - Sales Team Management System</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -724,6 +722,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
 #kosolDataRetryBar .kosol-message-close{width:30px;height:30px;flex:0 0 30px;padding:0;border:0;background:transparent;color:#475569;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
 #kosolDataRetryBar .kosol-message-close:hover{background:rgba(15,23,42,.08)}
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="kosolDataRetryBar" class="alert alert-warning align-items-center gap-2 mb-0 py-2 px-3" role="alert"><span class="small flex-grow-1"><i class="bi bi-cloud-slash me-1"></i><b>Live data is not synchronized.</b> The database did not return the latest data.</span><button type="button" class="btn btn-sm btn-dark" onclick="retryCurrentDataLoad()"><i class="bi bi-arrow-clockwise me-1"></i>Retry</button><button type="button" class="kosol-message-close" aria-label="Close message" title="Close" onclick="closeDataRetryMessage()"><i class="bi bi-x-lg"></i></button></div>
@@ -1368,11 +1367,6 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   </div>
   <div class="kosol-db-secret-note mt-2 mb-3"><i class="bi bi-shield-lock me-1"></i> Credentials are sent only to the existing backend. Database secrets are never saved in this HTML or browser localStorage.</div>
   <div class="kosol-db-provider-grid mb-3" id="kosolDbProviderGrid">
-    <button type="button" class="kosol-db-provider" data-provider="google_sheets" onclick="selectKosolDatabaseProvider('google_sheets')"><i class="bi bi-file-earmark-spreadsheet"></i>Google Sheets</button>
-    <button type="button" class="kosol-db-provider" data-provider="mysql" onclick="selectKosolDatabaseProvider('mysql')"><i class="bi bi-database"></i>MySQL</button>
-    <button type="button" class="kosol-db-provider" data-provider="oracle" onclick="selectKosolDatabaseProvider('oracle')"><i class="bi bi-server"></i>Oracle</button>
-    <button type="button" class="kosol-db-provider" data-provider="sqlserver" onclick="selectKosolDatabaseProvider('sqlserver')"><i class="bi bi-hdd-network"></i>SQL Server</button>
-    <button type="button" class="kosol-db-provider" data-provider="mongodb" onclick="selectKosolDatabaseProvider('mongodb')"><i class="bi bi-leaf"></i>MongoDB</button>
     <button type="button" class="kosol-db-provider" data-provider="supabase" onclick="selectKosolDatabaseProvider('supabase')"><i class="bi bi-cloud-check"></i>Supabase</button>
   </div>
   <form id="kosolDatabaseConfigForm" class="kosol-db-fields">
@@ -1825,9 +1819,22 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     return true;
   }
 
-  // PASTE YOUR PUBLISHED APPS SCRIPT WEB APP ENDPOINT URL HERE
-  const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_anT2dp4hpxsP_MelMvhR_55EGcyop2d9OIBARvJs1AIWaNUlcEEv-lEj08jTZYBb/exec";
-  const SCRIPT_URL = (localStorage.getItem('solar_erp_script_url') || new URLSearchParams(location.search).get('backend') || DEFAULT_SCRIPT_URL).trim();
+  // Supabase is the ONLY primary application backend. No Google Apps Script URL is used.
+  const SUPABASE_URL = "https://batkezvcxifdualntadd.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_vcCFjFdsJSAxhbH594xd6A_0RXIXUv_";
+  const SUPABASE_API_URL = SUPABASE_URL + "/rest/v1";
+  const SUPABASE_AUTH_URL = SUPABASE_URL + "/auth/v1";
+  const SUPABASE_APP_FUNCTION = "kosol-app-api";
+  let supabaseClient = null;
+  function getSupabaseClient(){
+    if(supabaseClient) return supabaseClient;
+    if(!window.supabase || typeof window.supabase.createClient !== 'function') throw new Error('Supabase client library is not loaded.');
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'kosol-supabase-auth'}
+    });
+    return supabaseClient;
+  }
+  const SCRIPT_URL = ''; // Compatibility placeholder only; no Google Apps Script endpoint is used.
 
   let currentUser = null;
   let rawData = { clients: [], tasks: [], coldCalls: [], approvals: [], salesOrders: [], targets: [], notifications: [], todayAttendance: null };
@@ -1978,17 +1985,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     }
   });
 
-  function isValidScriptUrl(value){
-    try { const u=new URL(String(value||'')); return u.protocol==='https:' && u.hostname==='script.google.com' && /^\/macros\/s\/[^/]+\/exec$/.test(u.pathname); } catch(e){ return false; }
-  }
-
+  function isValidScriptUrl(value){ return false; }
   function openBackendSettings(){
-    const current=localStorage.getItem('solar_erp_script_url')||DEFAULT_SCRIPT_URL;
-    const value=prompt('Enter the deployed backend Web App /exec URL:',current);
-    if(value===null)return;
-    const v=value.trim();
-    if(!isValidScriptUrl(v)){showOperationMessage('Invalid backend URL','Please enter the full backend Web App URL ending in /exec.','error');return;}
-    localStorage.setItem('solar_erp_script_url',v); location.reload();
+    showOperationMessage('Supabase is the active backend','This application no longer uses a Google Apps Script URL. The active Supabase project is configured in the application.','success');
   }
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -6991,90 +6990,83 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
 
   async function callBackendRaw(action, payload) {
     const requestPayload=(payload && typeof payload==='object')?Object.assign({},payload):{};
-    const ownCrudActions=new Set(['updateClient','deleteClient','updateColdCall','deleteColdCall','updateSalesOrder','deleteSalesOrder']);
-    if(ownCrudActions.has(action) && !isMasterAdminUser()){
-      const recordId=requestPayload.id||requestPayload.recordId||requestPayload.orderId;
-      let record=null;
-      if(action.toLowerCase().includes('coldcall')) record=(rawData.coldCalls||[]).find(x=>String(x.id)===String(recordId));
-      else if(action.toLowerCase().includes('client')) record=(rawData.clients||[]).find(x=>String(x.id)===String(recordId));
-      else if(action.toLowerCase().includes('salesorder')) record=(rawData.salesOrders||[]).find(x=>String(x.id||x.orderId)===String(recordId));
-      if(!record || !recordOwnerMatchesUser(record)) return {success:false,message:'Access denied. You can modify or delete only records saved by your logged-in account.'};
-      requestPayload.userId=currentUser?.id||requestPayload.userId;
-      requestPayload.userEmail=currentUser?.email||requestPayload.userEmail;
-      requestPayload.userRole=currentUser?.role||requestPayload.userRole;
-      requestPayload.ownerId=record.userId||record.ownerId||record.createdByUserId||'';
-      requestPayload.ownerEmail=record.userEmail||record.ownerEmail||record.createdBy||'';
-    }
-    if(!['login','selfRegister','health','getReportingManagers','requestPasswordResetOtp','resetPasswordWithOtp'].includes(action)){
-      if(!currentUser?.email || !currentUser?.authToken){
-        clearPersistedSession(); currentUser=null;
-        return {success:false,message:'Your login session is missing its security token. Please sign in again.'};
+    const publicActions=new Set(['login','selfRegister','health','getReportingManagers','requestPasswordResetOtp','resetPasswordWithOtp']);
+    try{
+      const sb=getSupabaseClient();
+      if(action==='login'){
+        const email=String(requestPayload.email||'').trim().toLowerCase();
+        const password=String(requestPayload.password||'');
+        if(!email||!password) return {success:false,message:'Email and password are required.'};
+        const {data,error}=await sb.auth.signInWithPassword({email,password});
+        if(error) return {success:false,message:error.message||'Invalid Supabase Auth credentials.'};
+        const token=data?.session?.access_token||'';
+        if(!token||!data?.user) return {success:false,message:'Supabase Auth did not return a valid session.'};
+        const {data:profile,error:profileError}=await sb.from('app_users').select('*').eq('email',email).maybeSingle();
+        if(profileError) return {success:false,message:'Supabase login succeeded, but the application user profile could not be loaded: '+profileError.message};
+        if(!profile) return {success:false,message:'Supabase Auth account exists, but no matching app_users profile was found for '+email+'. Create/link the application user profile first.'};
+        return {success:true,user:profile,authToken:token,session:data.session};
       }
-      requestPayload.email=requestPayload.email||currentUser.email;
-      requestPayload.authToken=requestPayload.authToken||currentUser.authToken;
-      requestPayload.userId=requestPayload.userId||currentUser.id;
-      requestPayload.userRole=requestPayload.userRole||currentUser.role;
-      requestPayload.userEmail=requestPayload.userEmail||currentUser.email;
-    }
-    if(!isValidScriptUrl(SCRIPT_URL)) return {success:false,message:'Invalid backend /exec URL. Open Backend Settings and enter the deployed Web App URL.'};
+      if(action==='health'){
+        const {error}=await sb.from('app_users').select('id',{head:true,count:'exact'});
+        return error?{success:false,message:'Supabase connection failed: '+error.message}:{success:true,version:'Supabase Data API',provider:'Supabase'};
+      }
+      if(action==='selfRegister'){
+        const email=String(requestPayload.email||'').trim().toLowerCase();
+        const password=String(requestPayload.password||requestPayload.newPassword||'');
+        const authPayload={email,password};
+        const {data,error}=await sb.auth.signUp(authPayload);
+        if(error) return {success:false,message:error.message||'Supabase registration failed.'};
+        const u=requestPayload.user||requestPayload;
+        const profile={id:String(u.id||data?.user?.id||crypto.randomUUID()),name:u.name||u.fullName||email.split('@')[0],email,phone:u.phone||'',role:u.role||'Sales Executive',status:'Pending',approval_status:'Pending',raw_data:u};
+        const {error:pe}=await sb.from('app_users').upsert(profile,{onConflict:'email'});
+        if(pe) return {success:false,message:'Supabase Auth account created, but application profile creation failed: '+pe.message};
+        return {success:true,message:'Registration submitted successfully. Complete any required email verification and administrator approval.',user:profile,authToken:data?.session?.access_token||''};
+      }
+      if(action==='requestPasswordResetOtp'){
+        const email=String(requestPayload.identifier||'').trim().toLowerCase();
+        const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+        return error?{success:false,message:error.message}:{success:true,message:'Password reset instructions have been sent to the registered email address.',masked:email};
+      }
+      if(action==='resetPasswordWithOtp'){
+        const {error}=await sb.auth.updateUser({password:String(requestPayload.newPassword||'')});
+        return error?{success:false,message:error.message}:{success:true,message:'Password updated successfully.'};
+      }
+      const {data:sessionData}=await sb.auth.getSession();
+      const accessToken=sessionData?.session?.access_token||currentUser?.authToken||'';
+      if(!accessToken && !publicActions.has(action)){
+        clearPersistedSession();currentUser=null;
+        return {success:false,message:'Your Supabase login session is missing. Please sign in again.'};
+      }
+      requestPayload.email=requestPayload.email||currentUser?.email||'';
+      requestPayload.userId=requestPayload.userId||currentUser?.id||'';
+      requestPayload.userRole=requestPayload.userRole||currentUser?.role||'';
+      requestPayload.userEmail=requestPayload.userEmail||currentUser?.email||'';
+      requestPayload.authToken=accessToken;
 
-    const canRetry=/^(get|fetch|load|list|search|check|validate|dashboard|health)/i.test(String(action||''));
-    // Do not retry writes. Reads may retry transient network/Apps Script cold-start failures.
-    const maxAttempts=canRetry?3:1;
-    let lastError=null;
-    for(let attempt=1;attempt<=maxAttempts;attempt++){
-      const controller=new AbortController();
-      // Apps Script may cold-start and read large Sheets. Give it enough time to finish,
-      // but still fail cleanly instead of hanging forever.
-      const timeoutMs=canRetry?(attempt===1?120000:150000):90000;
-      const timer=setTimeout(()=>controller.abort(),timeoutMs);
-      try{
-        const response=await fetch(SCRIPT_URL,{
-          method:'POST',
-          mode:'cors',
-          credentials:'omit',
-          redirect:'follow',
-          headers:{'Content-Type':'text/plain;charset=utf-8'},
-          body:JSON.stringify({action,payload:requestPayload}),
-          signal:controller.signal,
-          cache:'no-store'
-        });
-        const text=await response.text();
-        if(!response.ok){
-          if(canRetry && attempt<maxAttempts && [408,425,429,500,502,503,504].includes(response.status)){
-            await new Promise(r=>setTimeout(r,900*attempt)); continue;
-          }
-          return {success:false,message:`Backend HTTP ${response.status}. Verify that the existing Apps Script Web App deployment is active and accessible to anyone with the link.`};
-        }
-        let result;
-        try{result=JSON.parse(text);}catch(_){
-          const sample=String(text||'').replace(/\s+/g,' ').slice(0,220);
-          if(canRetry && attempt<maxAttempts){await new Promise(r=>setTimeout(r,900*attempt));continue;}
-          return {success:false,message:'The existing backend returned a non-JSON response. The browser reached the URL, but the deployed /exec endpoint did not return the expected API response.'+(sample?' Response starts with: '+sample:'')};
-        }
-        if(!result || typeof result!=='object') return {success:false,message:'The existing backend returned an empty/invalid response.'};
-        result=cleanNullText(result);
-        if(result.success===false && /session expired|authentication required|unauthorized user/i.test(String(result.message||''))){clearPersistedSession();currentUser=null;}
-        return result;
-      }catch(err){
-        lastError=err;
-        if(canRetry && attempt<maxAttempts){await new Promise(r=>setTimeout(r,1000*attempt));continue;}
-        const msg=err?.name==='AbortError'
-          ? `Backend request timed out after ${Math.round(timeoutMs/1000)} seconds. The existing Google Apps Script is taking too long to return the requested data.`
-          : 'Unable to reach the existing Google Apps Script backend. If this HTML is opened directly as file://, open it from an HTTPS web host; browsers can block cross-origin requests from local files.';
-        console.error('Backend request failed:',action,err);
-        return {success:false,message:msg};
-      }finally{clearTimeout(timer);}
+      // All privileged/multi-table application operations run through a Supabase Edge Function.
+      // The browser sends only the user's JWT; the Edge Function performs server-side authorization
+      // and database work with its protected secret key.
+      const {data,error}=await sb.functions.invoke(SUPABASE_APP_FUNCTION,{body:{action,payload:requestPayload}});
+      if(error){
+        console.error('Supabase Edge Function failed:',action,error);
+        return {success:false,message:`Supabase backend operation failed: ${error.message||String(error)}. Deploy the '${SUPABASE_APP_FUNCTION}' Edge Function for application CRUD/operations.`};
+      }
+      if(!data || typeof data!=='object') return {success:false,message:'Supabase backend returned an invalid response.'};
+      const result=cleanNullText(data);
+      if(result.success===false && /session expired|authentication required|unauthorized|jwt/i.test(String(result.message||''))){clearPersistedSession();currentUser=null;try{await sb.auth.signOut();}catch(_){} }
+      return result;
+    }catch(err){
+      console.error('Supabase request failed:',action,err);
+      return {success:false,message:err?.message||'Unable to reach Supabase. Check the project URL, publishable key, Supabase Auth, RLS policies, and Edge Function deployment.'};
     }
-    return {success:false,message:lastError?.message||'Unable to load data from the existing backend.'};
   }
 
   async function testBackendConnection(show=true){
-    if(show)showProcessingMessage('Checking backend','Testing the live backend connection...');
+    if(show)showProcessingMessage('Checking Supabase','Testing the live Supabase connection...');
     const res=await callBackend('health',{});
     if(show)closeOperationMessage();
-    if(res.success){if(show)showOperationMessage('Backend connected',`Live backend is reachable. Version ${res.version||'unknown'}.`,'success');return true;}
-    if(show)showOperationMessage('Backend connection failed',res.message||'Unable to reach backend.','error');
+    if(res.success){if(show)showOperationMessage('Supabase connected',`Live Supabase Data API is reachable. Version ${res.version||'unknown'}.`,'success');return true;}
+    if(show)showOperationMessage('Supabase connection failed',res.message||'Unable to reach Supabase.','error');
     return false;
   }
 
@@ -8102,41 +8094,28 @@ setInterval(()=>{
   window.closeLiveDataMessage=function(){const b=document.getElementById('kosol-live-loader-v4');if(b)b.classList.remove('show');};
   window.closeDataRetryMessage=function(){window.__kosolRetryBarDismissed=true;const b=document.getElementById('kosolDataRetryBar');if(b)b.classList.remove('show');};
   async function directDashboardFetch(payload){
-    const attempts=2;
-    let last=null;
+    const attempts=2; let last=null;
     for(let n=1;n<=attempts;n++){
       V4.attempt=n; V4.started=Date.now();
-      status(n===1?'Synchronizing latest database data…':'Retrying database synchronization…',true);
-      const ctl=new AbortController();
-      const timeout=setTimeout(()=>ctl.abort(),180000);
+      status(n===1?'Synchronizing latest Supabase data…':'Retrying Supabase synchronization…',true);
       try{
-        const response=await fetch(SCRIPT_URL,{method:'POST',mode:'cors',credentials:'omit',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'getDashboardData',payload}),signal:ctl.signal,cache:'no-store'});
-        const text=await response.text();
+        const result=await callBackendFast('getDashboardData',payload,{fresh:true});
         const elapsed=Date.now()-V4.started;
-        window.__kosolLastBackendDiagnostics={status:response.status,ok:response.ok,elapsedMs:elapsed,bytes:text.length,attempt:n,contentType:response.headers.get('content-type')||'',url:SCRIPT_URL};
-        if(!response.ok){last=new Error('Backend HTTP '+response.status+' after '+Math.round(elapsed/1000)+'s');if([408,425,429,500,502,503,504].includes(response.status)&&n<attempts){await new Promise(r=>setTimeout(r,1200));continue;}throw last;}
-        let result;try{result=JSON.parse(text);}catch(e){throw new Error('Backend returned non-JSON after '+Math.round(elapsed/1000)+'s. Response begins: '+String(text).replace(/\s+/g,' ').slice(0,180));}
-        if(!result||typeof result!=='object')throw new Error('Backend returned an invalid response.');
-        if(result.success===false)throw new Error(result.message||'The existing backend rejected the dashboard request.');
+        window.__kosolLastBackendDiagnostics={ok:!!result?.success,elapsedMs:elapsed,attempt:n,provider:'Supabase'};
+        if(!result||result.success===false) throw new Error(result?.message||'Supabase rejected the dashboard request.');
         const p=result.data&&typeof result.data==='object'?result.data:result;
         const missing=requiredArrays(p);
-        if(missing.length){
-          // A successful dashboard response must contain the datasets expected by the existing UI.
-          // Do not silently display a partially populated dashboard.
-          throw new Error('Dashboard response is incomplete. Missing: '+missing.join(', ')+'.');
-        }
-        V4.lastSuccess=Date.now();V4.lastError='';
-        status('Database synchronized in '+Math.round(elapsed/1000)+'s.',false);
+        if(missing.length) throw new Error('Supabase dashboard response is incomplete. Missing: '+missing.join(', ')+'.');
+        V4.lastSuccess=Date.now(); V4.lastError='';
+        status('Supabase data synchronized in '+Math.round(elapsed/1000)+'s.',false);
         setTimeout(()=>status('',false),1200);
         return result;
       }catch(e){
-        last=e;V4.lastError=e?.message||String(e);
-        const elapsed=Date.now()-V4.started;
-        window.__kosolLastBackendDiagnostics=Object.assign({},window.__kosolLastBackendDiagnostics||{},{elapsedMs:elapsed,attempt:n,error:V4.lastError});
-        if(n<attempts){await new Promise(r=>setTimeout(r,1200));continue;}
-      }finally{clearTimeout(timeout);}
+        last=e; V4.lastError=e?.message||String(e);
+        if(n<attempts) await new Promise(r=>setTimeout(r,1200));
+      }
     }
-    throw last||new Error('Unable to load live dashboard data.');
+    throw last||new Error('Unable to load live Supabase dashboard data.');
   }
   window.__kosolDirectDashboardFetch=directDashboardFetch;
 
@@ -8313,7 +8292,7 @@ setInterval(()=>{
 <!-- ================================================================
      KOSOL DATABASE INTEGRATION / MIGRATION JAVASCRIPT
      Frontend-only controller for the Master Admin database module.
-     It uses the existing SCRIPT_URL and existing callBackend/callBackendFast
+     It uses the Supabase backend and existing callBackend/callBackendFast
      functions; database credentials are sent to the server-side backend and
      are NOT stored in browser localStorage.
      ================================================================ -->
@@ -8321,31 +8300,32 @@ setInterval(()=>{
   'use strict';
 
   // ---- Master Admin Database Integration / Migration Manager ----
-  const KOSOL_DB_PROVIDER_LABELS={google_sheets:'Google Sheets',mysql:'MySQL',oracle:'Oracle',sqlserver:'SQL Server',mongodb:'MongoDB',supabase:'Supabase'};
-  let kosolDbState={provider:'google_sheets',activeProvider:'google_sheets',status:'unknown',history:[]};
+  const KOSOL_DB_PROVIDER_LABELS={supabase:'Supabase'};
+  let kosolDbState={provider:'supabase',activeProvider:'supabase',status:'unknown',history:[]};
   function kosolDbLog(message,reset=false){
     const el=document.getElementById('kosolDbMigrationLog');if(!el)return;
     const stamp=new Date().toLocaleString();if(reset)el.textContent=`[${stamp}] ${message}`;else el.textContent+=`\\n[${stamp}] ${message}`;el.scrollTop=el.scrollHeight;
   }
   function selectKosolDatabaseProvider(provider){
+    if(provider!=='supabase'){provider='supabase';}
     if(!isMasterAdminUser()){showOperationMessage('Access denied','Only Master Admin can configure the application database.','error');return;}
-    kosolDbState.provider=provider;const hidden=document.getElementById('kosolDbProvider');if(hidden)hidden.value=provider;
+    kosolDbState.provider='supabase';const hidden=document.getElementById('kosolDbProvider');if(hidden)hidden.value=provider;
     document.querySelectorAll('.kosol-db-provider').forEach(b=>b.classList.toggle('active',b.dataset.provider===provider));
-    const defaults={google_sheets:['','','','public'],mysql:['mysql://','3306','','public'],oracle:['jdbc:oracle:thin:@','1521','','public'],sqlserver:['jdbc:sqlserver://','1433','','public'],mongodb:['mongodb://','27017','','public'],supabase:['https://','','','public']};
+    const defaults={supabase:['https://batkezvcxifdualntadd.supabase.co','','','public']};
     const d=defaults[provider]||['','','','public'];const set=(id,v)=>{const e=document.getElementById(id);if(e&&v!==undefined)e.value=v;};
     if(provider==='supabase'){set('kosolDbUrl',d[0]);set('kosolDbPort','');}else{set('kosolDbUrl',d[0]);set('kosolDbPort',d[1]);}
     set('kosolDbSchema',d[3]);kosolDbLog(`Selected ${KOSOL_DB_PROVIDER_LABELS[provider]||provider}.`);
   }
   function kosolDbPayload(){
     const val=id=>String(document.getElementById(id)?.value||'').trim();
-    return {provider:val('kosolDbProvider')||kosolDbState.provider||'google_sheets',connectionUrl:val('kosolDbUrl'),host:val('kosolDbHost'),port:val('kosolDbPort'),database:val('kosolDbName'),schema:val('kosolDbSchema')||'public',username:val('kosolDbUsername'),secret:val('kosolDbSecret'),apiKey:val('kosolDbApiKey'),sslMode:val('kosolDbSsl')||'require',batchSize:Number(val('kosolDbBatchSize')||500)};
+    return {provider:'supabase',connectionUrl:val('kosolDbUrl'),host:val('kosolDbHost'),port:val('kosolDbPort'),database:val('kosolDbName'),schema:val('kosolDbSchema')||'public',username:val('kosolDbUsername'),secret:val('kosolDbSecret'),apiKey:val('kosolDbApiKey'),sslMode:val('kosolDbSsl')||'require',batchSize:Number(val('kosolDbBatchSize')||500)};
   }
   function renderKosolDbStatus(s){
     s=s||{};kosolDbState=Object.assign({},kosolDbState,s);
     const box=document.getElementById('kosolDbStatus');if(box){const status=String(s.status||'unknown').toLowerCase(),ok=status==='connected'||status==='active',bad=status==='error'||status==='failed';box.innerHTML=`<span class="kosol-db-dot ${ok?'ok':bad?'bad':'warn'}"></span><span>${escapeHtml(KOSOL_DB_PROVIDER_LABELS[s.activeProvider||s.provider]||s.activeProvider||s.provider||'Unknown')}</span><span class="badge ${ok?'bg-success':bad?'bg-danger':'bg-warning text-dark'}">${escapeHtml(s.status||'Unknown')}</span>`;}
     if(s.provider)selectKosolDatabaseProvider(String(s.provider));
     const set=(id,v)=>{const e=document.getElementById(id);if(e&&v!==undefined&&v!==null)e.value=String(v);};
-    set('kosolDbProvider',s.provider||kosolDbState.provider||'google_sheets');set('kosolDbUrl',s.connectionUrl||'');set('kosolDbHost',s.host||'');set('kosolDbPort',s.port||'');set('kosolDbName',s.database||'');set('kosolDbSchema',s.schema||'public');set('kosolDbUsername',s.username||'');set('kosolDbSsl',s.sslMode||'require');
+    set('kosolDbProvider','supabase');set('kosolDbUrl',s.connectionUrl||'');set('kosolDbHost',s.host||'');set('kosolDbPort',s.port||'');set('kosolDbName',s.database||'');set('kosolDbSchema',s.schema||'public');set('kosolDbUsername',s.username||'');set('kosolDbSsl',s.sslMode||'require');
     const body=document.getElementById('kosolDbHistoryBody');if(body){const h=Array.isArray(s.history)?s.history:[];body.innerHTML=h.length?h.map(x=>`<tr><td>${escapeHtml(KOSOL_DB_PROVIDER_LABELS[x.provider]||x.provider||'')}</td><td>${escapeHtml(x.operation||'')}</td><td><span class="badge ${String(x.status).toLowerCase()==='success'?'bg-success':'bg-secondary'}">${escapeHtml(x.status||'')}</span></td><td>${escapeHtml(x.startedAt||'')}</td></tr>`).join(''):`<tr><td colspan="4" class="text-center text-muted">No history loaded.</td></tr>`;}
   }
   async function loadKosolDatabaseStatus(showMessage=false){
