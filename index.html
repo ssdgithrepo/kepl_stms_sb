@@ -1953,6 +1953,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       persistSession();
       setupAppShell();
       allowPageExit=false;
+      // After authentication, hydrate all application datasets in parallel.
+      // The UI is already visible, while every module's data is fetched immediately.
+      loadAllApplicationDataAfterLogin().catch(err=>console.warn('[Kosol] initial application data load failed:',err));
       showUserSessionPopup('welcome');
       setTimeout(syncMobileNavbarHeight,0);
     } else {
@@ -2006,6 +2009,37 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     welcomeShownThisSession=true; el.classList.remove('d-none','hide');
   }
 
+  async function loadAllApplicationDataAfterLogin(){
+    if(!currentUser) return false;
+    if(window.__kosolAllDataLoadPromise) return window.__kosolAllDataLoadPromise;
+    window.__kosolAllDataLoadPromise=(async()=>{
+      const safe=async(label,fn)=>{
+        try{return await fn();}
+        catch(e){console.warn('[Kosol] '+label+' load skipped:',e);return null;}
+      };
+      // The dashboard snapshot is the primary atomic read for core modules.
+      // The additional reads below hydrate every independently loaded area immediately
+      // after authentication instead of waiting for the user to open a tab.
+      await Promise.allSettled([
+        safe('dashboard',()=>refreshData({silent:true,reason:'initial-load',force:true})),
+        safe('locations',()=>loadLocationData()),
+        safe('user directory',()=>ensureDashboardUserDirectory()),
+        safe('reporting managers',()=>loadPublicReportingManagers()),
+        safe('projects',()=>loadSolarProjects()),
+        safe('chat users',()=>callBackendFast('getChatUsers',currentUser||{})),
+        safe('chat messages',()=>callBackendFast('getChatMessages',currentUser||{})),
+        safe('notifications',()=>callBackendFast('getNotifications',currentUser||{})),
+        safe('targets',()=>callBackendFast('getTargets',currentUser||{})),
+        safe('attendance approvals',()=>currentUser.role==='Master Admin'?callBackendFast('getPendingAttendanceApprovals',currentUser||{}):Promise.resolve(null)),
+        safe('pending users',()=>currentUser.role==='Master Admin'?fetchPendingUsers():Promise.resolve(null))
+      ]);
+      try{ applyDashboardFilters(); }catch(e){}
+      try{ renderDashboardUserFilters(); }catch(e){}
+      return true;
+    })().finally(()=>{window.__kosolAllDataLoadPromise=null;});
+    return window.__kosolAllDataLoadPromise;
+  }
+
   function setupAppShell() {
     persistSession();
     document.getElementById('authScreen').classList.add('d-none');
@@ -2035,13 +2069,13 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       document.getElementById('masterAdminUserDirectory').classList.remove('d-none');
       document.getElementById('masterAdminBackendTools')?.classList.remove('d-none');
       document.getElementById('btnRefreshLocationMaster')?.classList.remove('d-none');
-      // Do not compete with the initial dashboard request. Admin-only data is deferred.
+      // Master Admin data is also hydrated immediately after login.
       if(deferredAdminTimer) clearTimeout(deferredAdminTimer);
-      deferredAdminTimer=setTimeout(()=>{if(currentUser?.role==='Master Admin') fetchPendingUsers();},3200);
+      deferredAdminTimer=null;
     }
 
-    // Location master is needed by entry forms, not by the initial dashboard.
-    // Load it after the dashboard has started so login feels immediate.
+    // Location data is loaded immediately by loadAllApplicationDataAfterLogin().
+    // Keep the deferred timer as a safety fallback only.
     scheduleDeferredLocationData();
     setTimeout(()=>{if(currentUser&&document.visibilityState==='visible')touchUserActivity();},1800);
     persistSession();
