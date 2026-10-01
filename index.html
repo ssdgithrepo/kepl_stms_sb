@@ -1969,6 +1969,28 @@ button,input,select,textarea{max-width:100%;}
 
   let currentUser = null;
   let rawData = { clients: [], tasks: [], coldCalls: [], approvals: [], salesOrders: [], targets: [], notifications: [], todayAttendance: null };
+
+  // Normalises client rows coming from the database (imported / legacy rows may lack `id`
+  // or use alternate field names). Guarantees every client is searchable AND selectable.
+  function kosolNormalizeClients(list){
+    if(!Array.isArray(list))return list;
+    const seen=new Set();
+    return list.filter(c=>c&&typeof c==='object').map((c,i)=>{
+      const o=c;
+      const pick=(...k)=>{for(const x of k){const v=o[x];if(v!==undefined&&v!==null&&String(v).trim()!=='')return v;}return '';};
+      if(!String(o.orgName||'').trim()) o.orgName=String(pick('organizationName','organization','clientName','companyName','company','orgname','org_name','name'));
+      if(!String(o.contactName||'').trim()) o.contactName=String(pick('contactPerson','contact_name','contact','personName'));
+      if(!String(o.mobile||'').trim()) o.mobile=String(pick('phone','contactNumber','mobileNumber','contact_number','mobile_no'));
+      let id=String(pick('id','clientId','recordId','_id','ID')).trim();
+      if(!id){
+        id='cl_'+(String(o.mobile||'').replace(/\D/g,'')||'x')+'_'+String(o.orgName||'').toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,24)+'_'+i;
+      }
+      while(seen.has(id)) id+='_'+i;
+      seen.add(id);
+      o.id=id;
+      return o;
+    });
+  }
   let allUsersList = [];
   let filteredClients = [];
   let selectedDashboardIds = new Set();
@@ -2351,7 +2373,7 @@ button,input,select,textarea{max-width:100%;}
 
       // Replace the complete client-side snapshot atomically so every module
       // renders from the same server response.
-      rawData.clients=Array.isArray(payload.clients)?payload.clients:rawData.clients;
+      rawData.clients=Array.isArray(payload.clients)?kosolNormalizeClients(payload.clients):rawData.clients;
       rawData.tasks=Array.isArray(payload.tasks)?payload.tasks:rawData.tasks;
       rawData.coldCalls=Array.isArray(payload.coldCalls)?payload.coldCalls:rawData.coldCalls;
       rawData.salesOrders=Array.isArray(payload.salesOrders)?payload.salesOrders:rawData.salesOrders;
@@ -8423,7 +8445,7 @@ setInterval(()=>{
         const p=res.data&&typeof res.data==='object'?res.data:res;
         // Atomically update every dashboard dataset. This is deliberately explicit so a
         // malformed/partial backend response can never wipe the browser state with blanks.
-        rawData.clients=p.clients;rawData.coldCalls=p.coldCalls;rawData.tasks=p.tasks;rawData.approvals=p.approvals;
+        rawData.clients=kosolNormalizeClients(p.clients);rawData.coldCalls=p.coldCalls;rawData.tasks=p.tasks;rawData.approvals=p.approvals;
         rawData.salesOrders=p.salesOrders;rawData.targets=p.targets;rawData.notifications=p.notifications;rawData.teamUsers=p.teamUsers;
         if(Object.prototype.hasOwnProperty.call(p,'todayAttendance'))rawData.todayAttendance=p.todayAttendance||null;
         allUsersList=rawData.teamUsers.slice();
