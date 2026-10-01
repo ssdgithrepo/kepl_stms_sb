@@ -579,6 +579,12 @@ input,select,textarea,button{max-width:100%;}
 <style id="kosol-final-ui-fixes">
 .kosol-modal-header{background:#000!important;color:#fff!important;border-bottom:3px solid #fc9403!important}.kosol-modal-header *{color:#fff!important}
 .dashboard-data-tab{position:relative;transition:opacity .18s ease,transform .18s ease,background-color .18s ease!important}.dashboard-data-tab.dashboard-tab-pulse{animation:dashboardTabPulse .28s ease}.dashboard-data-tab .badge{font-size:.68rem;margin-left:4px}.dashboard-detail-modal .modal-content{border:2px solid #fc9403!important;border-radius:16px;overflow:hidden}.dashboard-detail-modal .modal-header{background:#000!important;color:#fff!important;border-bottom:3px solid #fc9403!important}.dashboard-detail-modal .modal-body{background:#fff!important}.dashboard-detail-section{border:1px solid #e5e7eb;border-left:4px solid #fc9403;border-radius:10px;padding:12px;margin-bottom:10px;background:#fff}.dashboard-detail-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.dashboard-detail-item{background:#fff7e8;border:1px solid #f3d39b;border-radius:8px;padding:8px;min-width:0}.dashboard-detail-item small{display:block;color:#6b7280;font-size:.68rem}.dashboard-detail-item b{display:block;color:#111;word-break:break-word}.dashboard-sync-state{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700}.dashboard-sync-state.pending{color:#c96f00}.dashboard-sync-state.synced{color:#198754}.dashboard-sync-state.error{color:#dc3545}.data-sync-badge{font-size:.68rem}
+  .repeat-count-badge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:.2rem .48rem;border-radius:999px;font-weight:800;line-height:1.1;border:1px solid #d7dee8;background:#f8fafc;color:#334155}
+  .repeat-count-badge.is-repeat{background:#dcfce7;border-color:#86efac;color:#166534}
+  #ccClientOptions .existing-client-result{cursor:pointer;padding:.55rem .65rem;border-bottom:1px solid #eef2f7!important}
+  #ccClientOptions .existing-client-result:hover,#ccClientOptions .existing-client-result.active{background:#fff7e8!important}
+  #ccClientOptions .existing-client-result .btn{pointer-events:none}
+  #ccClientOptions{max-height:min(42vh,360px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 @keyframes dashboardTabPulse{0%{opacity:.55;transform:scale(.985)}60%{opacity:1;transform:scale(1.015)}100%{opacity:1;transform:scale(1)}}
 .dashboard-count-card{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.dashboard-count-card:hover,.dashboard-count-card:focus-visible{transform:translateY(-2px);box-shadow:0 .35rem 1rem rgba(0,0,0,.10);outline:none}.dashboard-count-card:active{transform:scale(.99)}
 .dashboard-count-card .count-click-hint{font-size:.62rem;color:#6b7280;opacity:.9}
@@ -2646,7 +2652,7 @@ button,input,select,textarea{max-width:100%;}
           <td><small>${escapeHtml([c.state,c.region,c.district].filter(Boolean).join(' / ')||'—')}</small></td>
           <td><small>${escapeHtml(c.salesType||'')}</small></td>
           <td><span class="badge ${tempClass}">${escapeHtml(temp||'—')}</span></td>
-          <td><span class="badge ${Number(c.visitCount||1)>1?'text-bg-success':'text-bg-light'}">${Number(c.visitCount||1)}</span><small class="text-muted ms-1">${Number(c.visitCount||1)>1?'Repeat':''}</small></td>
+          <td><span class="repeat-count-badge ${Number(c.visitCount||1)>1?'is-repeat':''}">Repeat: ${Math.max(1,Number(c.visitCount||1))}</span></td>
           <td><small>${escapeHtml(c.salesOrderStatus||'—')}</small><br><small class="text-muted">${escapeHtml(c.visitStatus||'')}</small></td>
           <td><small>${escapeHtml(c.activityDate||c.entryDate||c.timestamp||'')}</small></td>
           <td>
@@ -2676,7 +2682,7 @@ button,input,select,textarea{max-width:100%;}
     const res = await callBackend('deleteClient', ownershipPayload({ id: clientId },record));
     if(res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
-      refreshData();
+      refreshData({silent:true,reason:'after-write',force:true});
     } else {
       showToast(res.message, "error");
     }
@@ -2693,7 +2699,7 @@ button,input,select,textarea{max-width:100%;}
         <td><b>${escapeHtml(cc.orgName||cc.clientName)}</b><br><small>${escapeHtml(cc.contactName||'')}</small></td>
         <td>${escapeHtml(cc.phone)}</td><td>${escapeHtml(cc.reason||'')}</td>
         <td><span class="badge bg-info text-dark">${escapeHtml(cc.outcome||'')}</span><br><small>${escapeHtml(cc.callStatus||'')}</small></td>
-        <td><span class="badge ${Number(cc.visitCount||1)>1?'text-bg-success':'text-bg-light'}">${Number(cc.visitCount||1)}</span></td>
+        <td><span class="repeat-count-badge ${Number(cc.visitCount||cc.repeatCount||1)>1?'is-repeat':''}">Repeat: ${Math.max(1,Number(cc.visitCount||cc.repeatCount||1))}</span></td>
         <td><small>${escapeHtml(cc.remarks||'')}</small></td>
         <td>${own?`<button class="btn btn-sm btn-outline-primary me-1" onclick="openEditColdCallModal('${escapeAttr(cc.id)}')"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deleteColdCall('${escapeAttr(cc.id)}')"><i class="bi bi-trash"></i></button>`:'<small class="text-muted">Read Only</small>'}</td>
       </tr>`);
@@ -2723,7 +2729,7 @@ button,input,select,textarea{max-width:100%;}
     const res = await callBackend('deleteColdCall', ownershipPayload({ id: ccId },record));
     if (res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
-      refreshData();
+      refreshData({silent:true,reason:'after-write',force:true});
     } else {
       showToast(res.message, "error");
     }
@@ -2895,7 +2901,7 @@ button,input,select,textarea{max-width:100%;}
     const res = await callBackend('markAttendance', { email: currentUser.email });
     if (res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
-      refreshData();
+      refreshData({silent:true,reason:'after-write',force:true});
     } else {
       showToast(res.message, "error");
     }
@@ -2913,7 +2919,7 @@ button,input,select,textarea{max-width:100%;}
     if (res.success) {
       showModuleResult('Explanation submitted',res.message||'Your explanation was submitted successfully.');
       bootstrap.Modal.getInstance(document.getElementById('lateExplanationModal')).hide();
-      refreshData();
+      refreshData({silent:true,reason:'after-write',force:true});
     } else {
       showToast(res.message, "error");
     }
@@ -2960,7 +2966,7 @@ button,input,select,textarea{max-width:100%;}
     const res = await callBackend('processAttendanceApproval', { attendanceId: attId, action: 'PASS_TO_HEADS' });
     if(res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
-      refreshData();
+      refreshData({silent:true,reason:'after-write',force:true});
     }
   }
 
@@ -2969,7 +2975,7 @@ button,input,select,textarea{max-width:100%;}
     const res = await callBackend('processAttendanceApproval', { attendanceId: attId, approve: approve, remarks: remark || '' });
     if(res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
-      refreshData();
+      refreshData({silent:true,reason:'after-write',force:true});
     }
   }
 
@@ -3122,7 +3128,7 @@ button,input,select,textarea{max-width:100%;}
     const res = await callBackend('updateTaskStatus', { id: taskId, status: newStatus, remarks: remark || '', updatedBy: currentUser.email });
     if(res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
-      refreshData();
+      refreshData({silent:true,reason:'after-write',force:true});
     } else {
       showToast(res.message, "error");
       document.getElementById(`select_task_${taskId}`).value = currentStatus;
@@ -3149,7 +3155,7 @@ button,input,select,textarea{max-width:100%;}
     if(res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
       bootstrap.Modal.getInstance(document.getElementById('approvalRequestModal')).hide();
-      refreshData();
+      refreshData({silent:true,reason:'after-write',force:true});
     } else {
       showToast(res.message, "error");
     }
@@ -3190,7 +3196,7 @@ button,input,select,textarea{max-width:100%;}
     const res = await callBackend('processGeneralApproval', { requestId: reqId, approve: approve, remarks: remark || '' });
     if(res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
-      refreshData();
+      refreshData({silent:true,reason:'after-write',force:true});
     } else {
       showToast(res.message, "error");
     }
@@ -3221,7 +3227,7 @@ button,input,select,textarea{max-width:100%;}
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
       bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
       document.getElementById('taskForm').reset();
-      refreshData();
+      refreshData({silent:true,reason:'after-write',force:true});
     } else {
       showToast(res.message, "error");
     }
@@ -3247,52 +3253,51 @@ button,input,select,textarea{max-width:100%;}
     box.classList.remove('show'); box.style.display='none';
   }
   function renderExistingClientSearch(query, boxId, onSelect, emptyText){
-    const box=document.getElementById(boxId); if(!box)return [];
+    const box=document.getElementById(boxId);if(!box)return [];
     const q=String(query||'').trim().toLowerCase();
-    const list=(rawData.clients||[]).filter(c=>!q||[c.orgName,c.contactName,c.mobile,c.email].some(v=>String(v||'').toLowerCase().includes(q))).slice(0,30);
+    const normalizePhone=v=>String(v||'').replace(/\D/g,'');
+    const list=(rawData.clients||[]).filter(c=>{
+      if(!q)return true;
+      const values=[c?.orgName,c?.contactName,c?.mobile,c?.email,c?.id];
+      return values.some(v=>String(v??'').toLowerCase().includes(q));
+    }).slice(0,50);
+    if(box.__noMatchAutoCloseTimer){clearTimeout(box.__noMatchAutoCloseTimer);box.__noMatchAutoCloseTimer=null;}
+    box.__backendClients=rawData.clients||[];
+    box.__selectedClientId='';
     if(list.length){
-      if(box.__noMatchAutoCloseTimer){clearTimeout(box.__noMatchAutoCloseTimer);box.__noMatchAutoCloseTimer=null;}
-      box.__selectedClientId='';
-      box.innerHTML=list.map(c=>`<button type="button" class="search-option text-start w-100 bg-white border-0" data-id="${escapeAttr(c.id)}" data-client-id="${escapeAttr(c.id)}" role="option" aria-label="Select ${escapeAttr(c.orgName||'existing client')}"><strong>${escapeHtml(c.orgName||'')}</strong><br><small>${escapeHtml(c.contactName||'')} · ${escapeHtml(c.mobile||'')} · ID: ${escapeHtml(c.id||'')}</small></button>`).join('');
+      box.innerHTML=list.map((c,i)=>{
+        const org=String(c?.orgName||'Existing client').trim();
+        const contact=String(c?.contactName||'').trim();
+        const phone=String(c?.mobile||c?.phone||'').trim();
+        const cid=String(c?.id||'').trim();
+        return `<button type="button" class="search-option existing-client-result text-start w-100 bg-white border-0" data-id="${escapeAttr(cid)}" data-client-id="${escapeAttr(cid)}" data-org="${escapeAttr(org)}" data-phone="${escapeAttr(normalizePhone(phone))}" role="option" aria-selected="false"><span class="d-flex align-items-start justify-content-between gap-2"><span class="min-w-0"><strong class="d-block text-truncate">${escapeHtml(org)}</strong><small class="d-block text-muted text-truncate">${escapeHtml(contact||'No contact name')} · ${escapeHtml(phone||'No mobile number')}</small><small class="d-block text-muted">Record ID: ${escapeHtml(cid||'—')}</small></span><span class="btn btn-sm btn-outline-primary flex-shrink-0">Select</span></span></button>`;
+      }).join('');
     }else{
-      box.innerHTML=`<div class="client-no-match search-option text-muted" role="status">
-        <span>${escapeHtml(emptyText||'No existing client found — continue typing to create a new one.')}</span>
-        <button type="button" class="btn-close" aria-label="Close message" title="Close message"></button>
-      </div>`;
-      const close=box.querySelector('.client-no-match .btn-close');
-      close?.addEventListener('click',ev=>{
-        ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation?.();
-        if(box.__noMatchAutoCloseTimer){clearTimeout(box.__noMatchAutoCloseTimer);box.__noMatchAutoCloseTimer=null;}
-        box.classList.remove('show');box.style.display='none';
-      });
-      box.__noMatchAutoCloseTimer=setTimeout(()=>{
-        box.classList.remove('show');box.style.display='none';
-        box.__noMatchAutoCloseTimer=null;
-      },3000);
+      box.innerHTML=`<div class="client-no-match search-option text-muted" role="status"><span>${escapeHtml(emptyText||'No existing client found — continue typing to create a new one.')}</span><button type="button" class="btn-close" aria-label="Close message" title="Close message"></button></div>`;
+      box.querySelector('.client-no-match .btn-close')?.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation?.();box.classList.remove('show');box.style.display='none';},{capture:true});
+      box.__noMatchAutoCloseTimer=setTimeout(()=>{box.classList.remove('show');box.style.display='none';box.__noMatchAutoCloseTimer=null;},3500);
     }
-    box.classList.add('show'); box.style.display='block';
-    box.__backendClients=list; // compatibility for existing selectors; source remains rawData.clients
-    if(box.dataset.existingClientSelectionBound!=='v3'){
+    box.classList.add('show');box.style.display='block';
+    if(box.dataset.existingClientSelectionBound!=='v5'){
       const choose=function(ev){
-        const el=ev.target.closest?.('.search-option[data-id]');
-        if(!el || !box.contains(el))return;
-        ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();
-        const id=String(el.dataset.clientId||el.dataset.id||'').trim();
-        if(!id || box.__selectedClientId===id)return;
+        const el=ev.target?.closest?.('.existing-client-result[data-client-id]');
+        if(!el||!box.contains(el))return;
+        ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation?.();
+        const id=String(el.dataset.clientId||'').trim();
+        if(!id)return;
         box.__selectedClientId=id;
-        box.querySelectorAll('.search-option[data-id]').forEach(x=>{x.classList.toggle('active',x===el);x.setAttribute('aria-selected',x===el?'true':'false');});
-        onSelect(id,ev);
+        box.querySelectorAll('.existing-client-result[data-client-id]').forEach(x=>{const on=x===el;x.classList.toggle('active',on);x.setAttribute('aria-selected',on?'true':'false');});
+        try{onSelect(id,ev);}catch(err){console.error('Existing client selection failed:',err);}
       };
-      // Click is used deliberately here: it is reliable for mouse, touch and stylus,
-      // and unlike pointerdown it cannot race the Bootstrap modal's focus/close handling.
+      // pointerdown makes touch/stylus selection deterministic; click remains as a keyboard/mouse fallback.
+      box.addEventListener('pointerdown',choose,true);
       box.addEventListener('click',choose,true);
-      box.addEventListener('keydown',function(ev){
-        if(ev.key==='Enter'||ev.key===' '){choose(ev);}
-      },true);
-      box.dataset.existingClientSelectionBound='v3';
+      box.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){choose(ev);}},true);
+      box.dataset.existingClientSelectionBound='v5';
     }
     return list;
   }
+
   function searchColdCallClient() {
     const box=document.getElementById('ccClientOptions');if(!box)return [];
     const query=String(document.getElementById('ccSearchOrg')?.value||'').trim();
@@ -3342,7 +3347,18 @@ button,input,select,textarea{max-width:100%;}
     const cap=document.getElementById('ccSelectionCaption');
     if(cap){cap.textContent=`Selected existing client: ${c.orgName||'Existing client'} · ${c.contactName||''} · ${c.mobile||''} — Follow Up call #${count}`;cap.classList.remove('d-none');}
     const box=document.getElementById('ccClientOptions');
-    if(box){box.__selectedClientId=selectedId;box.classList.remove('show');box.style.display='none';}
+    if(box){
+      box.__selectedClientId=selectedId;
+      box.querySelectorAll('.existing-client-result[data-client-id]').forEach(el=>{
+        const on=String(el.dataset.clientId||'')===selectedId;
+        el.classList.toggle('active',on);el.setAttribute('aria-selected',on?'true':'false');
+      });
+      box.classList.remove('show');box.style.display='none';
+    }
+    // Selection is only a lookup action. Never submit, reset or close the Cold Call form.
+    document.getElementById('ccVisitType').value='Follow Up';
+    document.getElementById('ccVisitCount').value=String(count);
+    const selectedDate=document.getElementById('ccEntryDate');if(selectedDate)selectedDate.value=appToday();
     renderColdCallLinkedPanel();
     // Never let the selection itself close the active Cold Call form.
     const coldModal=document.getElementById('coldCallModal');
@@ -3380,7 +3396,17 @@ button,input,select,textarea{max-width:100%;}
       return;
     }
     let computedCallCount=Number(getVal('ccVisitCount')||1);
-    if(!editingColdCallId){const phone=String(getVal('ccPhone')||'').replace(/\D/g,''),org=String(getVal('ccSearchOrg')||getVal('ccOrgName')||'').trim().toLowerCase(),cid=String(getVal('ccClientId')||'');computedCallCount=Math.max(computedCallCount,getRepeatCountForColdCall(org,phone,cid));}
+    const phoneForCount=String(getVal('ccPhone')||'').replace(/\D/g,'');
+    const orgForCount=String(getVal('ccSearchOrg')||getVal('ccOrgName')||'').trim().toLowerCase();
+    const selectedColdClientId=String(getVal('ccClientId')||'').trim();
+    if(!editingColdCallId){
+      computedCallCount=Math.max(1,getRepeatCountForColdCall(orgForCount,phoneForCount,selectedColdClientId));
+      // An exact existing database client selection is always a Follow Up activity.
+      if(selectedColdClientId) setValue('ccVisitType','Follow Up');
+    }else if(existingColdCallRecord){
+      // Editing must never increment the saved repeat count.
+      computedCallCount=Math.max(1,Number(existingColdCallRecord.visitCount||existingColdCallRecord.repeatCount||existingColdCallRecord.followUpCount||computedCallCount||1));
+    }
     const payload = {
       id: editingColdCallId,
       userId: currentUser.id,
@@ -3428,19 +3454,36 @@ button,input,select,textarea{max-width:100%;}
   }
   function selectSalesOrderClient(id){const c=(rawData.clients||[]).find(x=>String(x.id)===String(id));if(!c)return;window.__salesOrderClientSelectionInProgress=true;document.getElementById('soClientId').value=c.id||'';document.getElementById('soOrgName').value=c.orgName||'';document.getElementById('soClientName').value=c.contactName||c.clientName||'';document.getElementById('soContact').value=c.mobile||c.phone||c.contactNumber||'';document.getElementById('soSelectionCaption').textContent='Existing client selected';document.getElementById('soSelectionCaption').classList.remove('d-none');const box=document.getElementById('soOrgOptions');if(box){box.classList.remove('show');box.style.display='none';}updateSalesOrderRepeatCount(true);refreshSalesOrderIdentityAutomation();requestAnimationFrame(()=>{window.__salesOrderClientSelectionInProgress=false;});setTimeout(()=>{window.__salesOrderClientSelectionInProgress=false;},1200);}
   function clearSalesOrderClient(){['soClientId','soOrgName','soClientName','soContact'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('soSelectionCaption')?.classList.add('d-none');document.getElementById('soOrgOptions')?.classList.remove('show');}
-  function salesOrderIdentityMatches(o,org,phone,clientId){const oid=String(o.clientId||'').trim(),oorg=String(o.orgName||o.organizationName||o.organization||'').trim().toLowerCase(),ophone=String(o.contactNumber||o.mobile||o.phone||'').replace(/\D/g,'');return (clientId&&oid&&oid===String(clientId))||(org&&oorg===org)||(phone&&ophone===phone);}
+  function salesOrderIdentityMatches(o,org,phone,clientId){
+    const oid=String(o?.clientId||'').trim(), oorg=String(o?.orgName||o?.organizationName||o?.organization||'').trim().toLowerCase(), ophone=String(o?.contactNumber||o?.mobile||o?.phone||'').replace(/\D/g,'');
+    if(clientId) return !!oid && oid===String(clientId).trim();
+    if(org && phone) return oorg===org && ophone===phone;
+    if(org) return oorg===org;
+    if(phone) return ophone===phone;
+    return false;
+  }
   function getRepeatCountForSalesOrder(org,phone,clientId){const matches=(rawData.salesOrders||[]).filter(o=>salesOrderIdentityMatches(o,org,phone,clientId));if(!matches.length)return 1;return Math.max(1,...matches.map(o=>Number(o.repeatCount||o.repeatOrderCount||1)+1));}
   function getRepeatCountForClient(org,phone,clientId){
     const explicitId=String(clientId||'').trim();
+    const normalizedOrg=String(org||'').trim().toLowerCase();
+    const normalizedPhone=String(phone||'').replace(/\D/g,'');
     const matches=(rawData.clients||[]).filter(c=>{
-      const cid=String(c.id||'').trim();
+      const cid=String(c?.id||'').trim();
       if(explicitId) return cid===explicitId;
-      const corg=String(c.orgName||c.organizationName||'').trim().toLowerCase();
-      const cp=String(c.mobile||c.phone||'').replace(/\D/g,'');
-      return (org&&corg===org)||(phone&&cp===phone);
+      const corg=String(c?.orgName||c?.organizationName||'').trim().toLowerCase();
+      const cp=String(c?.mobile||c?.phone||'').replace(/\D/g,'');
+      if(normalizedOrg && normalizedPhone) return corg===normalizedOrg && cp===normalizedPhone;
+      if(normalizedOrg) return corg===normalizedOrg;
+      if(normalizedPhone) return cp===normalizedPhone;
+      return false;
     });
     if(!matches.length)return 1;
-    return Math.max(1,...matches.map(c=>Number(c.visitCount||c.followUpCount||1)+1));
+    return Math.max(1,...matches.map(c=>Number(c?.visitCount||c?.followUpCount||1)+1));
+  }
+  function getRepeatCountForColdCall(org,phone,clientId){
+    const matches=(rawData.coldCalls||[]).filter(c=>salesOrderIdentityMatches(c,org,phone,clientId));
+    if(!matches.length)return 1;
+    return Math.max(1,...matches.map(c=>Number(c?.visitCount||c?.repeatCount||c?.followUpCount||1)+1));
   }
   function getRepeatCountForColdCall(org,phone,clientId){const matches=(rawData.coldCalls||[]).filter(c=>salesOrderIdentityMatches(c,org,phone,clientId));if(!matches.length)return 1;return Math.max(1,...matches.map(c=>Number(c.visitCount||c.repeatCount||c.followUpCount||1)+1));}
   function updateSalesOrderRepeatCount(auto){const el=document.getElementById('soRepeatCount');if(!el)return;const org=String(document.getElementById('soOrgName')?.value||'').trim().toLowerCase(),phone=String(document.getElementById('soContact')?.value||'').replace(/\D/g,''),clientId=document.getElementById('soClientId')?.value||'';if(auto||el.dataset.auto==='1'){el.value=getRepeatCountForSalesOrder(org,phone,clientId);el.dataset.auto='1';}updateSalesOrderCalculations();}
@@ -3673,7 +3716,7 @@ button,input,select,textarea{max-width:100%;}
     if(res.success){
       clearPipelineOverridesForIdentity(payload.orgName,payload.contactNumber,payload.clientId);
       showOperationMessage(wasEdit?'Sales Order updated':'Sales Order saved',res.message|| (wasEdit?'Sales Order updated successfully.':'Sales Order saved successfully.'),'success');
-      await refreshData({silent:true});
+      await refreshData({silent:true,reason:'after-write',force:true});
       renderSalesOrders();renderPipelineBoards();renderDashboardCharts();
       if(wasEdit){
         document.getElementById('soId').value='';
@@ -3770,7 +3813,11 @@ button,input,select,textarea{max-width:100%;}
     const oid=String(o?.clientId||o?.clientID||'').trim(), cid=String(clientId||'').trim();
     const oo=normalizeIdentityText(o?.orgName||o?.organization||o?.organizationName), co=normalizeIdentityText(org);
     const op=normalizeIdentityPhone(o?.contactNumber||o?.mobile||o?.phone), cp=normalizeIdentityPhone(phone);
-    return (cid&&oid&&cid===oid)||(co&&oo&&co===oo)||(cp&&op&&cp===op);
+    if(cid) return !!oid && cid===oid;
+    if(co&&cp) return oo===co && op===cp;
+    if(co) return oo===co;
+    if(cp) return op===cp;
+    return false;
   }
   function clientSalesOrdersForIdentity(org,phone,clientId){
     return (rawData.salesOrders||[]).filter(o=>salesOrderIdentityMatchesClient(o,org,phone,clientId)).sort((a,b)=>String(b.date||b.entryDate||'').localeCompare(String(a.date||a.entryDate||'')));
@@ -4052,7 +4099,7 @@ button,input,select,textarea{max-width:100%;}
         const salesOrderResult=await callBackend('saveSalesOrder',soPayload);
         if(!salesOrderResult?.success){
           closeOperationMessage();
-          await refreshData({silent:true});
+          await refreshData({silent:true,reason:'after-write',force:true});
           showOperationMessage('Client saved, Sales Order not saved',salesOrderResult?.message||'The Client Entry was saved, but the automatic Sales Order could not be saved. Please open Sales Order and save it there.','error');
           return;
         }
@@ -4061,7 +4108,7 @@ button,input,select,textarea{max-width:100%;}
       clearPipelineOverridesForIdentity(payload.orgName,payload.mobile,payload.selectedClientId||payload.id);
       closeOperationMessage();
       showOperationMessage(editingClientId?(salesDone?'Client + Sales Order updated':'Client entry updated'):(salesDone?'Client + Sales Order saved':'Client entry saved'),res.message||(salesDone?'Client Entry and Sales Order were saved successfully.':'Client Entry was saved successfully.'),'success');
-      await refreshData({silent:true});
+      await refreshData({silent:true,reason:'after-write',force:true});
       renderClients();renderPipelineBoards();renderDashboardCharts();
       const modal=document.getElementById('clientModal');
       if(modal)bootstrap.Modal.getOrCreateInstance(modal).hide();
@@ -4111,7 +4158,7 @@ button,input,select,textarea{max-width:100%;}
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
       await fetchPendingUsers();
       await fetchAndRenderTree();
-      refreshData();
+      refreshData({silent:true,reason:'after-write',force:true});
     }
   }
 
@@ -5657,7 +5704,9 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     calls.forEach(c=>{const k=identity(c);const matched=String(c.clientId||c.clientID||'').trim() || [...clientMap.keys()].some(x=>x===k);if(matched)coldExistingMap.set(k,c);else coldNewMap.set(k,c);});
     coldExistingMap.forEach((v,k)=>{if(clientMap.has(k))existingClientMap.set(k,clientMap.get(k));});
     coldNewMap.forEach((v,k)=>newLeadMap.set(k,v));
-    const total=clientMap.size+calls.length;
+    // KPI cards represent records returned by the current database snapshot.
+    // Do not replace the database record count with a de-duplicated identity count.
+    const total=clients.length+calls.length;
     const visits=clients.filter(c=>String(c.visitStatus||'').trim().toLowerCase()==='done').length;
     const meetings=clients.filter(c=>String(c.meetingStatus||'').trim().toLowerCase()==='done').length;
     const orders=ordersData.length;
@@ -7376,7 +7425,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
   }
 document.addEventListener('DOMContentLoaded',()=>{
     rawData.salesOrders=loadLocalSalesOrders();
-    document.getElementById('ccSearchOrg')?.addEventListener('input',()=>{document.getElementById('ccClientId').value='';searchColdCallClient();}); document.getElementById('ccSearchOrg')?.addEventListener('focus',searchColdCallClient); document.getElementById('ccSearchOrg')?.addEventListener('change',async()=>{const value=String(document.getElementById('ccSearchOrg')?.value||'').trim();if(!value)return;const list=searchColdCallClient();const exact=list.find(c=>String(c.orgName||'').trim().toLowerCase()===value.toLowerCase());if(exact)autofillColdCallClient(exact.id);}); document.getElementById('ccSearchOrg')?.addEventListener('keydown',ev=>{if(ev.key==='Escape'){ev.preventDefault();dismissColdCallNoMatch();}}); document.getElementById('ccSearchOrg')?.addEventListener('blur',()=>setTimeout(()=>{const box=document.getElementById('ccClientOptions');if(document.activeElement&&(box?.contains(document.activeElement)||document.activeElement===document.getElementById('ccSearchOrg')))return;box?.classList.remove('show');box&&(box.style.display='none');},280));
+    document.getElementById('ccSearchOrg')?.addEventListener('input',()=>{document.getElementById('ccClientId').value='';searchColdCallClient();}); document.getElementById('ccSearchOrg')?.addEventListener('focus',searchColdCallClient); document.getElementById('ccSearchOrg')?.addEventListener('change',async()=>{const value=String(document.getElementById('ccSearchOrg')?.value||'').trim();if(!value)return;const list=searchColdCallClient();const exact=list.find(c=>String(c.orgName||'').trim().toLowerCase()===value.toLowerCase());if(exact)autofillColdCallClient(exact.id);}); document.getElementById('ccSearchOrg')?.addEventListener('keydown',ev=>{if(ev.key==='Escape'){ev.preventDefault();dismissColdCallNoMatch();}}); document.getElementById('ccSearchOrg')?.addEventListener('blur',()=>setTimeout(()=>{const box=document.getElementById('ccClientOptions');if(window.__coldCallClientSelectionInProgress||document.activeElement&&(box?.contains(document.activeElement)||document.activeElement===document.getElementById('ccSearchOrg')))return;box?.classList.remove('show');box&&(box.style.display='none');},500));
     // Safety guard: while an existing client is being selected, no Bootstrap/user event
     // is allowed to hide the Client Entry modal. Normal Close/Cancel and successful Save
     // are unaffected because clientSelectionInProgress is false in those cases.
@@ -8358,6 +8407,11 @@ setInterval(()=>{
       try{
         const u=currentUser;
         if(!u?.email||!u?.authToken)throw new Error('Your secure login session is missing. Please sign in again.');
+        // User-triggered refreshes (especially after save/update/delete) must read the
+        // current database record, not an 8-second browser read cache.
+        if(options.force===true || options.reason==='after-write' || options.reason==='manual-retry' || options.reason==='module-open'){
+          try{window.KosolSupabaseAPI?.invalidate?.('getDashboardData');}catch(_){ }
+        }
         const payload={email:u.email,authToken:u.authToken,userId:u.id||u.userId||'',userEmail:u.email,userRole:u.role||''};
         const res=await directDashboardFetch(payload);
         const p=res.data&&typeof res.data==='object'?res.data:res;
@@ -8546,7 +8600,7 @@ function invalidate(action){
   for(const k of readCache.keys())if(k.startsWith(action+'|'))readCache.delete(k);
 }
 async function rpc(action,payload){
-  if(!base()||!config.key)throw new Error('Supabase connection is not configured.');
+  if(!base()||!config.key)throw new Error('Database connection is not configured.');
   const a=String(action||'').toLowerCase(), canCache=readActions.has(a), key=canCache?readKey(a,payload):'';
   if(canCache){
     const hit=readCache.get(key);
@@ -8559,7 +8613,7 @@ async function rpc(action,payload){
       const body={p_action:action,p_payload:Object.assign({},payload||{},token?{_sessionToken:token}:{})};
       const r=await fetch(base()+'/rest/v1/rpc/app_api',{method:'POST',headers:headers(),body:JSON.stringify(body),signal:ctl.signal,cache:'no-store',keepalive:false});
       const tx=await r.text();let j=null;try{j=JSON.parse(tx);}catch(_){}
-      if(!r.ok)throw new Error('Supabase '+r.status+': '+(tx||'Request failed').slice(0,500));
+      if(!r.ok)throw new Error('Database '+r.status+': '+(tx||'Request failed').slice(0,500));
       if(j&&j.authToken){token=j.authToken;try{localStorage.setItem('kosol_supabase_session',token);}catch(_){} }
       if(j&&j.sessionToken){token=j.sessionToken;try{localStorage.setItem('kosol_supabase_session',token);}catch(_){} }
       if(j&&j.sessionExpired){clearSession();invalidate();}
@@ -8581,7 +8635,7 @@ function clearSession(){token='';invalidate();try{localStorage.removeItem('kosol
 async function getActiveDatabase(){try{return await rpc('get_active_database',{});}catch(e){return {success:false,message:e.message};}}
 async function migrateTo(destination,progress){
   const source=Object.assign({},config), sourceToken=token;
-  if(!destination||!destination.url||!destination.key)throw new Error('Destination Supabase URL and publishable key are required.');
+  if(!destination||!destination.url||!destination.key)throw new Error('Destination database URL and publishable key are required.');
   progress&&progress('Reading data from the current database…');
   const data={};
   const dash=await rpc('getDashboardData',{}); if(!dash.success)throw new Error(dash.message||'Could not read dashboard data.');
@@ -8601,7 +8655,7 @@ async function migrateTo(destination,progress){
   return {success:true,source,destination,total};
 }
 window.KosolSupabaseAPI={call,rpc,test,isReady,getConfig,setConfig,clearSession,getActiveDatabase,migrateTo,invalidate,config:()=>config};
-window.KosolSupabase=Object.assign(window.KosolSupabase||{}, {mode:()=>config.name||'Supabase',isReady,getConfig,config:getConfig,setConfig,test,call,clearSession,migrateTo,getActiveDatabase,invalidate});
+window.KosolSupabase=Object.assign(window.KosolSupabase||{}, {mode:()=>config.name||'Database',isReady,getConfig,config:getConfig,setConfig,test,call,clearSession,migrateTo,getActiveDatabase,invalidate});
 })();
 
 </script>
@@ -8612,7 +8666,7 @@ window.KosolSupabase=Object.assign(window.KosolSupabase||{}, {mode:()=>config.na
 (function(){
  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
  function admin(){return typeof isAdmin==='function'&&isAdmin();}
- function sync(){const ok=admin();['menuBackendDatabase','menuDbSwitch','dashboardActiveDb','mobileMenuBackendDatabase','mobileMenuDbSwitch'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('d-none',!ok)});const name=(window.KosolSupabase&&window.KosolSupabase.config)?(window.KosolSupabase.config().name||'Database'):'Supabase';document.querySelectorAll('.kosol-db-mode-label').forEach(e=>e.textContent=name);const role=document.getElementById('dashboardActiveRole');if(role){const r=String(window.currentUser?.role||'').trim();role.classList.toggle('d-none',!r);const b=role.querySelector('b');if(b)b.textContent=r;}}
+ function sync(){const ok=admin();['menuBackendDatabase','menuDbSwitch','dashboardActiveDb','mobileMenuBackendDatabase','mobileMenuDbSwitch'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('d-none',!ok)});const name=(window.KosolSupabase&&window.KosolSupabase.config)?(window.KosolSupabase.config().name||'Database'):'Database';document.querySelectorAll('.kosol-db-mode-label').forEach(e=>e.textContent=name);const role=document.getElementById('dashboardActiveRole');if(role){const r=String(window.currentUser?.role||'').trim();role.classList.toggle('d-none',!r);const b=role.querySelector('b');if(b)b.textContent=r;}}
  function open(){if(!admin())return;let m=document.getElementById('kosolDbManager');if(!m){m=document.createElement('div');m.id='kosolDbManager';m.className='kosol-db-modal';m.innerHTML='<div class="kosol-db-card"><div class="d-flex align-items-center"><h5 class="m-0"><i class="bi bi-database-gear me-2"></i>Database Manager</h5><button class="btn-close ms-auto" id="kosolDbClose"></button></div><div class="small text-muted mt-1 mb-3">Database is the application backend. Admin and Master Admin can configure, test, switch and migrate between compatible databases. Only publishable/anon keys belong here.</div><div class="row g-2"><div class="col-12"><label class="form-label small mb-1">Database name</label><input id="kosolDbName" class="form-control" placeholder="Production Database"></div><div class="col-12"><label class="form-label small mb-1">Project URL</label><input id="kosolDbUrl" class="form-control" placeholder="https://xxxx.supabase.co"></div><div class="col-12"><label class="form-label small mb-1">Publishable / anon key</label><input id="kosolDbKey" class="form-control" autocomplete="off"></div></div><div class="mt-3 d-flex flex-wrap gap-2"><button class="btn btn-outline-info btn-sm" id="kosolDbTest">Test connection</button><button class="btn btn-outline-primary btn-sm" id="kosolDbSave">Save configuration</button><button class="btn btn-success btn-sm" id="kosolDbSwitch">Make active database</button><button class="btn btn-outline-danger btn-sm" id="kosolDbMigrate">Migrate current data</button></div><div id="kosolDbStatus" class="small mt-3 text-muted"></div><div class="alert alert-info small mt-3 mb-0"><b>Active database:</b> <span id="kosolDbActive">Database</span><br>The active database label is shown to signed-in users. Database credentials are kept in this browser; no secret/service-role key is stored in the application.</div></div>';document.body.appendChild(m);m.querySelector('#kosolDbClose').onclick=()=>m.classList.remove('show');m.querySelector('#kosolDbTest').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const c=window.KosolSupabase.config();const n=m.querySelector('#kosolDbName').value.trim(),u=m.querySelector('#kosolDbUrl').value.trim(),k=m.querySelector('#kosolDbKey').value.trim();if(!u||!k)throw Error('Enter database URL and publishable key.');window.KosolSupabase.setConfig({name:n||'Database',url:u,key:k});await window.KosolSupabase.test();st.textContent='Connection successful.';}catch(e){st.textContent='Connection failed: '+databaseDisplayText(e.message);}};m.querySelector('#kosolDbSave').onclick=()=>{window.KosolSupabase.setConfig({name:m.querySelector('#kosolDbName').value.trim()||'Database',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()});m.querySelector('#kosolDbStatus').textContent='Configuration saved locally. Test it before switching.';sync();};m.querySelector('#kosolDbSwitch').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const c={name:m.querySelector('#kosolDbName').value.trim()||'Database',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()};window.KosolSupabase.setConfig(c);await window.KosolSupabase.test();await window.KosolSupabase.call('set_active_database',c);st.textContent='Active database switched successfully. Reloading data…';setTimeout(()=>location.reload(),500);}catch(e){st.textContent='Switch failed: '+databaseDisplayText(e.message);}};m.querySelector('#kosolDbMigrate').onclick=async()=>{const st=m.querySelector('#kosolDbStatus');try{const d={name:m.querySelector('#kosolDbName').value.trim()||'Database',url:m.querySelector('#kosolDbUrl').value.trim(),key:m.querySelector('#kosolDbKey').value.trim()};await window.KosolSupabase.migrateTo(d,msg=>st.textContent=databaseDisplayText(msg));st.textContent='Migration completed. The destination is now active.';sync();setTimeout(()=>location.reload(),700);}catch(e){st.textContent='Migration failed: '+databaseDisplayText(e.message);}};}
  const c=window.KosolSupabase&&window.KosolSupabase.config?window.KosolSupabase.config():{};m.querySelector('#kosolDbName').value=c.name||'Database';m.querySelector('#kosolDbUrl').value=c.url||'';m.querySelector('#kosolDbKey').value=c.key&&c.key!=='***'?c.key:'';m.querySelector('#kosolDbActive').textContent=c.name||'Database';m.classList.add('show');}
  function switchDb(ev){if(ev)ev.preventDefault();open();}
