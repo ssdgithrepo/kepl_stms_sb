@@ -702,14 +702,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
 </style>
 
 <style id="kosol-data-loader-v3">
-#kosolDataRetryBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:1085;display:none;max-width:min(92vw,620px);box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:14px}
-#kosolDataRetryBar.show{display:flex}
-#kosolDataRetryBar .kosol-message-close{width:30px;height:30px;flex:0 0 30px;padding:0;border:0;background:transparent;color:#475569;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
-#kosolDataRetryBar .kosol-message-close:hover{background:rgba(15,23,42,.08)}
 </style>
 </head>
 <body>
-<div id="kosolDataRetryBar" class="alert alert-warning align-items-center gap-2 mb-0 py-2 px-3" role="alert"><span class="small flex-grow-1"><i class="bi bi-cloud-slash me-1"></i><b>Live data is not synchronized.</b> The database did not return the latest data.</span><button type="button" class="btn btn-sm btn-dark" onclick="retryCurrentDataLoad()"><i class="bi bi-arrow-clockwise me-1"></i>Retry</button><button type="button" class="kosol-message-close" aria-label="Close message" title="Close" onclick="closeDataRetryMessage()"><i class="bi bi-x-lg"></i></button></div>
 
 
 <div id="kosolWelcome" class="kosol-welcome d-none" aria-modal="true" role="dialog">
@@ -1800,9 +1795,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   let lastSnapshotSavedAt = 0;
   const BACKGROUND_REFRESH_REASONS = new Set(['auto-poll','tab-visible','pageshow','cross-tab','online','focus']);
   const FRESH_FETCH_REASONS = new Set(['auto-poll','cross-tab','online','focus']);
-  const POLL_BASE_MS = 45000;      // check for changes every 30s while the tab is visible
-  const POLL_IDLE_MS = 120000;      // slow down after several unchanged checks
-  const POLL_MAX_MS = 180000;      // back-off ceiling after failures
+  const POLL_BASE_MS = 90000;      // background synchronization every 90s while visible
+  const POLL_IDLE_MS = 180000;     // slow down after several unchanged checks
+  const POLL_MAX_MS = 300000;      // back-off ceiling after failures
   function quickHash(s){let h=5381,i=s.length;while(i)h=(h*33)^s.charCodeAt(--i);return (h>>>0).toString(36)+':'+s.length;}
 
   // Performance: fingerprint only stable record identity/version fields instead of
@@ -2159,7 +2154,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       if(!res || res.success===false || !payload){
         if(options.reason==='auto-poll') pollFailureCount++;
         showDataSyncStatus('error',res?.message||payload?.message||'Unable to load dashboard data.');
-        if(!silent || options.reason==='initial-load') showOperationMessage('Data loading failed',res?.message||payload?.message||'Unable to load dashboard data.','error');
+        if(!silent && options.reason!=='auto-poll' && options.reason!=='tab-visible' && options.reason!=='focus' && options.reason!=='online' && options.reason!=='pageshow' && options.reason!=='cross-tab') showOperationMessage('Data loading failed',res?.message||payload?.message||'Unable to load dashboard data.','error');
         return false;
       }
 
@@ -8211,138 +8206,9 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
 })();
 </script>
 
-<script id="kosol-data-loader-v3-hook">
-setInterval(()=>{
-  const state=document.getElementById('dashboardSyncState');
-  const bar=document.getElementById('kosolDataRetryBar');
-  if(!state||!bar)return;
-  if(!window.__kosolRetryBarDismissed)bar.classList.toggle('show',String(state.className||'').includes(' error'));
-},1000);
-</script>
-<style id="kosol-data-loader-v4-style">
-#kosol-live-loader-v4{position:fixed;right:14px;bottom:14px;z-index:11999;display:none;width:min(92vw,440px);background:#fff;border:1px solid #dee2e6;border-left:4px solid #fc9403;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);padding:10px 12px;font-size:.78rem}
-#kosol-live-loader-v4.show{display:block}
-#kosol-live-loader-v4 .small{color:#64748b}
-#kosol-live-loader-v4 .kosol-live-head{display:flex;align-items:center;gap:8px}
-#kosol-live-loader-v4 .kosol-live-close{margin-left:auto;width:30px;height:30px;border:0;background:transparent;color:#64748b;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;padding:0}
-#kosol-live-loader-v4 .kosol-live-close:hover{background:#f1f5f9;color:#0f172a}
-#kosol-live-loader-v4 .kosol-sync-spinner{width:17px;height:17px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:kosolSyncSpin .72s linear infinite;flex:0 0 auto}
-#kosol-live-loader-v4 .kosol-sync-spinner.done{display:none}
-@keyframes kosolSyncSpin{to{transform:rotate(360deg)}}
-</style>
-<script id="kosol-data-loader-v4">
-(function(){
-  'use strict';
-  const V4={active:false,attempt:0,lastError:'',started:0,lastSuccess:0};
-  window.__kosolDataLoaderV4=V4;
-  function ensureBox(){
-    let b=document.getElementById('kosol-live-loader-v4');
-    if(!b){b=document.createElement('div');b.id='kosol-live-loader-v4';document.body.appendChild(b);}
-    return b;
-  }
-  function status(msg,show){const b=ensureBox();b.innerHTML='<div class="kosol-live-head"><span class="kosol-sync-spinner'+(show?'':' done')+'" aria-hidden="true"></span><b><i class="bi bi-database me-1"></i>Database</b><button type="button" class="kosol-live-close" aria-label="Close" title="Close" onclick="closeLiveDataMessage()"><i class="bi bi-x-lg"></i></button></div><div class="small mt-1">'+esc(msg||'')+'</div>';b.classList.toggle('show',!!show);}
-  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-  function requiredArrays(p){return ['clients','coldCalls','tasks','approvals','salesOrders','targets','notifications','teamUsers'].filter(k=>!Array.isArray(p?.[k]));}
-  window.closeLiveDataMessage=function(){const b=document.getElementById('kosol-live-loader-v4');if(b)b.classList.remove('show');};
-  window.closeDataRetryMessage=function(){window.__kosolRetryBarDismissed=true;const b=document.getElementById('kosolDataRetryBar');if(b)b.classList.remove('show');};
-  async function directDashboardFetch(payload){
-    const attempts=2;
-    let last=null;
-    for(let n=1;n<=attempts;n++){
-      V4.attempt=n; V4.started=Date.now();
-      status(n===1?'Synchronizing latest database data…':'Retrying database synchronization…',true);
-      const ctl=new AbortController();
-      const timeout=setTimeout(()=>ctl.abort(),180000);
-      try{
-        const response=await fetch(SCRIPT_URL,{method:'POST',mode:'cors',credentials:'omit',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'getDashboardData',payload}),signal:ctl.signal,cache:'no-store'});
-        const text=await response.text();
-        const elapsed=Date.now()-V4.started;
-        window.__kosolLastBackendDiagnostics={status:response.status,ok:response.ok,elapsedMs:elapsed,bytes:text.length,attempt:n,contentType:response.headers.get('content-type')||'',url:SCRIPT_URL};
-        if(!response.ok){last=new Error('Backend HTTP '+response.status+' after '+Math.round(elapsed/1000)+'s');if([408,425,429,500,502,503,504].includes(response.status)&&n<attempts){await new Promise(r=>setTimeout(r,1200));continue;}throw last;}
-        let result;try{result=JSON.parse(text);}catch(e){throw new Error('Backend returned non-JSON after '+Math.round(elapsed/1000)+'s. Response begins: '+String(text).replace(/\s+/g,' ').slice(0,180));}
-        if(!result||typeof result!=='object')throw new Error('Backend returned an invalid response.');
-        if(result.success===false)throw new Error(result.message||'The existing backend rejected the dashboard request.');
-        const p=result.data&&typeof result.data==='object'?result.data:result;
-        const missing=requiredArrays(p);
-        if(missing.length){
-          // A successful dashboard response must contain the datasets expected by the existing UI.
-          // Do not silently display a partially populated dashboard.
-          throw new Error('Dashboard response is incomplete. Missing: '+missing.join(', ')+'.');
-        }
-        V4.lastSuccess=Date.now();V4.lastError='';
-        status('Database synchronized in '+Math.round(elapsed/1000)+'s.',false);
-        setTimeout(()=>status('',false),1200);
-        return result;
-      }catch(e){
-        last=e;V4.lastError=e?.message||String(e);
-        const elapsed=Date.now()-V4.started;
-        window.__kosolLastBackendDiagnostics=Object.assign({},window.__kosolLastBackendDiagnostics||{},{elapsedMs:elapsed,attempt:n,error:V4.lastError});
-        if(n<attempts){await new Promise(r=>setTimeout(r,1200));continue;}
-      }finally{clearTimeout(timeout);}
-    }
-    throw last||new Error('Unable to load live dashboard data.');
-  }
-  window.__kosolDirectDashboardFetch=directDashboardFetch;
 
-  // Replace only the dashboard refresh function. All existing GS actions and all other
-  // application functions remain untouched. The existing GS file is NOT changed.
-  const originalRefreshData=window.refreshData;
-  window.__kosolOriginalRefreshDataV4=originalRefreshData;
-  window.refreshData=async function(options={}){
-    if(typeof currentUser==='undefined' || !currentUser)return false;
-    // currentUser is a top-level lexical variable in the application; do not read it from window.
-    const background=new Set(['auto-poll','tab-visible','pageshow','cross-tab','online','focus']).has(options.reason);
-    if(window.__kosolV4RefreshInFlight){
-      if(background)return false;
-      return window.__kosolV4RefreshInFlight;
-    }
-    const run=(async()=>{
-      const silent=options.silent!==false;
-      try{
-        const u=currentUser;
-        if(!u?.email||!u?.authToken)throw new Error('Your secure login session is missing. Please sign in again.');
-        const payload={email:u.email,authToken:u.authToken,userId:u.id||u.userId||'',userEmail:u.email,userRole:u.role||''};
-        const res=await directDashboardFetch(payload);
-        const p=res.data&&typeof res.data==='object'?res.data:res;
-        // Atomically update every dashboard dataset. This is deliberately explicit so a
-        // malformed/partial backend response can never wipe the browser state with blanks.
-        rawData.clients=p.clients;rawData.coldCalls=p.coldCalls;rawData.tasks=p.tasks;rawData.approvals=p.approvals;
-        rawData.salesOrders=p.salesOrders;rawData.targets=p.targets;rawData.notifications=p.notifications;rawData.teamUsers=p.teamUsers;
-        if(Object.prototype.hasOwnProperty.call(p,'todayAttendance'))rawData.todayAttendance=p.todayAttendance||null;
-        allUsersList=rawData.teamUsers.slice();
-        try{cleanNullText(rawData);}catch(_){}
-        lastDataFingerprint=fastDashboardFingerprint(rawData);
-        dashboardStatsCacheKey='';dashboardStatsCacheValue=null;
-        salesOrderRepeatMapCacheKey='';salesOrderRepeatMapCache=new Map();
-        lastSuccessfulDataRefresh=Date.now();pollFailureCount=0;pollUnchangedCount=0;
-        try{refreshReportingManagerSelectors();}catch(_){}
-        try{syncNotificationBadgeAfterRefresh();}catch(_){}
-        evaluateAttendanceWindowState();
-        applyDashboardFilters();
-        if(activeTabId==='clients')renderClients();
-        else if(activeTabId==='tasks')renderTasks();
-        else if(activeTabId==='approvals')renderApprovals();
-        else if(activeTabId==='coldcalls')renderColdCalls();
-        else if(activeTabId==='salesorders')renderSalesOrders();
-        else if(activeTabId==='targets')renderTargetModule();
-        else if(activeTabId==='pipelineleads'||activeTabId==='pipelineorders')renderPipelineBoards();
-        window.__kosolRetryBarDismissed=true; showDataSyncStatus('synced','Database data synchronized successfully.');
-        updateLiveSyncIndicator?.();
-        try{scheduleFastSnapshotSave();}catch(_){}
-        return true;
-      }catch(e){
-        console.error('KOSOL V4 live data load failed:',e);
-        window.__kosolRetryBarDismissed=false; showDataSyncStatus('error',e?.message||String(e));
-        if(!silent||options.reason==='initial-load')showOperationMessage('Live data could not be loaded',e?.message||String(e),'error');
-        return false;
-      }
-    })();
-    window.__kosolV4RefreshInFlight=run;
-    try{return await run;}finally{window.__kosolV4RefreshInFlight=null;}
-  };
-  window.retryCurrentDataLoad=()=>window.refreshData({silent:false,reason:'manual-retry',force:true});
-})();
-</script>
+
+
 <style id="kosol-form-behavior-v8">
 /* Data-entry forms stay open until the user closes them or a confirmed save completes. */
 .modal[data-kosol-entry-modal="1"] .modal-dialog{max-height:calc(100vh - 2rem)}
