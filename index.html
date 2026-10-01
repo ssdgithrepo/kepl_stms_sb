@@ -1968,7 +1968,59 @@ button,input,select,textarea{max-width:100%;}
   // Supabase is the only application database/API.
 
   let currentUser = null;
-  let rawData = { clients: [], tasks: [], coldCalls: [], approvals: [], salesOrders: [], targets: [], notifications: [], todayAttendance: null };
+  let rawData = { clients: [], organizations: [], tasks: [], coldCalls: [], approvals: [], salesOrders: [], targets: [], notifications: [], todayAttendance: null };
+
+  // Existing organization/client master is derived from the live backend client snapshot.
+  // This keeps organization selection consistent across Client Entry, Cold Calling,
+  // Sales Orders and every other module that uses the shared identity picker.
+  function clientPrimaryPhone(c){return String(c?.mobile||c?.phone||c?.contactNumber||c?.primaryContactNumber||c?.mobileNumber||'').trim();}
+  function clientOrganizationName(c){return String(c?.orgName||c?.organizationName||c?.organization||c?.companyName||c?.company||'').trim();}
+  function clientContactName(c){return String(c?.contactName||c?.clientName||c?.contactPerson||c?.contact_name||'').trim();}
+  function buildExistingOrganizationClientMaster(){
+    const source=Array.isArray(rawData.clients)?rawData.clients:[];
+    const byKey=new Map();
+    source.forEach((c,index)=>{
+      if(!c||typeof c!=='object')return;
+      const org=clientOrganizationName(c);
+      const phone=clientPrimaryPhone(c);
+      const contact=clientContactName(c);
+      if(!org&&!phone&&!contact)return;
+      const id=String(c.id||c.clientId||c.clientID||'').trim();
+      const key=id?('id:'+id):('identity:'+normalizeIdentityText(org)+'|'+normalizeIdentityPhone(phone)+'|'+normalizeIdentityText(contact));
+      const prev=byKey.get(key);
+      // Prefer the row with a real organization, primary phone and contact name.
+      if(!prev || (!clientOrganizationName(prev)&&org) || (!clientPrimaryPhone(prev)&&phone) || (!clientContactName(prev)&&contact)) byKey.set(key,c);
+    });
+    const clients=[...byKey.values()];
+    const orgMap=new Map();
+    clients.forEach(c=>{
+      const org=clientOrganizationName(c)||'Unnamed Organization';
+      const ok=normalizeIdentityText(org);
+      if(!orgMap.has(ok)) orgMap.set(ok,{organizationName:org,primaryContactNumber:clientPrimaryPhone(c),primaryContactName:clientContactName(c),clientCount:0,clients:[]});
+      const item=orgMap.get(ok); item.clientCount++; item.clients.push(c);
+      if(!item.primaryContactNumber && clientPrimaryPhone(c)) item.primaryContactNumber=clientPrimaryPhone(c);
+      if(!item.primaryContactName && clientContactName(c)) item.primaryContactName=clientContactName(c);
+    });
+    const organizations=[...orgMap.values()].sort((a,b)=>String(a.organizationName).localeCompare(String(b.organizationName)));
+    rawData.organizations=organizations;
+    return {clients,organizations};
+  }
+
+  function existingOrganizationClientRecords(query=''){
+    const q=String(query||'').trim().toLowerCase();
+    const master=buildExistingOrganizationClientMaster();
+    const rows=[];
+    master.organizations.forEach(org=>{
+      org.clients.forEach(c=>{
+        const organization=clientOrganizationName(c)||org.organizationName;
+        const contact=clientContactName(c);
+        const phone=clientPrimaryPhone(c)||org.primaryContactNumber;
+        const values=[organization,contact,phone,c?.email,c?.id];
+        if(!q || values.some(v=>String(v??'').toLowerCase().includes(q))) rows.push({client:c,organization,contact,phone,organizationContactCount:org.clientCount});
+      });
+    });
+    return rows;
+  }
 
   // Normalises client rows coming from the database (imported / legacy rows may lack `id`
   // or use alternate field names). Guarantees every client is searchable AND selectable.
@@ -2382,6 +2434,7 @@ button,input,select,textarea{max-width:100%;}
       rawData.approvals=Array.isArray(payload.approvals)?payload.approvals:rawData.approvals;
       if(Object.prototype.hasOwnProperty.call(payload,'todayAttendance')) rawData.todayAttendance=payload.todayAttendance||null;
       rawData.teamUsers=Array.isArray(payload.teamUsers)?payload.teamUsers:rawData.teamUsers;
+      buildExistingOrganizationClientMaster();
       if(!Array.isArray(rawData.salesOrders)) rawData.salesOrders=loadLocalSalesOrders();
       allUsersList=rawData.teamUsers.slice();
       // Records saved earlier with the logged-in user's e-mail as the "client e-mail" are shown blank.
@@ -3281,31 +3334,27 @@ button,input,select,textarea{max-width:100%;}
   }
   function renderExistingClientSearch(query, boxId, onSelect, emptyText){
     const box=document.getElementById(boxId);if(!box)return [];
-    const q=String(query||'').trim().toLowerCase();
-    const normalizePhone=v=>String(v||'').replace(/\D/g,'');
-    const list=(rawData.clients||[]).filter(c=>{
-      if(!q)return true;
-      const values=[c?.orgName,c?.contactName,c?.mobile,c?.email,c?.id];
-      return values.some(v=>String(v??'').toLowerCase().includes(q));
-    }).slice(0,50);
+    const rows=existingOrganizationClientRecords(query).slice(0,50);
     if(box.__noMatchAutoCloseTimer){clearTimeout(box.__noMatchAutoCloseTimer);box.__noMatchAutoCloseTimer=null;}
     box.__backendClients=rawData.clients||[];
     box.__selectedClientId='';
-    if(list.length){
-      box.innerHTML=list.map((c,i)=>{
-        const org=String(c?.orgName||'Existing client').trim();
-        const contact=String(c?.contactName||'').trim();
-        const phone=String(c?.mobile||c?.phone||'').trim();
-        const cid=String(c?.id||'').trim();
-        return `<button type="button" class="search-option existing-client-result text-start w-100 bg-white border-0" data-id="${escapeAttr(cid)}" data-client-id="${escapeAttr(cid)}" data-org="${escapeAttr(org)}" data-phone="${escapeAttr(normalizePhone(phone))}" role="option" aria-selected="false"><span class="d-flex align-items-start justify-content-between gap-2"><span class="min-w-0"><strong class="d-block text-truncate">${escapeHtml(org)}</strong><small class="d-block text-muted text-truncate">${escapeHtml(contact||'No contact name')} · ${escapeHtml(phone||'No mobile number')}</small><small class="d-block text-muted">Record ID: ${escapeHtml(cid||'—')}</small></span><span class="btn btn-sm btn-outline-primary flex-shrink-0">Select</span></span></button>`;
+    if(rows.length){
+      box.innerHTML=rows.map(row=>{
+        const c=row.client;
+        const cid=String(c?.id||c?.clientId||c?.clientID||'').trim();
+        const org=String(row.organization||'Existing organization').trim();
+        const contact=String(row.contact||'').trim();
+        const phone=String(row.phone||'').trim();
+        const email=String(c?.email||'').trim();
+        const count=Number(row.organizationContactCount||1);
+        return `<button type="button" class="search-option existing-client-result text-start w-100 bg-white border-0" data-id="${escapeAttr(cid)}" data-client-id="${escapeAttr(cid)}" data-org="${escapeAttr(org)}" data-phone="${escapeAttr(normalizeIdentityPhone(phone))}" role="option" aria-selected="false"><span class="d-flex align-items-start justify-content-between gap-2"><span class="min-w-0"><strong class="d-block text-truncate"><i class="bi bi-building me-1 text-warning"></i>${escapeHtml(org)}</strong><span class="d-block small fw-semibold text-truncate">${escapeHtml(contact||'Client contact not specified')}</span><small class="d-block text-muted"><i class="bi bi-telephone me-1"></i>Primary contact: ${escapeHtml(phone||'Not available')}${email?' · '+escapeHtml(email):''}</small><small class="d-block text-muted">${count>1?escapeHtml(String(count))+' contact/activity record(s)':'Existing organization/client'} · ID: ${escapeHtml(cid||'—')}</small></span><span class="btn btn-sm btn-outline-primary flex-shrink-0">Select</span></span></button>`;
       }).join('');
     }else{
-      box.innerHTML=`<div class="client-no-match search-option text-muted" role="status"><span>${escapeHtml(emptyText||'No existing client found — continue typing to create a new one.')}</span><button type="button" class="btn-close" aria-label="Close message" title="Close message"></button></div>`;
+      box.innerHTML=`<div class="client-no-match search-option text-muted" role="status"><span>${escapeHtml(emptyText||'No existing organization/client found — continue typing to create a new one.')}</span><button type="button" class="btn-close" aria-label="Close message" title="Close message"></button></div>`;
       box.querySelector('.client-no-match .btn-close')?.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation?.();box.classList.remove('show');box.style.display='none';},{capture:true});
-      box.__noMatchAutoCloseTimer=setTimeout(()=>{box.classList.remove('show');box.style.display='none';box.__noMatchAutoCloseTimer=null;},3500);
     }
     box.classList.add('show');box.style.display='block';
-    if(box.dataset.existingClientSelectionBound!=='v5'){
+    if(box.dataset.existingClientSelectionBound!=='v6'){
       const choose=function(ev){
         const el=ev.target?.closest?.('.existing-client-result[data-client-id]');
         if(!el||!box.contains(el))return;
@@ -3314,15 +3363,14 @@ button,input,select,textarea{max-width:100%;}
         if(!id)return;
         box.__selectedClientId=id;
         box.querySelectorAll('.existing-client-result[data-client-id]').forEach(x=>{const on=x===el;x.classList.toggle('active',on);x.setAttribute('aria-selected',on?'true':'false');});
-        try{onSelect(id,ev);}catch(err){console.error('Existing client selection failed:',err);}
+        try{onSelect(id,ev);}catch(err){console.error('Existing organization/client selection failed:',err);}
       };
-      // pointerdown makes touch/stylus selection deterministic; click remains as a keyboard/mouse fallback.
       box.addEventListener('pointerdown',choose,true);
       box.addEventListener('click',choose,true);
       box.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){choose(ev);}},true);
-      box.dataset.existingClientSelectionBound='v5';
+      box.dataset.existingClientSelectionBound='v6';
     }
-    return list;
+    return rows.map(r=>r.client);
   }
 
   function searchColdCallClient() {
@@ -3372,7 +3420,7 @@ button,input,select,textarea{max-width:100%;}
     const date=document.getElementById('ccEntryDate');
     if(date && date.dataset.userEdited!=='1') date.value=appToday();
     const cap=document.getElementById('ccSelectionCaption');
-    if(cap){cap.textContent=`Selected existing client: ${c.orgName||'Existing client'} · ${c.contactName||''} · ${c.mobile||''} — Follow Up call #${count}`;cap.classList.remove('d-none');}
+    if(cap){cap.textContent=`Selected existing organization/client: ${clientOrganizationName(c)||'Existing organization'} · ${clientContactName(c)||''} · Primary contact: ${clientPrimaryPhone(c)||'Not available'} — Follow Up call #${count}`;cap.classList.remove('d-none');}
     const box=document.getElementById('ccClientOptions');
     if(box){
       box.__selectedClientId=selectedId;
@@ -3479,7 +3527,7 @@ button,input,select,textarea{max-width:100%;}
     const q=document.getElementById('soOrgName')?.value||'';
     renderExistingClientSearch(q,'soOrgOptions',(id,ev)=>selectSalesOrderClient(id),'No existing client found — you can enter a new organization.');
   }
-  function selectSalesOrderClient(id){const c=(rawData.clients||[]).find(x=>String(x.id)===String(id));if(!c)return;window.__salesOrderClientSelectionInProgress=true;document.getElementById('soClientId').value=c.id||'';document.getElementById('soOrgName').value=c.orgName||'';document.getElementById('soClientName').value=c.contactName||c.clientName||'';document.getElementById('soContact').value=c.mobile||c.phone||c.contactNumber||'';document.getElementById('soSelectionCaption').textContent='Existing client selected';document.getElementById('soSelectionCaption').classList.remove('d-none');const box=document.getElementById('soOrgOptions');if(box){box.classList.remove('show');box.style.display='none';}updateSalesOrderRepeatCount(true);refreshSalesOrderIdentityAutomation();requestAnimationFrame(()=>{window.__salesOrderClientSelectionInProgress=false;});setTimeout(()=>{window.__salesOrderClientSelectionInProgress=false;},1200);}
+  function selectSalesOrderClient(id){const c=(rawData.clients||[]).find(x=>String(x.id)===String(id));if(!c)return;window.__salesOrderClientSelectionInProgress=true;document.getElementById('soClientId').value=c.id||'';document.getElementById('soOrgName').value=c.orgName||'';document.getElementById('soClientName').value=c.contactName||c.clientName||'';document.getElementById('soContact').value=c.mobile||c.phone||c.contactNumber||'';document.getElementById('soSelectionCaption').textContent='Existing organization/client selected — Primary contact: '+(clientPrimaryPhone(c)||'Not available');document.getElementById('soSelectionCaption').classList.remove('d-none');const box=document.getElementById('soOrgOptions');if(box){box.classList.remove('show');box.style.display='none';}updateSalesOrderRepeatCount(true);refreshSalesOrderIdentityAutomation();requestAnimationFrame(()=>{window.__salesOrderClientSelectionInProgress=false;});setTimeout(()=>{window.__salesOrderClientSelectionInProgress=false;},1200);}
   function clearSalesOrderClient(){['soClientId','soOrgName','soClientName','soContact'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('soSelectionCaption')?.classList.add('d-none');document.getElementById('soOrgOptions')?.classList.remove('show');}
   function salesOrderIdentityMatches(o,org,phone,clientId){
     const oid=String(o?.clientId||'').trim(), oorg=String(o?.orgName||o?.organizationName||o?.organization||'').trim().toLowerCase(), ophone=String(o?.contactNumber||o?.mobile||o?.phone||'').replace(/\D/g,'');
@@ -5451,8 +5499,13 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
   }
   function populateExistingClientSelect(id){
     const e=document.getElementById(id);if(!e)return;
-    e.innerHTML='<option value="">-- Select Existing Client --</option>';
-    rawData.clients.slice(0,500).forEach(c=>e.insertAdjacentHTML('beforeend',`<option value="${escapeAttr(c.id)}">${escapeHtml(c.orgName)} - ${escapeHtml(c.contactName)} - ${escapeHtml(c.mobile)}</option>`));
+    e.innerHTML='<option value="">-- Select Existing Organization / Client --</option>';
+    existingOrganizationClientRecords('').slice(0,500).forEach(c=>{
+      const org=clientOrganizationName(c)||'Existing organization';
+      const contact=clientContactName(c)||'Client';
+      const phone=clientPrimaryPhone(c)||'Not available';
+      e.insertAdjacentHTML('beforeend',`<option value="${escapeAttr(c.id||'')}">${escapeHtml(org)} — ${escapeHtml(contact)} — Primary: ${escapeHtml(phone)}</option>`);
+    });
   }
 
   // Existing-client selection must NEVER close the Client Entry modal.
@@ -5522,7 +5575,7 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
       visitCountEl.value=Math.max(1,getRepeatCountForClient(org,phone,c.id));
     }
     if(cap){
-      cap.textContent='Selected existing client: '+(c.orgName||c.contactName||'Existing client')+' — existing data loaded for today (visit/activity #'+(document.getElementById('cVisitCount')?.value||1)+').';
+      cap.textContent='Selected existing organization/client: '+(clientOrganizationName(c)||c.contactName||'Existing client')+' — Primary contact: '+(clientPrimaryPhone(c)||'Not available')+' — existing data loaded for today (visit/activity #'+(document.getElementById('cVisitCount')?.value||1)+').';
       cap.classList.remove('d-none');
     }
 
@@ -8447,6 +8500,7 @@ setInterval(()=>{
         // malformed/partial backend response can never wipe the browser state with blanks.
         rawData.clients=kosolNormalizeClients(p.clients);rawData.coldCalls=p.coldCalls;rawData.tasks=p.tasks;rawData.approvals=p.approvals;
         rawData.salesOrders=p.salesOrders;rawData.targets=p.targets;rawData.notifications=p.notifications;rawData.teamUsers=p.teamUsers;
+        buildExistingOrganizationClientMaster();
         if(Object.prototype.hasOwnProperty.call(p,'todayAttendance'))rawData.todayAttendance=p.todayAttendance||null;
         allUsersList=rawData.teamUsers.slice();
         try{cleanNullText(rawData);}catch(_){}
