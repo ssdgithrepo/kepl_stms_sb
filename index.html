@@ -6993,14 +6993,21 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     return null;
   }
   function sbOwnerPayload(payload={}){
+    // Every ordinary CRUD operation is owned by the currently authenticated
+    // application user. Never trust owner/user IDs supplied by the browser.
+    // This keeps create/update ownership consistent and prevents one user
+    // from writing another user's records through manipulated payloads.
+    const uid = currentUser?.id || null;
+    const email = currentUser?.email || null;
+    const name = currentUser?.name || null;
     return {
-      owner_id: payload.ownerId || payload.ownerID || payload.userId || currentUser?.id || null,
-      owner_email: payload.ownerEmail || payload.userEmail || payload.email || currentUser?.email || null,
-      owner_name: payload.ownerName || currentUser?.name || null,
-      created_by: payload.createdByUserId || payload.createdById || currentUser?.id || null,
-      created_by_email: payload.createdBy || payload.createdByEmail || currentUser?.email || null,
-      updated_by: currentUser?.id || null,
-      updated_by_email: currentUser?.email || null,
+      owner_id: uid,
+      owner_email: email,
+      owner_name: name,
+      created_by: uid,
+      created_by_email: email,
+      updated_by: uid,
+      updated_by_email: email,
       state: Array.isArray(payload.states)?payload.states[0]:payload.state || payload.State || null,
       region: Array.isArray(payload.regions)?payload.regions[0]:payload.region || payload.Region || null,
       district: Array.isArray(payload.districts)?payload.districts[0]:payload.district || payload.District || null,
@@ -7105,18 +7112,33 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         const id=payload.id||payload.recordId||payload.clientId||payload.orderId||payload.targetId||payload.taskId||payload.projectId||payload.approvalId||payload.notificationId;
         if(/^delete/i.test(action)){
           if(!id) return {success:false,message:'Record ID is required.'};
-          const {data:matches,error:findErr}=await supabaseClient.from('app_records').select('id').eq('module',module).eq('record_id',String(id)).limit(10);
+          let findQuery=supabaseClient.from('app_records').select('id').eq('module',module).eq('record_id',String(id)).limit(10);
+          // Master Admin may manage any application record. Every other user
+          // may delete only records belonging to their own logged-in account.
+          if(String(currentUser?.role||'')!=='Master Admin'){
+            findQuery=findQuery.eq('owner_id',currentUser?.id||'');
+          }
+          const {data:matches,error:findErr}=await findQuery;
           if(findErr) return {success:false,message:findErr.message};
-          if(matches?.length){ const {error}=await supabaseClient.from('app_records').delete().in('id',matches.map(x=>x.id)); return error?{success:false,message:error.message}:{success:true,message:'Record deleted successfully.'}; }
-          return {success:true,message:'Record deleted successfully.'};
+          if(!matches?.length) return {success:false,message:'Record not found in your individual account, or you do not have permission to delete it.'};
+          let delQuery=supabaseClient.from('app_records').delete().in('id',matches.map(x=>x.id));
+          if(String(currentUser?.role||'')!=='Master Admin') delQuery=delQuery.eq('owner_id',currentUser?.id||'');
+          const {error}=await delQuery;
+          return error?{success:false,message:error.message}:{success:true,message:'Record deleted successfully.'};
         }
         const meta=sbOwnerPayload(payload);
         const row={module,record_id:id?String(id):null,...meta,data:payload,updated_at:new Date().toISOString()};
         if(id){
-          const {data:matches,error:findErr}=await supabaseClient.from('app_records').select('id').eq('module',module).eq('record_id',String(id)).limit(1);
+          let findQuery=supabaseClient.from('app_records').select('id').eq('module',module).eq('record_id',String(id)).limit(1);
+          if(String(currentUser?.role||'')!=='Master Admin') findQuery=findQuery.eq('owner_id',currentUser?.id||'');
+          const {data:matches,error:findErr}=await findQuery;
           if(findErr) return {success:false,message:findErr.message};
           let data,error;
-          if(matches?.length){ ({data,error}=await supabaseClient.from('app_records').update(row).eq('id',matches[0].id).select().single()); }
+          if(matches?.length){
+            let updateQuery=supabaseClient.from('app_records').update(row).eq('id',matches[0].id);
+            if(String(currentUser?.role||'')!=='Master Admin') updateQuery=updateQuery.eq('owner_id',currentUser?.id||'');
+            ({data,error}=await updateQuery.select().single());
+          }
           else { ({data,error}=await supabaseClient.from('app_records').insert(row).select().single()); }
           if(error) return {success:false,message:error.message};
           return {success:true,message:'Record saved successfully.',data:sbRow(data||row),record:data||row};
