@@ -883,28 +883,18 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
                 <div class="password-field-wrap w-100"><input type="password" id="suPassword" class="form-control" required autocomplete="new-password"><button type="button" class="password-eye-inside" aria-label="Show password" onclick="togglePasswordVisibility('suPassword','toggleSuIcon')"><i class="bi bi-eye-slash" id="toggleSuIcon"></i></button></div>
               </div>
             </div>
-            <div class="col-12 mb-1">
-              <label class="form-label small">Target Role *</label>
-              <select class="form-select form-select-sm" id="suRole" required>
-                <option value="National Head">National Head (CEO)</option>
-                <option value="State Head">State Head (State Manager)</option>
-                <option value="Regional Head">Regional Head (Regional Manager)</option>
-                <option value="Team Coordinator">Team Coordinator</option>
-                <option value="Senior Sales Executive">Senior Sales Executive</option>
-                <option value="Area Sales Officer">Area Sales Officer</option>
-                <option value="Sales Executive">Sales Executive</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-3 mb-2"><label class="form-label small">State *</label><select multiple size="3" id="suStates" class="form-select form-select-sm" required></select></div>
-            <div class="col-6 col-md-3 mb-2"><label class="form-label small">Region *</label><select multiple size="3" id="suRegions" class="form-select form-select-sm" required></select><input class="form-control form-control-sm mt-1 d-none" id="suRegionManual" placeholder="Type region"></div>
-            <div class="col-6 col-md-3 mb-2"><label class="form-label small">District *</label><input id="suDistricts" class="form-control form-control-sm" list="suDistrictsList" placeholder="Type or select district" required><datalist id="suDistrictsList"></datalist></div>
-            <div class="col-6 col-md-3 mb-2"><label class="form-label small">Tehsil / Taluka</label><input id="suTehsil" class="form-control form-control-sm" list="suTehsilList" placeholder="Type or select tehsil / taluka"><datalist id="suTehsilList"></datalist></div>
-            <div class="col-6 col-md-3 mb-2"><label class="form-label small">City / Village</label><input id="suCityVillage" class="form-control form-control-sm" list="suCityVillageList" placeholder="Type or select city / village"><datalist id="suCityVillageList"></datalist></div>
-            <div class="col-6 col-md-3 mb-2"><label class="form-label small">PIN Code</label><input type="text" id="suPinCode" class="form-control form-control-sm" inputmode="numeric" maxlength="6" list="suPinCodeList" placeholder="Type or select 6 digit PIN"><datalist id="suPinCodeList"></datalist></div>
+            <div class="col-12 mb-2"><label class="form-label small">Address *</label><textarea id="suAddress" class="form-control form-control-sm" rows="2" required placeholder="Enter residential / communication address"></textarea></div>
+            <div class="col-12 mb-2"><label class="form-label small">Working Area</label><div class="row g-2">
+              <div class="col-12 col-md-4"><label class="form-label small">State *</label><select multiple size="3" id="suStates" class="form-select form-select-sm" required></select></div>
+              <div class="col-12 col-md-4"><label class="form-label small">Region *</label><select multiple size="3" id="suRegions" class="form-select form-select-sm" required></select><input class="form-control form-control-sm mt-1 d-none" id="suRegionManual" placeholder="Type region"></div>
+              <div class="col-12 col-md-4"><label class="form-label small">District *</label><input id="suDistricts" class="form-control form-control-sm" list="suDistrictsList" placeholder="Type or select district" required><datalist id="suDistrictsList"></datalist></div>
+            </div></div>
           </div>
-          <div class="col-12 mb-2"><label class="form-label small">Reporting Manager(s)</label><select id="suReportingManagers" multiple size="4" class="form-select form-select-sm"></select><small class="text-muted">Multiple reporting managers can be selected when available.</small></div>
+          <div class="col-12 mb-2"><label class="form-label small">Reporting Manager *</label><select id="suReportingManagers" class="form-select form-select-sm" required></select></div>
           <button type="submit" class="btn btn-success w-100 py-2 mt-2">Submit Account Registration</button>
         </form>
+        <div class="text-center mt-2">
+        </div>
         <div class="text-center mt-3">
           <small class="text-muted">Already registered? <a href="#" class="fw-bold text-decoration-none" onclick="toggleAuthView('login')">Sign In</a></small>
         </div>
@@ -1953,7 +1943,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   }
 
   let reportingManagerDirectory=[];
-  async function loadPublicReportingManagers(){try{const ids=['suReportingManagers','muReportingManagers','editUserReportingManagers'];ids.forEach(id=>initSmartMultiSelect(id));const r=await callBackendFast('getReportingManagers',{});if(r?.success){reportingManagerDirectory=r.managers||[];populateReportingManagerSelect('suReportingManagers',reportingManagerDirectory);populateReportingManagerSelect('muReportingManagers');populateReportingManagerSelect('editUserReportingManagers');}}catch(err){console.warn('Reporting manager list unavailable',err);}}
+  async function loadPublicReportingManagers(){try{const ids=['muReportingManagers','editUserReportingManagers'];ids.forEach(id=>initSmartMultiSelect(id));const r=await callBackendFast('getReportingManagers',{});if(r?.success){reportingManagerDirectory=r.managers||[];populateReportingManagerSelect('suReportingManagers',reportingManagerDirectory);populateReportingManagerSelect('muReportingManagers');populateReportingManagerSelect('editUserReportingManagers');}}catch(err){console.warn('Reporting manager list unavailable',err);}}
 
   document.getElementById('publicSignupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1962,13 +1952,10 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       email: document.getElementById('suEmail').value,
       phone: document.getElementById('suPhone').value,
       password: document.getElementById('suPassword').value,
-      role: document.getElementById('suRole').value,
+      address: document.getElementById('suAddress').value.trim(),
       states: getValsOrOther('suStates'),
       regions: getValsOrOther('suRegions'),
       districts: getValsOrOther('suDistricts'),
-      tehsils: getValsOrOther('suTehsil'),
-      cities: getValsOrOther('suCityVillage'),
-      pinCodes: getVals('suPinCode'),
       reportingManagers: getSelectedReportingManagers('suReportingManagers'),
       reportingTo: getSelectedReportingManagers('suReportingManagers')
     };
@@ -1988,6 +1975,14 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   function isValidScriptUrl(value){ return false; }
   function openBackendSettings(){
     showOperationMessage('Supabase is the active backend','This application no longer uses a Google Apps Script URL. The active Supabase project is configured in the application.','success');
+  }
+
+  async function syncAllUsersToSupabaseAuth(showMessage=true){
+    if(currentUser?.role!=='Master Admin')return {success:false,message:'Only Master Admin can synchronize application users to Supabase Auth.'};
+    if(showMessage)showProcessingMessage('Supabase Auth setup','Creating/linking missing Auth accounts for application users…');
+    const r=await callBackend('syncApplicationUsersToAuth',{});
+    if(showMessage){closeOperationMessage();showOperationMessage(r.success?'Supabase Auth synchronization complete':'Supabase Auth synchronization failed',r.message||'Unable to synchronize users.',r.success?'success':'error');}
+    return r;
   }
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -2014,6 +2009,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       }
       persistSession();
       setupAppShell();
+      if(currentUser?.role==='Master Admin'){
+        setTimeout(()=>syncAllUsersToSupabaseAuth(false).catch(err=>console.warn('Auth user synchronization skipped:',err)),700);
+      }
       allowPageExit=false;
       showUserSessionPopup('welcome');
       setTimeout(syncMobileNavbarHeight,0);
@@ -2642,7 +2640,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     if(!payload.states.length||!payload.regions.length){showOperationMessage('Territory required','Select State(s) and Region(s) before creating the user.','error');return;}
     showProcessingMessage('Creating user','Creating login credentials and activating the user...');
     try{
-      const res=await callBackend('selfRegister',payload);
+      const res=await callBackend('createManagedUser',payload);
       if(!res?.success){showOperationMessage('User creation failed',res?.message||'Unable to create user.','error');return;}
       const newId=res.user?.id||res.userId||res.id||res.data?.userId||res.data?.id;
       if(newId)await callBackend('processUserApproval',{userId:newId,approve:true});
@@ -6990,7 +6988,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
 
   async function callBackendRaw(action, payload) {
     const requestPayload=(payload && typeof payload==='object')?Object.assign({},payload):{};
-    const publicActions=new Set(['login','selfRegister','health','getReportingManagers','requestPasswordResetOtp','resetPasswordWithOtp']);
+    const publicActions=new Set(['login','selfRegister','bootstrapMasterAdmin','health','getReportingManagers','requestPasswordResetOtp','resetPasswordWithOtp']);
     try{
       const sb=getSupabaseClient();
       if(action==='login'){
@@ -7005,6 +7003,11 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         if(profileError) return {success:false,message:'Supabase login succeeded, but the application user profile could not be loaded: '+profileError.message};
         if(!profile) return {success:false,message:'Supabase Auth account exists, but no matching app_users profile was found for '+email+'. Create/link the application user profile first.'};
         return {success:true,user:profile,authToken:token,session:data.session};
+      }
+      if(action==='bootstrapMasterAdmin'){
+        const {data,error}=await sb.functions.invoke(SUPABASE_APP_FUNCTION,{body:{action,payload:requestPayload}});
+        if(error)return {success:false,message:error.message||'Master Admin setup service is unavailable.'};
+        return data||{success:false,message:'Master Admin setup returned an empty response.'};
       }
       if(action==='health'){
         const {error}=await sb.from('app_users').select('id',{head:true,count:'exact'});
@@ -8364,6 +8367,1423 @@ setInterval(()=>{
   async function migrateDatabaseNow(){if(currentUser?.role!=='Master Admin'){showOperationMessage('Access denied','Only Master Admin can run database migration.','error');return;}if(!confirm('Run database migration now? Existing records will be preserved.'))return;showProcessingMessage('Database migration','Updating backend data and normalizing existing sales order data...');const r=await callBackend('migrateDatabase',{});closeOperationMessage();showOperationMessage(r.success?'Migration completed':'Migration failed',r.message,r.success?'success':'error');if(r.success)await refreshData({silent:true});}
 
 
+</script>
+
+<script id="kosol-embedded-supabase-schema" type="text/plain">-- KOSOL SUPABASE SINGLE-FILE SETUP SQL
+-- Run this complete block once in Supabase SQL Editor.
+
+-- ============================================================
+-- KOSOL ENERGIE PVT LTD - SALES TEAM MANAGEMENT SYSTEM
+-- SUPABASE / POSTGRESQL APPLICATION SCHEMA
+-- Generated for the existing Kosol HTML application.
+--
+-- Architecture:
+--   Browser -> Supabase Auth / Data API / Edge Function -> Supabase PostgreSQL
+--   Supabase secret key stays server-side in the Edge Function.
+--
+-- Stable TEXT IDs and raw_data JSONB preserve legacy fields during migration.
+-- ============================================================
+
+begin;
+
+create extension if not exists pgcrypto;
+
+-- ---------- PRIVATE / SYSTEM ----------
+create schema if not exists private;
+
+create table if not exists private.database_connections (
+  id uuid primary key default gen_random_uuid(),
+  provider text not null check (provider in
+    ('google_sheets','mysql','oracle','sqlserver','mongodb','supabase')),
+  display_name text,
+  connection_url text,
+  host text,
+  port integer,
+  database_name text,
+  schema_name text default 'public',
+  username text,
+  secret_ref text, -- reference to Apps Script Properties / secret manager; never store the secret itself here
+  api_key_ref text,
+  ssl_mode text default 'require',
+  is_active boolean not null default false,
+  config_version integer not null default 1,
+  last_tested_at timestamptz,
+  last_test_status text,
+  last_test_message text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists private.migration_jobs (
+  id uuid primary key default gen_random_uuid(),
+  source_provider text not null,
+  target_provider text not null,
+  status text not null default 'QUEUED'
+    check(status in ('QUEUED','RUNNING','SUCCESS','PARTIAL','FAILED','CANCELLED')),
+  batch_size integer not null default 500,
+  total_records bigint default 0,
+  processed_records bigint default 0,
+  inserted_records bigint default 0,
+  updated_records bigint default 0,
+  skipped_records bigint default 0,
+  failed_records bigint default 0,
+  started_at timestamptz,
+  completed_at timestamptz,
+  error_message text,
+  details jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+-- ---------- USERS / ORGANISATION ----------
+create table if not exists public.app_users (
+  id text primary key,
+  name text not null,
+  email text not null unique,
+  phone text,
+  address text,
+  password_hash text,
+  role text not null check (role in (
+    'Master Admin','Admin','National Head','State Head',
+    'Regional Head','Team Coordinator','Senior Sales Executive',
+    'Area Sales Officer','Sales Executive'
+  )),
+  status text not null default 'Active',
+  approval_status text,
+  can_create_users boolean not null default false,
+  can_view_all_users boolean not null default false,
+  states text[] not null default '{}',
+  regions text[] not null default '{}',
+  districts text[] not null default '{}',
+  tehsils text[] not null default '{}',
+  cities text[] not null default '{}',
+  pin_codes text[] not null default '{}',
+  reporting_to text,
+  reporting_managers text[] not null default '{}',
+  last_login_at timestamptz,
+  last_activity_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+-- Safe upgrade for an existing database created before the address field was added.
+alter table public.app_users add column if not exists address text;
+
+create index if not exists idx_app_users_role on public.app_users(role);
+create index if not exists idx_app_users_status on public.app_users(status);
+create index if not exists idx_app_users_reporting_to on public.app_users(reporting_to);
+create index if not exists idx_app_users_email on public.app_users(lower(email));
+
+create table if not exists public.user_reporting (
+  id text primary key,
+  manager_user_id text not null references public.app_users(id) on delete cascade,
+  member_user_id text not null references public.app_users(id) on delete cascade,
+  relationship_type text not null default 'REPORTS_TO',
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  unique(manager_user_id, member_user_id)
+);
+
+create index if not exists idx_user_reporting_manager on public.user_reporting(manager_user_id);
+create index if not exists idx_user_reporting_member on public.user_reporting(member_user_id);
+
+create table if not exists public.user_territories (
+  id text primary key,
+  user_id text not null references public.app_users(id) on delete cascade,
+  state text,
+  region text,
+  district text,
+  tehsil text,
+  city_village text,
+  pin_code text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  unique(user_id,state,region,district,tehsil,city_village,pin_code)
+);
+
+create index if not exists idx_user_territories_user on public.user_territories(user_id);
+create index if not exists idx_user_territories_state on public.user_territories(state);
+create index if not exists idx_user_territories_region on public.user_territories(region);
+
+-- ---------- CLIENTS / LEADS / VISITS ----------
+create table if not exists public.clients (
+  id text primary key,
+  selected_client_id text,
+  owner_user_id text references public.app_users(id) on delete set null,
+  owner_email text,
+  created_by_user_id text references public.app_users(id) on delete set null,
+  org_name text not null,
+  contact_name text,
+  mobile text,
+  office_mobile text,
+  email text,
+  gstin text,
+  state text,
+  region text,
+  district text,
+  tehsil text,
+  city_village text,
+  pin_code text,
+  address text,
+  sales_order_status text,
+  sales_type text,
+  lead_temperature text,
+  visit_type text,
+  visit_count integer not null default 1,
+  visit_status text,
+  meeting_status text,
+  call_status text,
+  entry_date date,
+  activity_date date,
+  next_follow_up_date date,
+  requirements text,
+  remarks text,
+  location_image_url text,
+  location_image_data text,
+  pipeline_stage text,
+  lead_source text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_clients_owner on public.clients(owner_user_id);
+create index if not exists idx_clients_org on public.clients(lower(org_name));
+create index if not exists idx_clients_mobile on public.clients(mobile);
+create index if not exists idx_clients_date on public.clients(entry_date);
+create index if not exists idx_clients_pipeline_stage on public.clients(pipeline_stage);
+
+create table if not exists public.client_activities (
+  id text primary key,
+  client_id text references public.clients(id) on delete cascade,
+  user_id text references public.app_users(id) on delete set null,
+  activity_type text not null,
+  activity_date date not null default current_date,
+  visit_type text,
+  visit_status text,
+  meeting_status text,
+  call_status text,
+  lead_temperature text,
+  requirements text,
+  remarks text,
+  location_image_url text,
+  next_follow_up_date date,
+  raw_data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_client_activities_client on public.client_activities(client_id);
+create index if not exists idx_client_activities_user on public.client_activities(user_id);
+create index if not exists idx_client_activities_date on public.client_activities(activity_date);
+
+create table if not exists public.pipeline_leads (
+  id text primary key,
+  client_id text references public.clients(id) on delete set null,
+  owner_user_id text references public.app_users(id) on delete set null,
+  stage text not null default 'New',
+  lead_temperature text,
+  source text,
+  expected_value numeric(18,2) default 0,
+  expected_close_date date,
+  status text default 'OPEN',
+  remarks text,
+  raw_data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_pipeline_leads_owner on public.pipeline_leads(owner_user_id);
+create index if not exists idx_pipeline_leads_stage on public.pipeline_leads(stage);
+
+-- ---------- COLD CALLING ----------
+create table if not exists public.cold_calls (
+  id text primary key,
+  client_id text references public.clients(id) on delete set null,
+  owner_user_id text references public.app_users(id) on delete set null,
+  owner_email text,
+  created_by_user_id text references public.app_users(id) on delete set null,
+  org_name text,
+  client_name text,
+  contact_name text,
+  phone text,
+  office_phone text,
+  email text,
+  state text,
+  region text,
+  district text,
+  tehsil text,
+  city_village text,
+  pin_code text,
+  visit_type text,
+  visit_count integer not null default 1,
+  address text,
+  reason_for_no_visit text,
+  call_status text,
+  call_outcome text,
+  lead_temperature text,
+  requirements text,
+  remarks text,
+  entry_date date,
+  activity_date date,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_cold_calls_owner on public.cold_calls(owner_user_id);
+create index if not exists idx_cold_calls_org on public.cold_calls(lower(org_name));
+create index if not exists idx_cold_calls_phone on public.cold_calls(phone);
+create index if not exists idx_cold_calls_date on public.cold_calls(entry_date);
+
+-- ---------- SALES ORDERS ----------
+create table if not exists public.sales_orders (
+  id text primary key,
+  client_id text references public.clients(id) on delete set null,
+  owner_user_id text references public.app_users(id) on delete set null,
+  owner_email text,
+  created_by_user_id text references public.app_users(id) on delete set null,
+  org_name text,
+  client_name text,
+  contact_number text,
+  pi_status text,
+  order_for text,
+  sales_type text,
+  pv_type text,
+  dcr_panel_quantity numeric(18,4) default 0,
+  dcr_panel_wp numeric(18,4) default 0,
+  dcr_rate_per_wp numeric(18,6) default 0,
+  dcr_kw numeric(18,4) default 0,
+  dcr_amount numeric(18,2) default 0,
+  ndcr_panel_quantity numeric(18,4) default 0,
+  ndcr_panel_wp numeric(18,4) default 0,
+  ndcr_rate_per_wp numeric(18,6) default 0,
+  ndcr_kw numeric(18,4) default 0,
+  ndcr_amount numeric(18,2) default 0,
+  panel_quantity numeric(18,4) default 0,
+  panel_wp numeric(18,4) default 0,
+  rate_per_wp numeric(18,6) default 0,
+  lpd numeric(18,4) default 0,
+  rate_per_lpd numeric(18,6) default 0,
+  sales_lpd numeric(18,4) default 0,
+  project_kw numeric(18,4) default 0,
+  rate_per_kw numeric(18,6) default 0,
+  repeat_count integer not null default 1,
+  kw numeric(18,4) default 0,
+  amount numeric(18,2) default 0,
+  order_date date,
+  remarks text,
+  created_by text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_sales_orders_owner on public.sales_orders(owner_user_id);
+create index if not exists idx_sales_orders_client on public.sales_orders(client_id);
+create index if not exists idx_sales_orders_date on public.sales_orders(order_date);
+create index if not exists idx_sales_orders_order_for on public.sales_orders(order_for);
+
+create table if not exists public.pipeline_orders (
+  id text primary key,
+  sales_order_id text references public.sales_orders(id) on delete cascade,
+  stage text not null default 'New',
+  owner_user_id text references public.app_users(id) on delete set null,
+  status text default 'OPEN',
+  expected_amount numeric(18,2) default 0,
+  expected_close_date date,
+  remarks text,
+  raw_data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- ---------- TARGETS ----------
+create table if not exists public.targets (
+  id text primary key,
+  user_id text references public.app_users(id) on delete cascade,
+  user_email text,
+  target_name text,
+  period_type text,
+  start_date date,
+  end_date date,
+  product text,
+  sales_type text,
+  pv_type text,
+  metric text,
+  target_value numeric(18,2) default 0,
+  remarks text,
+  status text default 'ACTIVE',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_targets_user on public.targets(user_id);
+create index if not exists idx_targets_period on public.targets(start_date,end_date);
+
+-- ---------- PROJECT PLANNING / EPC ----------
+create table if not exists public.projects (
+  id text primary key,
+  organization text not null,
+  project_name text not null,
+  project_type text default 'Solar EPC',
+  capacity_kw numeric(18,4) default 0,
+  manager text,
+  manager_user_id text references public.app_users(id) on delete set null,
+  start_date date,
+  target_date date,
+  status text default 'New',
+  remarks text,
+  owner_user_id text references public.app_users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_projects_owner on public.projects(owner_user_id);
+create index if not exists idx_projects_status on public.projects(status);
+
+create table if not exists public.project_tasks (
+  id text primary key,
+  project_id text references public.projects(id) on delete cascade,
+  stage text not null,
+  task text not null,
+  status text default 'Pending',
+  due_date date,
+  assigned_to text,
+  assigned_user_id text references public.app_users(id) on delete set null,
+  remarks text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_project_tasks_project on public.project_tasks(project_id);
+create index if not exists idx_project_tasks_assigned on public.project_tasks(assigned_user_id);
+create index if not exists idx_project_tasks_stage on public.project_tasks(stage);
+
+create table if not exists public.project_invoices (
+  id text primary key,
+  project_id text references public.projects(id) on delete cascade,
+  stage text not null,
+  invoice_no text,
+  amount numeric(18,2) not null default 0,
+  status text default 'GENERATED',
+  generated_at timestamptz not null default now(),
+  created_by_user_id text references public.app_users(id) on delete set null,
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_project_invoices_project on public.project_invoices(project_id);
+create index if not exists idx_project_invoices_stage on public.project_invoices(stage);
+
+-- ---------- TASKS / CONVERSATIONS ----------
+create table if not exists public.tasks (
+  id text primary key,
+  description text not null,
+  assigned_to text,
+  assigned_user_id text references public.app_users(id) on delete set null,
+  created_by_user_id text references public.app_users(id) on delete set null,
+  follow_up_target_date date,
+  status text default 'Pending',
+  remarks text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_tasks_assigned on public.tasks(assigned_user_id);
+create index if not exists idx_tasks_status on public.tasks(status);
+create index if not exists idx_tasks_due on public.tasks(follow_up_target_date);
+
+create table if not exists public.task_replies (
+  id text primary key,
+  task_id text references public.tasks(id) on delete cascade,
+  sender_user_id text references public.app_users(id) on delete set null,
+  message text not null,
+  created_at timestamptz not null default now(),
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_task_replies_task on public.task_replies(task_id);
+
+-- ---------- APPROVALS ----------
+create table if not exists public.approvals (
+  id text primary key,
+  requested_by_user_id text references public.app_users(id) on delete set null,
+  requested_by_email text,
+  requested_by_name text,
+  requested_by_role text,
+  target_approver_role text,
+  category text,
+  details text,
+  status text not null default 'PENDING',
+  approver_user_id text references public.app_users(id) on delete set null,
+  approver_remarks text,
+  approved_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_approvals_status on public.approvals(status);
+create index if not exists idx_approvals_requested_by on public.approvals(requested_by_user_id);
+
+-- ---------- ATTENDANCE ----------
+create table if not exists public.attendance (
+  id text primary key,
+  user_id text references public.app_users(id) on delete cascade,
+  email text,
+  attendance_date date not null,
+  check_in_at timestamptz,
+  check_out_at timestamptz,
+  status text default 'PRESENT',
+  late_explanation text,
+  approval_status text,
+  approved_by_user_id text references public.app_users(id) on delete set null,
+  approved_at timestamptz,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  raw_data jsonb not null default '{}'::jsonb,
+  unique(user_id,attendance_date)
+);
+
+create index if not exists idx_attendance_date on public.attendance(attendance_date);
+create index if not exists idx_attendance_user on public.attendance(user_id);
+
+-- ---------- NOTIFICATIONS ----------
+create table if not exists public.notifications (
+  id text primary key,
+  user_id text references public.app_users(id) on delete cascade,
+  type text,
+  module text,
+  record_id text,
+  title text,
+  message text,
+  read boolean not null default false,
+  created_at timestamptz not null default now(),
+  read_at timestamptz,
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_notifications_user_read on public.notifications(user_id,read,created_at desc);
+create index if not exists idx_notifications_record on public.notifications(record_id);
+
+-- ---------- TEAM CHAT ----------
+create table if not exists public.chat_messages (
+  id text primary key,
+  sender_id text references public.app_users(id) on delete set null,
+  sender_email text,
+  receiver_id text references public.app_users(id) on delete set null,
+  receiver_email text,
+  message text not null,
+  read boolean not null default false,
+  created_at timestamptz not null default now(),
+  read_at timestamptz,
+  raw_data jsonb not null default '{}'::jsonb
+);
+
+create index if not exists idx_chat_sender_receiver on public.chat_messages(sender_id,receiver_id,created_at);
+create index if not exists idx_chat_receiver_read on public.chat_messages(receiver_id,read,created_at);
+
+-- ---------- LOCATION MASTER ----------
+create table if not exists public.location_master (
+  id text primary key,
+  state text,
+  region text,
+  district text,
+  tehsil text,
+  city_village text,
+  pin_code text,
+  source text,
+  is_active boolean not null default true,
+  raw_data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_location_state on public.location_master(state);
+create index if not exists idx_location_region on public.location_master(region);
+create index if not exists idx_location_district on public.location_master(district);
+create index if not exists idx_location_pin on public.location_master(pin_code);
+
+-- ---------- AUDIT / IMPORT / GENERIC DATA ----------
+create table if not exists public.audit_log (
+  id uuid primary key default gen_random_uuid(),
+  actor_user_id text references public.app_users(id) on delete set null,
+  actor_email text,
+  actor_role text,
+  action text not null,
+  module text,
+  record_id text,
+  before_data jsonb,
+  after_data jsonb,
+  success boolean not null default true,
+  message text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_audit_actor on public.audit_log(actor_user_id,created_at desc);
+create index if not exists idx_audit_module_record on public.audit_log(module,record_id,created_at desc);
+
+create table if not exists public.import_jobs (
+  id text primary key,
+  module text not null,
+  source_name text,
+  source_type text,
+  status text not null default 'QUEUED',
+  total_rows bigint default 0,
+  processed_rows bigint default 0,
+  inserted_rows bigint default 0,
+  updated_rows bigint default 0,
+  skipped_rows bigint default 0,
+  failed_rows bigint default 0,
+  error_message text,
+  created_by_user_id text references public.app_users(id) on delete set null,
+  started_at timestamptz,
+  completed_at timestamptz,
+  raw_data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.app_settings (
+  setting_key text primary key,
+  setting_value jsonb not null default '{}'::jsonb,
+  is_sensitive boolean not null default false,
+  updated_by_user_id text references public.app_users(id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
+-- ---------- UPDATED_AT TRIGGER ----------
+create or replace function public.set_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end $$;
+
+do $$
+declare
+  t text;
+begin
+  foreach t in array array[
+    'app_users','clients','pipeline_leads','cold_calls','sales_orders','pipeline_orders',
+    'targets','projects','project_tasks','tasks','approvals','attendance',
+    'location_master','app_settings'
+  ] loop
+    execute format('drop trigger if exists trg_%s_updated_at on public.%I',t,t);
+    execute format('create trigger trg_%s_updated_at before update on public.%I for each row execute function public.set_updated_at()',t,t);
+  end loop;
+end $$;
+
+-- ---------- DASHBOARD VIEWS ----------
+create or replace view public.dashboard_user_summary as
+select
+  u.id,
+  u.name,
+  u.email,
+  u.role,
+  u.status,
+  coalesce(c.client_count,0) as client_count,
+  coalesce(cc.cold_call_count,0) as cold_call_count,
+  coalesce(so.sales_order_count,0) as sales_order_count,
+  coalesce(so.sales_amount,0) as sales_amount,
+  coalesce(t.target_count,0) as target_count,
+  coalesce(p.project_count,0) as project_count
+from public.app_users u
+left join (
+  select owner_user_id,count(*) client_count from public.clients group by owner_user_id
+) c on c.owner_user_id=u.id
+left join (
+  select owner_user_id,count(*) cold_call_count from public.cold_calls group by owner_user_id
+) cc on cc.owner_user_id=u.id
+left join (
+  select owner_user_id,count(*) sales_order_count,coalesce(sum(amount),0) sales_amount
+  from public.sales_orders group by owner_user_id
+) so on so.owner_user_id=u.id
+left join (
+  select user_id,count(*) target_count from public.targets group by user_id
+) t on t.user_id=u.id
+left join (
+  select owner_user_id,count(*) project_count from public.projects group by owner_user_id
+) p on p.owner_user_id=u.id;
+
+-- ---------- SECURITY ----------
+-- The current application uses Apps Script as its server-side API.
+-- Keep all Supabase secret-key access server-side. No browser role receives
+-- direct unrestricted access.
+alter table public.app_users enable row level security;
+alter table public.user_reporting enable row level security;
+alter table public.user_territories enable row level security;
+alter table public.clients enable row level security;
+alter table public.client_activities enable row level security;
+alter table public.pipeline_leads enable row level security;
+alter table public.cold_calls enable row level security;
+alter table public.sales_orders enable row level security;
+alter table public.pipeline_orders enable row level security;
+alter table public.targets enable row level security;
+alter table public.projects enable row level security;
+alter table public.project_tasks enable row level security;
+alter table public.project_invoices enable row level security;
+alter table public.tasks enable row level security;
+alter table public.task_replies enable row level security;
+alter table public.approvals enable row level security;
+alter table public.attendance enable row level security;
+alter table public.notifications enable row level security;
+alter table public.chat_messages enable row level security;
+alter table public.location_master enable row level security;
+alter table public.audit_log enable row level security;
+alter table public.import_jobs enable row level security;
+alter table public.app_settings enable row level security;
+
+-- Remove broad Data API privileges. The Apps Script backend should use the
+-- server-side Supabase secret key / backend connection.
+do $$
+declare
+  t text;
+begin
+  foreach t in array array[
+    'app_users','user_reporting','user_territories','clients','client_activities',
+    'pipeline_leads','cold_calls','sales_orders','pipeline_orders','targets','projects',
+    'project_tasks','project_invoices','tasks','task_replies','approvals','attendance',
+    'notifications','chat_messages','location_master','audit_log','import_jobs','app_settings'
+  ] loop
+    execute format('revoke all on table public.%I from anon, authenticated',t);
+    execute format('grant all on table public.%I to service_role',t);
+  end loop;
+end $$;
+
+-- Explicitly prevent direct anonymous/authenticated access to the dashboard view.
+revoke all on public.dashboard_user_summary from anon, authenticated;
+grant select on public.dashboard_user_summary to service_role;
+
+commit;
+
+-- ============================================================
+-- MIGRATION NOTES
+-- ============================================================
+-- 1. Import legacy Users -> app_users.
+-- 2. Build user_reporting from reportingTo/reportingManagers.
+-- 3. Import Clients -> clients; optionally create one client_activities row
+--    per visit/activity if the legacy sheet contains repeated visit rows.
+-- 4. Import Cold Calls -> cold_calls.
+-- 5. Import Sales Orders -> sales_orders.
+-- 6. Import Targets -> targets.
+-- 7. Import Projects/Project Tasks/Invoices -> corresponding tables.
+-- 8. Import Tasks/Replies, Approvals, Attendance, Notifications and Chat.
+-- 9. Import location master -> location_master.
+-- 10. Preserve any unmapped legacy columns in raw_data JSONB.
+--
+-- The Team Coordinator role is a global read/check role in the application.
+-- It is intentionally not granted Master Admin CRUD or database configuration
+-- privileges by this schema.
+
+
+-- AUTH / RLS SETUP
+
+-- Run after kosol_supabase_schema.sql in the Supabase SQL Editor.
+-- This setup is for the browser publishable-key architecture.
+-- The application CRUD Edge Function uses a server-side secret and performs
+-- privileged writes after validating the signed-in Supabase Auth user.
+
+alter table public.app_users add column if not exists auth_user_id uuid unique;
+create index if not exists idx_app_users_auth_user_id on public.app_users(auth_user_id);
+
+-- Link an existing application user to its Supabase Auth account by email.
+-- Run this for each existing user after creating the corresponding Auth account:
+-- update public.app_users set auth_user_id = '<AUTH-USER-UUID>' where lower(email)=lower('user@example.com');
+
+alter table public.app_users enable row level security;
+
+drop policy if exists app_users_select_own_profile on public.app_users;
+create policy app_users_select_own_profile
+on public.app_users
+for select
+to authenticated
+using (
+  auth_user_id = auth.uid()
+  or lower(email) = lower(coalesce(auth.jwt()->>'email',''))
+);
+
+drop policy if exists app_users_update_own_profile on public.app_users;
+create policy app_users_update_own_profile
+on public.app_users
+for update
+to authenticated
+using (
+  auth_user_id = auth.uid()
+  or lower(email) = lower(coalesce(auth.jwt()->>'email',''))
+)
+with check (
+  auth_user_id = auth.uid()
+  or lower(email) = lower(coalesce(auth.jwt()->>'email',''))
+);
+
+-- The browser does not receive a secret/service-role key. All cross-user reads,
+-- global Team Coordinator/Master Admin access, and privileged CRUD are performed
+-- by the kosol-app-api Edge Function after it validates the user's JWT.
+-- Do NOT create a broad anon policy such as "using (true)" for business tables.
+
+-- Recommended grants for the browser profile lookup.
+revoke all on table public.app_users from anon;
+grant select on table public.app_users to authenticated;
+</script>
+<script id="kosol-embedded-edge-function" type="text/plain">// KOSOL ENERGIE PVT LTD - SUPABASE EDGE FUNCTION
+// Supabase is the sole application backend.
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || 'https://batkezvcxifdualntadd.supabase.co';
+const SECRET = Deno.env.get('SUPABASE_SECRET_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const admin = createClient(SUPABASE_URL, SECRET, { auth: { persistSession: false } });
+const TABLE_COLUMNS: Record<string,string[]> = {
+  "app_users": [
+    "id",
+    "name",
+    "email",
+    "phone",
+    "address",
+    "password_hash",
+    "role",
+    "status",
+    "approval_status",
+    "can_create_users",
+    "can_view_all_users",
+    "states",
+    "regions",
+    "districts",
+    "tehsils",
+    "cities",
+    "pin_codes",
+    "reporting_to",
+    "reporting_managers",
+    "last_login_at",
+    "last_activity_at",
+    "created_at",
+    "updated_at",
+    "raw_data"
+  ],
+  "user_reporting": [
+    "id",
+    "manager_user_id",
+    "member_user_id",
+    "relationship_type",
+    "is_active",
+    "created_at"
+  ],
+  "user_territories": [
+    "id",
+    "user_id",
+    "state",
+    "region",
+    "district",
+    "tehsil",
+    "city_village",
+    "pin_code",
+    "is_active",
+    "created_at"
+  ],
+  "clients": [
+    "id",
+    "selected_client_id",
+    "owner_user_id",
+    "owner_email",
+    "created_by_user_id",
+    "org_name",
+    "contact_name",
+    "mobile",
+    "office_mobile",
+    "email",
+    "gstin",
+    "state",
+    "region",
+    "district",
+    "tehsil",
+    "city_village",
+    "pin_code",
+    "address",
+    "sales_order_status",
+    "sales_type",
+    "lead_temperature",
+    "visit_type",
+    "visit_count",
+    "visit_status",
+    "meeting_status",
+    "call_status",
+    "entry_date",
+    "activity_date",
+    "next_follow_up_date",
+    "requirements",
+    "remarks",
+    "location_image_url",
+    "location_image_data",
+    "pipeline_stage",
+    "lead_source",
+    "created_at",
+    "updated_at",
+    "raw_data"
+  ],
+  "client_activities": [
+    "id",
+    "client_id",
+    "user_id",
+    "activity_type",
+    "activity_date",
+    "visit_type",
+    "visit_status",
+    "meeting_status",
+    "call_status",
+    "lead_temperature",
+    "requirements",
+    "remarks",
+    "location_image_url",
+    "next_follow_up_date",
+    "raw_data",
+    "created_at"
+  ],
+  "pipeline_leads": [
+    "id",
+    "client_id",
+    "owner_user_id",
+    "stage",
+    "lead_temperature",
+    "source",
+    "expected_value",
+    "expected_close_date",
+    "status",
+    "remarks",
+    "raw_data",
+    "created_at",
+    "updated_at"
+  ],
+  "cold_calls": [
+    "id",
+    "client_id",
+    "owner_user_id",
+    "owner_email",
+    "created_by_user_id",
+    "org_name",
+    "client_name",
+    "contact_name",
+    "phone",
+    "office_phone",
+    "email",
+    "state",
+    "region",
+    "district",
+    "tehsil",
+    "city_village",
+    "pin_code",
+    "visit_type",
+    "visit_count",
+    "address",
+    "reason_for_no_visit",
+    "call_status",
+    "call_outcome",
+    "lead_temperature",
+    "requirements",
+    "remarks",
+    "entry_date",
+    "activity_date",
+    "created_at",
+    "updated_at",
+    "raw_data"
+  ],
+  "sales_orders": [
+    "id",
+    "client_id",
+    "owner_user_id",
+    "owner_email",
+    "created_by_user_id",
+    "org_name",
+    "client_name",
+    "contact_number",
+    "pi_status",
+    "order_for",
+    "sales_type",
+    "pv_type",
+    "dcr_panel_quantity",
+    "dcr_panel_wp",
+    "dcr_rate_per_wp",
+    "dcr_kw",
+    "dcr_amount",
+    "ndcr_panel_quantity",
+    "ndcr_panel_wp",
+    "ndcr_rate_per_wp",
+    "ndcr_kw",
+    "ndcr_amount",
+    "panel_quantity",
+    "panel_wp",
+    "rate_per_wp",
+    "lpd",
+    "rate_per_lpd",
+    "sales_lpd",
+    "project_kw",
+    "rate_per_kw",
+    "repeat_count",
+    "kw",
+    "amount",
+    "order_date",
+    "remarks",
+    "created_by",
+    "created_at",
+    "updated_at",
+    "raw_data"
+  ],
+  "pipeline_orders": [
+    "id",
+    "sales_order_id",
+    "stage",
+    "owner_user_id",
+    "status",
+    "expected_amount",
+    "expected_close_date",
+    "remarks",
+    "raw_data",
+    "created_at",
+    "updated_at"
+  ],
+  "targets": [
+    "id",
+    "user_id",
+    "user_email",
+    "target_name",
+    "period_type",
+    "start_date",
+    "end_date",
+    "product",
+    "sales_type",
+    "pv_type",
+    "metric",
+    "target_value",
+    "remarks",
+    "status",
+    "created_at",
+    "updated_at",
+    "raw_data"
+  ],
+  "projects": [
+    "id",
+    "organization",
+    "project_name",
+    "project_type",
+    "capacity_kw",
+    "manager",
+    "manager_user_id",
+    "start_date",
+    "target_date",
+    "status",
+    "remarks",
+    "owner_user_id",
+    "created_at",
+    "updated_at",
+    "raw_data"
+  ],
+  "project_tasks": [
+    "id",
+    "project_id",
+    "stage",
+    "task",
+    "status",
+    "due_date",
+    "assigned_to",
+    "assigned_user_id",
+    "remarks",
+    "created_at",
+    "updated_at",
+    "raw_data"
+  ],
+  "project_invoices": [
+    "id",
+    "project_id",
+    "stage",
+    "invoice_no",
+    "amount",
+    "status",
+    "generated_at",
+    "created_by_user_id",
+    "raw_data"
+  ],
+  "tasks": [
+    "id",
+    "description",
+    "assigned_to",
+    "assigned_user_id",
+    "created_by_user_id",
+    "follow_up_target_date",
+    "status",
+    "remarks",
+    "created_at",
+    "updated_at",
+    "raw_data"
+  ],
+  "task_replies": [
+    "id",
+    "task_id",
+    "sender_user_id",
+    "message",
+    "created_at",
+    "raw_data"
+  ],
+  "approvals": [
+    "id",
+    "requested_by_user_id",
+    "requested_by_email",
+    "requested_by_name",
+    "requested_by_role",
+    "target_approver_role",
+    "category",
+    "details",
+    "status",
+    "approver_user_id",
+    "approver_remarks",
+    "approved_at",
+    "created_at",
+    "updated_at",
+    "raw_data"
+  ],
+  "attendance": [
+    "id",
+    "user_id",
+    "email",
+    "attendance_date",
+    "check_in_at",
+    "check_out_at",
+    "status",
+    "late_explanation",
+    "approval_status",
+    "approved_by_user_id",
+    "approved_at",
+    "notes",
+    "created_at",
+    "updated_at",
+    "raw_data"
+  ],
+  "notifications": [
+    "id",
+    "user_id",
+    "type",
+    "module",
+    "record_id",
+    "title",
+    "message",
+    "read",
+    "created_at",
+    "read_at",
+    "raw_data"
+  ],
+  "chat_messages": [
+    "id",
+    "sender_id",
+    "sender_email",
+    "receiver_id",
+    "receiver_email",
+    "message",
+    "read",
+    "created_at",
+    "read_at",
+    "raw_data"
+  ],
+  "location_master": [
+    "id",
+    "state",
+    "region",
+    "district",
+    "tehsil",
+    "city_village",
+    "pin_code",
+    "source",
+    "is_active",
+    "raw_data",
+    "created_at",
+    "updated_at"
+  ],
+  "audit_log": [
+    "id",
+    "actor_user_id",
+    "actor_email",
+    "actor_role",
+    "action",
+    "module",
+    "record_id",
+    "before_data",
+    "after_data",
+    "success",
+    "message",
+    "created_at"
+  ],
+  "import_jobs": [
+    "id",
+    "module",
+    "source_name",
+    "source_type",
+    "status",
+    "total_rows",
+    "processed_rows",
+    "inserted_rows",
+    "updated_rows",
+    "skipped_rows",
+    "failed_rows",
+    "error_message",
+    "created_by_user_id",
+    "started_at",
+    "completed_at",
+    "raw_data",
+    "created_at"
+  ],
+  "app_settings": [
+    "setting_key",
+    "setting_value",
+    "is_sensitive",
+    "updated_by_user_id",
+    "updated_at"
+  ]
+};
+const GLOBAL_ROLES = new Set(['Master Admin','Team Coordinator']);
+const ADMIN_ROLES = new Set(['Master Admin','Admin']);
+
+function json(body:unknown,status=200){return new Response(JSON.stringify(body),{status,headers:{...corsHeaders,'Content-Type':'application/json'}})}
+function norm(v:unknown){return String(v??'').trim()}
+function lower(v:unknown){return norm(v).toLowerCase()}
+function toSnake(v:string){return String(v||'').replace(/([a-z0-9])([A-Z])/g,'$1_$2').replace(/[\s-]+/g,'_').toLowerCase()}
+function idOf(p:any){return norm(p?.id||p?.recordId||p?.orderId||p?.targetId||p?.projectId||p?.taskId||p?.userId)}
+function newId(){return crypto.randomUUID()}
+function pickSource(source:any,col:string){
+  const candidates=[col,col.replace(/_([a-z])/g,(_,c)=>c.toUpperCase())];
+  for(const k of candidates)if(source?.[k]!==undefined&&source?.[k]!==null)return source[k];
+  const wanted=toSnake(col); for(const k of Object.keys(source||{}))if(toSnake(k)===wanted)return source[k];
+  return undefined;
+}
+function sanitizeRow(table:string,source:any,profile:any,action=''){
+  const row:any={};
+  for(const col of TABLE_COLUMNS[table]||[]){const v=pickSource(source,col);if(v!==undefined)row[col]=v;}
+  if(!row.id)row.id=idOf(source)||newId();
+  if(['clients','cold_calls','sales_orders','projects','pipeline_leads','pipeline_orders'].includes(table)){row.owner_user_id=row.owner_user_id||profile.id;row.owner_email=row.owner_email||profile.email}
+  if(['clients','cold_calls','sales_orders'].includes(table))row.created_by_user_id=row.created_by_user_id||profile.id;
+  if(table==='tasks')row.created_by_user_id=row.created_by_user_id||profile.id;
+  if(table==='targets'){row.user_id=row.user_id||profile.id;row.user_email=row.user_email||profile.email}
+  if(table==='attendance'){row.user_id=row.user_id||profile.id;row.email=row.email||profile.email}
+  if(table==='notifications')row.user_id=row.user_id||profile.id;
+  if(table==='approvals'){row.requested_by_user_id=row.requested_by_user_id||profile.id;row.requested_by_email=row.requested_by_email||profile.email;row.requested_by_name=row.requested_by_name||profile.name;row.requested_by_role=row.requested_by_role||profile.role}
+  row.raw_data={...(row.raw_data||{}),_kosol_action:action,_source_keys:Object.keys(source||{})};
+  delete row.password;delete row.newPassword;
+  return row;
+}
+async function authenticate(req:Request){
+  const jwt=(req.headers.get('Authorization')||'').replace(/^Bearer\s+/i,'').trim();
+  if(!jwt)throw new Error('Authentication required.');
+  if(!SECRET)throw new Error('Supabase server secret is not configured.');
+  const {data,error}=await admin.auth.getUser(jwt);if(error||!data?.user)throw new Error('Invalid or expired Supabase session.');
+  const email=lower(data.user.email);
+  let {data:profile,error:pe}=await admin.from('app_users').select('*').eq('auth_user_id',data.user.id).maybeSingle();
+  if(pe)throw new Error('Unable to load application user profile: '+pe.message);
+  if(!profile){const fallback=await admin.from('app_users').select('*').eq('email',email).maybeSingle();if(fallback.error)throw new Error('Unable to load application user profile: '+fallback.error.message);profile=fallback.data||null;}
+  if(!profile)throw new Error('No app_users profile is linked to this Supabase Auth account.');
+  if(String(profile.auth_user_id||'')!==String(data.user.id)){await admin.from('app_users').update({auth_user_id:data.user.id}).eq('id',profile.id);profile.auth_user_id=data.user.id;}
+  if(lower(profile.status)==='inactive')throw new Error('This user account is inactive.');if(lower(profile.approval_status)==='rejected')throw new Error('This user account has been rejected.');
+  return {authUser:data.user,profile};
+}
+function canViewAll(profile:any){return GLOBAL_ROLES.has(norm(profile?.role))||profile?.can_view_all_users===true}
+function assertAdmin(profile:any){if(!ADMIN_ROLES.has(norm(profile?.role)))throw new Error('Only Master Admin/Admin can perform this operation.')}
+function assertGlobal(profile:any){if(!canViewAll(profile))throw new Error('This operation requires global user-data access.')}
+
+async function reportingScopeUserIds(profile:any){
+  if(canViewAll(profile)) return null;
+  const {data:rows,error}=await admin.from('app_users').select('id,email,name,reporting_to,reporting_managers,status,approval_status');
+  if(error)throw new Error(error.message);
+  const active=(rows||[]).filter((u:any)=>lower(u.status||'active')!=='inactive'&&lower(u.approval_status||'approved')!=='rejected');
+  const normId=(v:any)=>dashboardKey(v);
+  const meKeys=new Set([profile.id,profile.email,profile.name].filter(Boolean).map(normId));
+  const allowed=new Set<string>();
+  const identity=(u:any)=>[u?.id,u?.email,u?.name].filter(Boolean).map(normId);
+  const refs=(u:any)=>{const out:any[]=[]; for(const k of ['reporting_to','reporting_managers']){const v=u?.[k]; if(Array.isArray(v))out.push(...v); else if(v)out.push(...String(v).split(/[,|]/));} return out.filter(Boolean).map(normId);};
+  for(const u of active){if(identity(u).some((k:string)=>meKeys.has(k))) allowed.add(String(u.id));}
+  let frontier=active.filter((u:any)=>!allowed.has(String(u.id))&&refs(u).some((r:string)=>meKeys.has(r)));
+  while(frontier.length){
+    for(const u of frontier)allowed.add(String(u.id));
+    const parentKeys=new Set(frontier.flatMap(identity));
+    const next=active.filter((u:any)=>!allowed.has(String(u.id))&&refs(u).some((r:string)=>parentKeys.has(r)));
+    frontier=next;
+  }
+  return allowed;
+}
+function dashboardKey(v:any){return String(v??'').trim().toLowerCase();}
+
+async function listTable(table:string,profile:any,payload:any={}){
+  const scopeIds=await reportingScopeUserIds(profile);
+  let q=admin.from(table).select('*').limit(Math.min(Number(payload.limit||5000),10000));
+  if(scopeIds!==null){
+    const ids=[...scopeIds];
+    if(table==='app_users'){ q=ids.length?q.in('id',ids):q.limit(0); }
+    else if(['clients','cold_calls','sales_orders','projects','pipeline_leads','pipeline_orders'].includes(table)){
+      const cols=TABLE_COLUMNS[table]||[]; const ors:string[]=[];
+      if(cols.includes('owner_user_id'))ors.push(`owner_user_id.in.(${ids.join(',')})`);
+      if(cols.includes('created_by_user_id'))ors.push(`created_by_user_id.in.(${ids.join(',')})`);
+      if(cols.includes('user_id'))ors.push(`user_id.in.(${ids.join(',')})`);
+      if(ors.length)q=q.or(ors.join(','));else q=q.limit(0);
+    } else if(['targets','tasks','approvals','attendance','notifications'].includes(table)){
+      const cols=TABLE_COLUMNS[table]||[]; const ors:string[]=[];
+      if(cols.includes('user_id'))ors.push(`user_id.in.(${ids.join(',')})`);
+      if(cols.includes('owner_user_id'))ors.push(`owner_user_id.in.(${ids.join(',')})`);
+      if(cols.includes('created_by_user_id'))ors.push(`created_by_user_id.in.(${ids.join(',')})`);
+      if(cols.includes('requested_by_user_id'))ors.push(`requested_by_user_id.in.(${ids.join(',')})`);
+      if(ors.length)q=q.or(ors.join(','));else q=q.limit(0);
+    } else if(table==='chat_messages'){
+      q=q.or(`sender_id.in.(${ids.join(',')}),receiver_id.in.(${ids.join(',')})`);
+    }
+  }
+  const {data,error}=await q;if(error)throw new Error(error.message);return data||[];
+}
+
+async function audit(profile:any,action:string,module:string,recordId:string,before:any,after:any,success=true,message=''){try{await admin.from('audit_log').insert({actor_user_id:profile.id,actor_email:profile.email,actor_role:profile.role,action,module,record_id:recordId||null,before_data:before||null,after_data:after||null,success,message})}catch(_){} }
+async function upsertOne(table:string,p:any,profile:any,action:string){
+  const row=sanitizeRow(table,p,profile,action),id=String(row.id);let before:any=null;const old=await admin.from(table).select('*').eq('id',id).maybeSingle();before=old.data||null;
+  if(before&&!canViewAll(profile)){const owner=before.owner_user_id||before.created_by_user_id||before.user_id;if(owner&&String(owner)!==String(profile.id)&&lower(before.owner_email)!==lower(profile.email))throw new Error('You can modify only your own records.')}
+  const {data,error}=await admin.from(table).upsert(row,{onConflict:'id'}).select('*').single();if(error)throw new Error(error.message);await audit(profile,action,table,id,before,data,true,'Saved');return {success:true,data,message:'Saved successfully.'};
+}
+async function updateOne(table:string,p:any,profile:any,action:string){
+  const id=idOf(p);if(!id)throw new Error('A record ID is required.');const {data:before,error:be}=await admin.from(table).select('*').eq('id',id).maybeSingle();if(be)throw new Error(be.message);if(!before)throw new Error('Record not found.');
+  if(!canViewAll(profile)){const owner=before.owner_user_id||before.created_by_user_id||before.user_id;if(owner&&String(owner)!==String(profile.id)&&lower(before.owner_email)!==lower(profile.email))throw new Error('You can modify only your own records.')}
+  const patch=sanitizeRow(table,{...before,...p,id},profile,action);delete patch.id;delete patch.created_at;
+  const {data,error}=await admin.from(table).update(patch).eq('id',id).select('*').single();if(error)throw new Error(error.message);await audit(profile,action,table,id,before,data,true,'Updated');return {success:true,data,message:'Updated successfully.'};
+}
+async function deleteOne(table:string,p:any,profile:any,action:string){
+  const id=idOf(p);if(!id)throw new Error('A record ID is required.');const {data:before,error:be}=await admin.from(table).select('*').eq('id',id).maybeSingle();if(be)throw new Error(be.message);if(!before)throw new Error('Record not found.');
+  if(!canViewAll(profile)){const owner=before.owner_user_id||before.created_by_user_id||before.user_id;if(owner&&String(owner)!==String(profile.id))throw new Error('You can delete only your own records.')}
+  const {error}=await admin.from(table).delete().eq('id',id);if(error)throw new Error(error.message);await audit(profile,action,table,id,before,null,true,'Deleted');return {success:true,message:'Deleted successfully.'};
+}
+async function databaseStatus(profile:any){assertAdmin(profile);const {data:setting}=await admin.from('app_settings').select('*').eq('setting_key','database.primary').maybeSingle();const {data:logs}=await admin.from('audit_log').select('action,success,message,created_at').eq('module','database').order('created_at',{ascending:false}).limit(20);return {success:true,provider:'supabase',activeProvider:'supabase',status:'active',connectionUrl:SUPABASE_URL,schema:'public',configuration:setting?.setting_value||{provider:'supabase',connectionUrl:SUPABASE_URL,schema:'public'},history:(logs||[]).map((x:any)=>({provider:'supabase',operation:x.action,status:x.success?'SUCCESS':'FAILED',startedAt:x.created_at,message:x.message}))}}
+async function testDatabase(profile:any){assertAdmin(profile);const {error}=await admin.from('app_users').select('id').limit(1);if(error){await audit(profile,'testDatabaseConnection','database','',null,null,false,error.message);throw new Error(error.message)}await audit(profile,'testDatabaseConnection','database','',null,null,true,'Supabase connection successful');return {success:true,provider:'supabase',status:'connected',message:'Supabase database connection is working.'}}
+async function saveDatabaseConfig(profile:any){assertAdmin(profile);const value={provider:'supabase',connectionUrl:SUPABASE_URL,schema:'public',configuredAt:new Date().toISOString()};const {error}=await admin.from('app_settings').upsert({setting_key:'database.primary',setting_value:value,is_sensitive:false,updated_by_user_id:profile.id},{onConflict:'setting_key'});if(error)throw new Error(error.message);await audit(profile,'saveDatabaseIntegrationConfig','database','',null,value,true,'Supabase is the sole active provider');return {success:true,...value,message:'Supabase is configured as the primary and only application database.'}}
+const MIGRATION_TABLES:any={teamUsers:'app_users',users:'app_users',clients:'clients',coldCalls:'cold_calls',salesOrders:'sales_orders',targets:'targets',projects:'projects',projectTasks:'project_tasks',projectInvoices:'project_invoices',tasks:'tasks',approvals:'approvals',todayAttendance:'attendance',attendance:'attendance',notifications:'notifications',pipelineLeads:'pipeline_leads',pipelineOrders:'pipeline_orders'};
+async function migrateSnapshot(snapshot:any,profile:any){
+  assertAdmin(profile);const results:any[]=[];let processed=0,failed=0;const order=Object.keys(MIGRATION_TABLES);
+  for(const key of order){const table=MIGRATION_TABLES[key],rows=Array.isArray(snapshot?.[key])?snapshot[key]:[];if(!rows.length)continue;let localFail=0;
+    for(let i=0;i<rows.length;i+=200){const chunk=rows.slice(i,i+200).map((r:any)=>sanitizeRow(table,r,profile,'migrateApplicationDatabase'));const {data,error}=await admin.from(table).upsert(chunk,{onConflict:'id'}).select('id');if(error){localFail+=chunk.length;failed+=chunk.length;results.push({table,key,status:'FAILED',message:error.message})}else processed+=(data||[]).length}
+    results.push({table,key,status:localFail?'PARTIAL':'SUCCESS',processed:rows.length,failed:localFail});
+  }
+  const status=failed?'PARTIAL':'SUCCESS';await audit(profile,'migrateApplicationDatabase','database','',null,{status,processed,failed,results},failed===0,`Migration ${status}`);return {success:true,status,processed,failed,results,message:`Supabase migration completed: ${processed} processed successfully, ${failed} failed.`};
+}
+function dashboardShape(r:any,p:any){return {clients:r.clients||[],coldCalls:r.cold_calls||[],salesOrders:r.sales_orders||[],targets:r.targets||[],tasks:r.tasks||[],approvals:r.approvals||[],notifications:r.notifications||[],teamUsers:r.app_users||[],projects:r.projects||[],pipelineLeads:r.pipeline_leads||[],pipelineOrders:r.pipeline_orders||[],todayAttendance:(r.attendance||[]).find((x:any)=>String(x.user_id||'')===String(p.id))||null}}
+
+function tempPassword(){return 'Kosol@'+crypto.randomUUID().replace(/-/g,'').slice(0,12)+'9!';}
+async function bootstrapMasterAdmin(p:any){
+  const email=lower(p?.email),password=norm(p?.password),setupKey=norm(p?.setupKey);
+  if(!email||!password||password.length<8)throw new Error('Master Admin email and a password of at least 8 characters are required.');
+  const configuredKey=Deno.env.get('KOSOL_FIRST_ADMIN_SETUP_KEY')||'';
+  if(!configuredKey)throw new Error('First-time setup is not enabled. Set the KOSOL_FIRST_ADMIN_SETUP_KEY Edge Function secret first.');
+  if(setupKey!==configuredKey)throw new Error('Invalid first-time setup key.');
+  const {data:admins,error:ae}=await admin.from('app_users').select('*').eq('role','Master Admin').order('created_at');
+  if(ae)throw new Error(ae.message);if(!admins?.length)throw new Error('No Master Admin application profile exists yet. Create the Master Admin profile in app_users first.');
+  const profile=admins.find((x:any)=>lower(x.email)===email);if(!profile)throw new Error('The supplied email does not match an existing Master Admin application profile.');
+  const linked=admins.some((x:any)=>String(x.auth_user_id||''));if(linked&&String(profile.auth_user_id||'')!=='')return {success:true,message:'This Master Admin is already linked to Supabase Auth.',user:profile};
+  if(linked)throw new Error('A Master Admin Supabase Auth account is already linked. Sign in with that account or use the existing linked administrator.');
+  const {data:created,error:ce}=await admin.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{name:profile.name,role:'Master Admin'}});
+  if(ce)throw new Error(ce.message);const authId=created.user?.id;if(!authId)throw new Error('Supabase Auth did not return a user ID.');
+  const {data:updated,error:ue}=await admin.from('app_users').update({auth_user_id:authId,status:'Active',approval_status:'Approved',role:'Master Admin'}).eq('id',profile.id).select('*').single();
+  if(ue){try{await admin.auth.admin.deleteUser(authId)}catch(_){};throw new Error('Auth account was created but application profile linking failed: '+ue.message)}
+  return {success:true,message:'Master Admin Supabase Auth account created and linked successfully. You can now sign in.',user:updated};
+}
+async function syncApplicationUsersToAuth(profile:any){
+  assertAdmin(profile);const {data:rows,error}=await admin.from('app_users').select('*').order('created_at');if(error)throw new Error(error.message);
+  const created:any[]=[];const linked:any[]=[];const skipped:any[]=[];const failed:any[]=[];
+  const existingUsers=(await admin.auth.admin.listUsers({page:1,perPage:1000})).data?.users||[];
+  for(const row of rows||[]){
+    const email=lower(row.email);if(!email){skipped.push({id:row.id,name:row.name,reason:'Missing email'});continue;}
+    if(String(row.auth_user_id||'')){linked.push({id:row.id,email,authUserId:row.auth_user_id});continue;}
+    let authUser:any=null;let temp='';
+    try{
+      authUser=existingUsers.find((u:any)=>lower(u.email)===email)||null;
+      if(authUser){await admin.from('app_users').update({auth_user_id:authUser.id}).eq('id',row.id);linked.push({id:row.id,email,authUserId:authUser.id});continue;}
+      temp=tempPassword();const made=await admin.auth.admin.createUser({email,password:temp,email_confirm:true,user_metadata:{name:row.name||email.split('@')[0],role:row.role||'Sales Executive'}});if(made.error)throw made.error;
+      authUser=made.data.user;if(!authUser)throw new Error('No Auth user returned.');
+      const {error:ue}=await admin.from('app_users').update({auth_user_id:authUser.id,raw_data:{...(row.raw_data||{}),supabase_auth_setup:'completed',supabase_auth_created_at:new Date().toISOString(),temporary_password_issued:true}}).eq('id',row.id);
+      if(ue){try{await admin.auth.admin.deleteUser(authUser.id)}catch(_){};throw ue;}
+      created.push({id:row.id,email,name:row.name,role:row.role,temporaryPassword:temp,authUserId:authUser.id});
+    }catch(err){failed.push({id:row.id,email,name:row.name,error:err instanceof Error?err.message:String(err)})}
+  }
+  const message=`Supabase Auth synchronization completed. Created ${created.length}, linked ${linked.length}, skipped ${skipped.length}, failed ${failed.length}.`;
+  await audit(profile,'syncApplicationUsersToAuth','authentication','',null,{created:created.map(x=>({...x,temporaryPassword:'[issued]'})),linked,skipped,failed},failed.length===0,message);
+  return {success:failed.length===0,message,created,linked,skipped,failed,warning:created.length?'Newly created users received temporary passwords. Master Admin should securely provide them and require password reset.':''};
+}
+
+async function handlePublic(action:string,p:any):Promise<any>{
+  if(action==='bootstrapMasterAdmin')return bootstrapMasterAdmin(p);
+  if(action==='getReportingManagers'){
+    const {data,error}=await admin.from('app_users').select('id,name,email,role,status').eq('status','Active').order('name');
+    if(error)throw new Error(error.message);
+    return {success:true,managers:data||[],users:data||[],data:data||[]};
+  }
+  if(action==='selfRegister'){
+    const email=lower(p?.email),password=norm(p?.password||p?.newPassword),name=norm(p?.name||p?.fullName||email.split('@')[0]);
+    if(!email||!password)throw new Error('Email and password are required.');
+    if(password.length<8)throw new Error('Password must contain at least 8 characters.');
+    const {data:created,error:ae}=await admin.auth.admin.createUser({email,password,email_confirm:false,user_metadata:{name}});
+    if(ae)throw new Error(ae.message);
+    const authId=created.user?.id||crypto.randomUUID();
+    const reportingManagers=Array.isArray(p?.reportingManagers)?p.reportingManagers.filter(Boolean):norm(p?.reportingManagers||p?.reportingTo)?[norm(p.reportingManagers||p.reportingTo)]:[];
+    const profile={id:authId,auth_user_id:authId,name,email,phone:norm(p?.phone),address:norm(p?.address),role:'Sales Executive',status:'Pending',approval_status:'Pending',can_create_users:false,can_view_all_users:false,states:Array.isArray(p?.states)?p.states:[],regions:Array.isArray(p?.regions)?p.regions:[],districts:Array.isArray(p?.districts)?p.districts:[norm(p?.districts)].filter(Boolean),reporting_to:reportingManagers[0]||null,reporting_managers:reportingManagers,raw_data:{self_registered:true}};
+    const {error:pe}=await admin.from('app_users').upsert(profile,{onConflict:'email'});
+    if(pe){try{await admin.auth.admin.deleteUser(authId)}catch(_){};throw new Error('Auth account was created but application profile creation failed: '+pe.message)}
+    return {success:true,message:'Registration submitted. The account remains Pending until a Master Admin approves it.',user:profile};
+  }
+  throw new Error('This action requires an authenticated Supabase session.');
+}
+
+async function handle(action:string,p:any,profile:any){
+  if(action==='syncApplicationUsersToAuth')return syncApplicationUsersToAuth(profile);
+  if(action==='health'||action==='testDatabaseConnection')return testDatabase(profile);
+  if(action==='getDatabaseIntegrationStatus')return databaseStatus(profile);
+  if(action==='saveDatabaseIntegrationConfig'||action==='activateDatabaseProvider')return saveDatabaseConfig(profile);
+  if(action==='migrateApplicationDatabase')return migrateSnapshot(p?.snapshot||{},profile);
+  if(action==='migrateDatabase')return {success:true,message:'Supabase is already the active application database; no Google Apps Script migration is required.'};
+  if(action==='getAllUsersDirectory'||action==='getChatUsers'||action==='getReportingManagers'){const users=await listTable('app_users',profile,p);return {success:true,users,data:users,managers:users}}
+  if(action==='getPendingUsers'){assertAdmin(profile);const {data,error}=await admin.from('app_users').select('*').eq('status','Pending').order('created_at',{ascending:false});if(error)throw new Error(error.message);return {success:true,users:data||[],data:data||[]}}
+  if(action==='getDashboardData'){const names=['clients','cold_calls','sales_orders','targets','tasks','approvals','notifications','app_users','projects','pipeline_leads','pipeline_orders','attendance'];const r:any={};await Promise.all(names.map(async t=>r[t]=await listTable(t,profile,p)));return {success:true,data:dashboardShape(r,profile)}}
+  if(action==='getProjectData'){const [projects,tasks,invoices]=await Promise.all([listTable('projects',profile,p),listTable('project_tasks',profile,p),listTable('project_invoices',profile,p)]);return {success:true,projects,tasks,invoices}}
+  if(action==='getTargets'){const targets=await listTable('targets',profile,p);return {success:true,targets,data:targets}}
+  if(action==='getNotifications')return {success:true,notifications:await listTable('notifications',profile,p)};
+  if(action==='getChatMessages')return {success:true,messages:await listTable('chat_messages',profile,p)};
+  if(action==='getPendingAttendanceApprovals'){assertGlobal(profile);return {success:true,data:await listTable('attendance',profile,p)}}
+  if(action==='getTaskHistory')return {success:true,data:await listTable('task_replies',profile,p)};
+  if(action==='getLocationData')return {success:true,data:await listTable('location_master',profile,p)};
+  if(action==='getImportSchema')return {success:true,tables:TABLE_COLUMNS};
+  if(action==='lookupPinCode'){const pin=norm(p?.pin);if(!/^\d{6}$/.test(pin))throw new Error('A valid 6-digit PIN code is required.');const response=await fetch(`https://api.postalpincode.in/pincode/${pin}`);if(!response.ok)throw new Error(`PIN lookup HTTP ${response.status}`);const body=await response.json(),po=body?.[0]?.PostOffice?.[0];if(!po)return {success:false,message:body?.[0]?.Message||'PIN code not found.'};return {success:true,data:{state:po.State||'',district:po.District||'',tehsil:po.Block||po.Division||'',cityVillage:po.Name||'',pinCode:pin,raw:body[0]}}}
+  if(action==='refreshLGDLocationMaster'){assertAdmin(profile);return {success:true,message:'Location master endpoint is ready for an approved location dataset import.'};}
+  if(action==='createManagedUser'){
+    assertAdmin(profile);const email=lower(p?.email),password=norm(p?.password),name=norm(p?.name||email.split('@')[0]);if(!email||!password||password.length<8)throw new Error('Name, email and password of at least 8 characters are required.');
+    const {data:made,error:ae}=await admin.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{name,role:p?.role||'Sales Executive'}});if(ae)throw new Error(ae.message);const authId=made.user?.id;if(!authId)throw new Error('Supabase Auth user creation failed.');
+    const profileRow={id:String(p?.id||crypto.randomUUID()),auth_user_id:authId,name,email,phone:norm(p?.phone),address:norm(p?.address),role:p?.role||'Sales Executive',status:'Active',approval_status:'Approved',can_create_users:false,can_view_all_users:p?.role==='Team Coordinator',states:p?.states||[],regions:p?.regions||[],districts:p?.districts||[],tehsils:p?.tehsils||[],cities:p?.cities||[],pin_codes:p?.pinCodes||[],reporting_to:p?.reportingTo||[],reporting_managers:p?.reportingManagers||[],raw_data:{created_by_master_admin:profile.id,created_at:new Date().toISOString()}};
+    const {data:saved,error:pe}=await admin.from('app_users').upsert(profileRow,{onConflict:'email'}).select('*').single();if(pe){try{await admin.auth.admin.deleteUser(authId)}catch(_){};throw new Error('Auth account was created but application profile creation failed: '+pe.message)}
+    return {success:true,user:saved,authUserId:authId,message:`${name} was created and linked to Supabase Auth.`};
+  }
+  const saveMap:any={saveClient:'clients',saveColdCall:'cold_calls',saveSalesOrder:'sales_orders',saveTarget:'targets',saveProject:'projects',saveProjectTask:'project_tasks',saveTask:'tasks',submitApprovalRequest:'approvals',sendChatMessage:'chat_messages',markAttendance:'attendance',addTaskReply:'task_replies',generateProjectInvoice:'project_invoices',assignTask:'tasks',submitLateExplanation:'approvals'};
+  if(saveMap[action])return upsertOne(saveMap[action],p,profile,action);
+  const updateMap:any={updateClient:'clients',updateColdCall:'cold_calls',updateSalesOrder:'sales_orders',updateTaskStatus:'tasks',updateProjectStage:'projects',updateUser:'app_users',markNotificationRead:'notifications',processAttendanceApproval:'attendance',processGeneralApproval:'approvals',processUserApproval:'app_users'};
+  if(updateMap[action]){if(action==='updateUser'||action==='processUserApproval')assertAdmin(profile);return updateOne(updateMap[action],p,profile,action)}
+  const deleteMap:any={deleteClient:'clients',deleteColdCall:'cold_calls',deleteSalesOrder:'sales_orders',deleteTarget:'targets',deleteUser:'app_users'};
+  if(deleteMap[action]){if(action==='deleteUser')assertAdmin(profile);return deleteOne(deleteMap[action],p,profile,action)}
+  if(action==='touchUserActivity'){const {error}=await admin.from('app_users').update({last_activity_at:new Date().toISOString()}).eq('id',profile.id);if(error)throw new Error(error.message);return {success:true}}
+  if(action==='importModuleData'){assertAdmin(profile);return migrateSnapshot(p?.snapshot||{},profile)}
+  throw new Error(`Supabase Edge Function does not implement action '${action}'.`);
+}
+Deno.serve(async(req:Request)=>{if(req.method==='OPTIONS')return new Response('ok',{headers:corsHeaders});try{const body=await req.json();const action=String(body?.action||'');const payload=body?.payload||{};if(['getReportingManagers','selfRegister','bootstrapMasterAdmin'].includes(action))return json(await handlePublic(action,payload));const {profile}=await authenticate(req);return json(await handle(action,payload,profile))}catch(e){console.error(e);return json({success:false,message:e instanceof Error?e.message:String(e)},401)}});
+
+</script>
+<script id="kosol-single-file-schema-js">
+(function(){'use strict';
+window.KOSOL_EMBEDDED_SUPABASE_SCHEMA=document.getElementById('kosol-embedded-supabase-schema')?.textContent||'';
+window.KOSOL_EMBEDDED_EDGE_FUNCTION=document.getElementById('kosol-embedded-edge-function')?.textContent||'';
+window.copyKosolEdgeFunction=async function(){const src=window.KOSOL_EMBEDDED_EDGE_FUNCTION||'';if(!src)return;try{await navigator.clipboard.writeText(src)}catch(e){const ta=document.createElement('textarea');ta.value=src;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}const el=document.getElementById('kosolEmbeddedSchemaStatus');if(el)el.textContent='Edge Function source copied. Save it as supabase/functions/kosol-app-api/index.ts and deploy it once.'};
+window.copyKosolEmbeddedSchema=async function(){const sql=window.KOSOL_EMBEDDED_SUPABASE_SCHEMA||'';if(!sql)return;try{await navigator.clipboard.writeText(sql)}catch(e){const ta=document.createElement('textarea');ta.value=sql;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}const el=document.getElementById('kosolEmbeddedSchemaStatus');if(el)el.textContent='Complete SQL copied. Open Supabase → SQL Editor, paste it and Run once.'};
+window.showKosolEmbeddedSchema=function(){const sql=window.KOSOL_EMBEDDED_SUPABASE_SCHEMA||'';let modal=document.getElementById('kosolEmbeddedSchemaModal');if(!modal){modal=document.createElement('div');modal.id='kosolEmbeddedSchemaModal';modal.className='modal fade';modal.tabIndex=-1;modal.innerHTML='<div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Embedded Supabase SQL Schema</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><textarea class="form-control font-monospace small" style="min-height:60vh" id="kosolEmbeddedSchemaText" readonly></textarea></div><div class="modal-footer"><button class="btn btn-primary" type="button" onclick="copyKosolEmbeddedSchema()">Copy SQL</button><button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button></div></div></div>';document.body.appendChild(modal)}document.getElementById('kosolEmbeddedSchemaText').value=sql;if(window.bootstrap?.Modal)window.bootstrap.Modal.getOrCreateInstance(modal).show()};
+window.verifyKosolSupabaseSetup=async function(){const el=document.getElementById('kosolEmbeddedSchemaStatus');if(el)el.textContent='Checking Supabase…';try{const sb=window.ensureSupabaseClient?window.ensureSupabaseClient():null;if(!sb)throw new Error('Supabase client is not initialized.');const {error}=await sb.from('app_settings').select('key').limit(1);if(error)throw error;if(el)el.textContent='Supabase connection successful; app_settings is reachable.'}catch(e){if(el)el.textContent='Check failed: '+(e.message||String(e))}};
+})();
 </script>
 </body>
 </html>
