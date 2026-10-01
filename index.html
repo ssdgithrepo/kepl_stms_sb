@@ -7128,84 +7128,13 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
   }
 
   async function callBackendRaw(action, payload) {
-    if(SUPABASE_ENABLED) return await supabaseBackendAction(action,payload||{});
-    const requestPayload=(payload && typeof payload==='object')?Object.assign({},payload):{};
-    const ownCrudActions=new Set(['updateClient','deleteClient','updateColdCall','deleteColdCall','updateSalesOrder','deleteSalesOrder']);
-    if(ownCrudActions.has(action) && !isMasterAdminUser()){
-      const recordId=requestPayload.id||requestPayload.recordId||requestPayload.orderId;
-      let record=null;
-      if(action.toLowerCase().includes('coldcall')) record=(rawData.coldCalls||[]).find(x=>String(x.id)===String(recordId));
-      else if(action.toLowerCase().includes('client')) record=(rawData.clients||[]).find(x=>String(x.id)===String(recordId));
-      else if(action.toLowerCase().includes('salesorder')) record=(rawData.salesOrders||[]).find(x=>String(x.id||x.orderId)===String(recordId));
-      if(!record || !recordOwnerMatchesUser(record)) return {success:false,message:'Access denied. You can modify or delete only records saved by your logged-in account.'};
-      requestPayload.userId=currentUser?.id||requestPayload.userId;
-      requestPayload.userEmail=currentUser?.email||requestPayload.userEmail;
-      requestPayload.userRole=currentUser?.role||requestPayload.userRole;
-      requestPayload.ownerId=record.userId||record.ownerId||record.createdByUserId||'';
-      requestPayload.ownerEmail=record.userEmail||record.ownerEmail||record.createdBy||'';
+    // Supabase is the sole active backend. The legacy Google Apps Script
+    // transport is intentionally disabled so the browser can never issue
+    // an HTTP request to SCRIPT_URL and produce a 405 response.
+    if(!SUPABASE_ENABLED){
+      return {success:false,message:'Supabase is not configured. Check SUPABASE_CONFIG in index.html.'};
     }
-    if(!['login','selfRegister','health','getReportingManagers','requestPasswordResetOtp','resetPasswordWithOtp'].includes(action)){
-      if(!currentUser?.email || !currentUser?.authToken){
-        clearPersistedSession(); currentUser=null;
-        return {success:false,message:'Your login session is missing its security token. Please sign in again.'};
-      }
-      requestPayload.email=requestPayload.email||currentUser.email;
-      requestPayload.authToken=requestPayload.authToken||currentUser.authToken;
-      requestPayload.userId=requestPayload.userId||currentUser.id;
-      requestPayload.userRole=requestPayload.userRole||currentUser.role;
-      requestPayload.userEmail=requestPayload.userEmail||currentUser.email;
-    }
-    if(!isValidScriptUrl(SCRIPT_URL)) return {success:false,message:'Invalid backend /exec URL. Open Backend Settings and enter the deployed Web App URL.'};
-
-    const canRetry=/^(get|fetch|load|list|search|check|validate|dashboard|health)/i.test(String(action||''));
-    // Do not retry writes. Reads may retry transient network/Apps Script cold-start failures.
-    const maxAttempts=canRetry?3:1;
-    let lastError=null;
-    for(let attempt=1;attempt<=maxAttempts;attempt++){
-      const controller=new AbortController();
-      // Apps Script may cold-start and read large Sheets. Give it enough time to finish,
-      // but still fail cleanly instead of hanging forever.
-      const timeoutMs=canRetry?(attempt===1?120000:150000):90000;
-      const timer=setTimeout(()=>controller.abort(),timeoutMs);
-      try{
-        const response=await fetch(SCRIPT_URL,{
-          method:'POST',
-          mode:'cors',
-          credentials:'omit',
-          redirect:'follow',
-          headers:{'Content-Type':'text/plain;charset=utf-8'},
-          body:JSON.stringify({action,payload:requestPayload}),
-          signal:controller.signal,
-          cache:'no-store'
-        });
-        const text=await response.text();
-        if(!response.ok){
-          if(canRetry && attempt<maxAttempts && [408,425,429,500,502,503,504].includes(response.status)){
-            await new Promise(r=>setTimeout(r,900*attempt)); continue;
-          }
-          return {success:false,message:`Backend HTTP ${response.status}. Verify that the existing Apps Script Web App deployment is active and accessible to anyone with the link.`};
-        }
-        let result;
-        try{result=JSON.parse(text);}catch(_){
-          const sample=String(text||'').replace(/\s+/g,' ').slice(0,220);
-          if(canRetry && attempt<maxAttempts){await new Promise(r=>setTimeout(r,900*attempt));continue;}
-          return {success:false,message:'The existing backend returned a non-JSON response. The browser reached the URL, but the deployed /exec endpoint did not return the expected API response.'+(sample?' Response starts with: '+sample:'')};
-        }
-        if(!result || typeof result!=='object') return {success:false,message:'The existing backend returned an empty/invalid response.'};
-        result=cleanNullText(result);
-        if(result.success===false && /session expired|authentication required|unauthorized user/i.test(String(result.message||''))){clearPersistedSession();currentUser=null;}
-        return result;
-      }catch(err){
-        lastError=err;
-        if(canRetry && attempt<maxAttempts){await new Promise(r=>setTimeout(r,1000*attempt));continue;}
-        const msg=err?.name==='AbortError'
-          ? `Backend request timed out after ${Math.round(timeoutMs/1000)} seconds. The existing Google Apps Script is taking too long to return the requested data.`
-          : 'Unable to reach the existing Google Apps Script backend. If this HTML is opened directly as file://, open it from an HTTPS web host; browsers can block cross-origin requests from local files.';
-        console.error('Backend request failed:',action,err);
-        return {success:false,message:msg};
-      }finally{clearTimeout(timer);}
-    }
-    return {success:false,message:lastError?.message||'Unable to load data from the existing backend.'};
+    return await supabaseBackendAction(action, payload || {});
   }
 
   async function testBackendConnection(show=true){
