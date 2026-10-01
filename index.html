@@ -6980,19 +6980,33 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       status: d.status ?? row.status
     });
   }
-  function sbModuleFromAction(action){
+  function sbModuleFromAction(action,payload={}){
     const a=String(action||'');
-    if(/client/i.test(a)) return 'clients';
-    if(/coldcall/i.test(a)) return 'coldCalls';
-    if(/salesorder/i.test(a)) return 'salesOrders';
-    if(/target/i.test(a)) return 'targets';
-    if(/approval/i.test(a)) return 'approvals';
-    if(/notification/i.test(a)) return 'notifications';
-    if(/attendance/i.test(a)) return 'attendance';
-    if(/^saveProject|^updateProjectStage|^getProjectData/i.test(a)) return 'projects';
-    if(/ProjectTask/i.test(a)) return 'projectTasks';
-    if(/ProjectInvoice/i.test(a)) return 'projectInvoices';
-    if(/task/i.test(a)) return 'tasks';
+    const low=a.toLowerCase();
+    // Explicit aliases first. This prevents action-name variations from falling
+    // through to the old "adapter does not implement" message.
+    if(/projectinvoice|generateprojectinvoice/.test(low)) return 'projectInvoices';
+    if(/projecttask|saveprojecttask/.test(low)) return 'projectTasks';
+    if(/projectstage|saveproject|updateprojectstage|getprojectdata|projectdata/.test(low)) return 'projects';
+    if(/salesorder|sales_order|sales order/.test(low)) return 'salesOrders';
+    if(/coldcall|cold_call|cold call/.test(low)) return 'coldCalls';
+    if(/client|lead/.test(low)) return 'clients';
+    if(/target/.test(low)) return 'targets';
+    if(/approval/.test(low)) return 'approvals';
+    if(/notification/.test(low)) return 'notifications';
+    if(/attendance/.test(low)) return 'attendance';
+    if(/task/.test(low)) return 'tasks';
+    // Payload module is accepted as a final explicit hint for custom CRUD calls.
+    const pm=String(payload?.module||'').trim();
+    if(SUPABASE_MODULE_MAP[pm]) return SUPABASE_MODULE_MAP[pm];
+    return null;
+  }
+  function sbCrudOperation(action){
+    const a=String(action||'').toLowerCase();
+    if(/^delete|^remove/.test(a)) return 'delete';
+    if(/^update|^edit|^patch/.test(a)) return 'update';
+    if(/^save|^create|^add|^insert|^submit/.test(a)) return 'insert';
+    if(/^process|^assign|^mark/.test(a)) return 'upsert';
     return null;
   }
   function sbOwnerPayload(payload={}){
@@ -7110,8 +7124,9 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       }
 
       // ---------- Generic CRUD records ----------
-      const module=sbModuleFromAction(action);
-      if(module && /^(save|update|delete|add|submit|process|assign)/i.test(String(action))){
+      const module=sbModuleFromAction(action,payload);
+      const crudOperation=sbCrudOperation(action);
+      if(module && crudOperation){
         // Resolve the record identifier from all supported module-specific fields.
         // Older records can have clientId/orderId/etc. instead of a generic id, and
         // some UI handlers pass the complete record under record/data.
@@ -7133,7 +7148,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
           || payload.data?.recordId
           || payload.data?.clientId
           || payload.data?.orderId;
-        if(/^delete/i.test(action)){
+        if(crudOperation==='delete'){
           if(!id) return {success:false,message:'The selected record does not have a valid record ID. Please reload the data and try again.'};
           let findQuery=supabaseClient.from('app_records').select('id').eq('module',module).eq('record_id',String(id)).limit(10);
           // Master Admin may manage any application record. Every other user
@@ -7151,7 +7166,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         }
         const meta=sbOwnerPayload(payload);
         const row={module,record_id:id?String(id):null,...meta,data:payload,updated_at:new Date().toISOString()};
-        if(id){
+        if(id && crudOperation!=='insert'){
           let findQuery=supabaseClient.from('app_records').select('id').eq('module',module).eq('record_id',String(id)).limit(1);
           if(String(currentUser?.role||'')!=='Master Admin') findQuery=findQuery.eq('owner_id',currentUser?.id||'');
           const {data:matches,error:findErr}=await findQuery;
@@ -7207,7 +7222,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         const uid=String(payload.id||payload.userId||'').trim();
         if(!uid) return {success:false,message:'User ID is required.'};
         if(uid===String(currentUser?.id||'')) return {success:false,message:'Master Admin cannot delete the currently logged-in account.'};
-        const {data,error}=await supabaseClient.rpc('master_admin_deactivate_user',{p_user_id:uid});
+        const {data,error}=await supabaseClient.rpc('delete_application_user',{p_user_id:uid});
         if(error) return {success:false,message:error.message};
         return {success:true,message:'User account deactivated successfully. The user can no longer log in.',user:data?.profile||data};
       }
