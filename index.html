@@ -7021,7 +7021,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         const {data:profile,error:pe}=await supabaseClient.from('profiles').select('*').eq('id',uid).maybeSingle();
         if(pe) return {success:false,message:pe.message};
         if(!profile) return {success:false,message:'User profile was not found. Create the profile row or run the supplied database schema.'};
-        if(profile.approved!==true || profile.active===false || profile.status==='Pending'){
+        if(profile.approved!==true || profile.active===false || String(profile.status||'').toLowerCase()!=='approved'){
           await supabaseClient.auth.signOut();
           return {success:false,message:'Your account is awaiting Master Admin approval.'};
         }
@@ -7029,14 +7029,23 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         return {success:true,authToken:data.session?.access_token||'',user:Object.assign({},profile,{authToken:data.session?.access_token||''})};
       }
       if(action==='selfRegister'){
-        const {data,error}=await supabaseClient.auth.signUp({email:String(payload.email||'').trim(),password:String(payload.password||''),options:{data:{name:payload.name||'',role:payload.role||'Sales Executive',phone:payload.phone||''}}});
+        const email=String(payload.email||'').trim().toLowerCase();
+        const password=String(payload.password||'');
+        if(!email || !password) return {success:false,message:'Email/Login ID and password are required.'};
+        // Supabase Auth is used only as the application's credential/session store.
+        // Email confirmation is NOT part of the application workflow. A new account
+        // is immediately signed out and remains blocked until Master Admin approval.
+        const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{name:payload.name||'',role:payload.role||'Sales Executive',phone:payload.phone||''}}});
         if(error) return {success:false,message:error.message};
         if(data.user?.id){
-          const profile={id:data.user.id,email:payload.email,name:payload.name,phone:payload.phone,role:payload.role||'Sales Executive',designation:payload.designation||payload.role,status:'Pending',approved:false,active:true,states:payload.states||[],regions:payload.regions||[],districts:payload.districts||[],cities:payload.cities||payload.tehsils||[],profile_data:{reportingManagers:payload.reportingManagers||[],reportingTo:payload.reportingTo||[]}};
+          const profile={id:data.user.id,email,name:payload.name,phone:payload.phone,role:payload.role||'Sales Executive',designation:payload.designation||payload.role,status:'Pending',approved:false,active:true,states:payload.states||[],regions:payload.regions||[],districts:payload.districts||[],cities:payload.cities||payload.tehsils||[],profile_data:{reportingManagers:payload.reportingManagers||[],reportingTo:payload.reportingTo||[]}};
           const {error:pe}=await supabaseClient.from('profiles').upsert(profile,{onConflict:'id'});
           if(pe) return {success:false,message:pe.message};
+          // Never leave a newly registered user authenticated. Only Master Admin
+          // approval changes the profile gate that permits application login.
+          try{ await supabaseClient.auth.signOut(); }catch(_){ }
         }
-        return {success:true,message:data.session?'Registration submitted for Master Admin approval.':'Registration submitted. Check your email if email confirmation is enabled.'};
+        return {success:true,message:'Registration submitted successfully. Your account is pending Master Admin approval. No email verification is required.'};
       }
       if(action==='health'){
         const {error}=await supabaseClient.from('profiles').select('id',{count:'exact',head:true});
