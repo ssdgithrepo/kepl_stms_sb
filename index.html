@@ -2513,7 +2513,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     const record=rawData.clients.find(x=>String(x.id)===String(clientId));
     if(!record || !requireOwnRecord(record,'delete')) return;
     if(!confirm("Are you sure you want to delete this client record?")) return;
-    const res = await callBackend('deleteClient', ownershipPayload({ id: clientId },record));
+    const resolvedId=record.id||record.recordId||record.clientId||clientId;
+    const res = await callBackend('deleteClient', ownershipPayload({ id:String(resolvedId), recordId:String(resolvedId), clientId:String(resolvedId), record },record));
     if(res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
       refreshData();
@@ -2560,7 +2561,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     const record=rawData.coldCalls.find(x=>String(x.id)===String(ccId));
     if(!record || !requireOwnRecord(record,'delete')) return;
     if (!confirm("Are you sure you want to delete this cold call log entry?")) return;
-    const res = await callBackend('deleteColdCall', ownershipPayload({ id: ccId },record));
+    const resolvedId=record.id||record.recordId||record.coldCallId||ccId;
+    const res = await callBackend('deleteColdCall', ownershipPayload({ id:String(resolvedId), recordId:String(resolvedId), coldCallId:String(resolvedId), record },record));
     if (res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
       refreshData();
@@ -5421,9 +5423,9 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
   function renderDashboardTargetSummary(){const box=document.getElementById('dashboardTargetSummary');if(!box)return;const ts=rawData.targets||[];if(!ts.length){box.innerHTML='<div class="text-muted small">No targets created yet. Use My Target to create one.</div>';return;}box.innerHTML=ts.slice(0,8).map(t=>{const ach=targetAchievementLocal(t,rawData.salesOrders||[]),tar=salesOrderNum(t.targetValue||t.target||0),pct=tar?Math.min(100,ach/tar*100):0;return `<div class="mb-3"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><b>${escapeHtml(t.targetName||'Target')}</b><small class="d-block text-muted">${escapeHtml(t.product||'')} · ${escapeHtml(t.metric||'Amount')} · ${escapeHtml(t.pvType||'')} · ${escapeHtml(t.salesType||'All')} · ${escapeHtml(targetPeriodLabel(t))}</small></div><div class="fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})} / ${tar.toLocaleString('en-IN',{maximumFractionDigits:2})} (${pct.toFixed(1)}%)</div></div><div class="progress mt-1" style="height:9px"><div class="progress-bar bg-warning" style="width:${pct}%"></div></div></div>`;}).join('');}
   function targetEndLocal(period,start,end){const x=appDateOnly(start||appToday());if(!x)return appToday();const [y,m,d]=x.split('-').map(Number);if(period==='CUSTOM')return appDateOnly(end)||x;if(period==='DAILY')return x;if(period==='WEEKLY'){const e=new Date(y,m-1,d);e.setDate(e.getDate()+6);return [e.getFullYear(),String(e.getMonth()+1).padStart(2,'0'),String(e.getDate()).padStart(2,'0')].join('-');}if(period==='MONTHLY'){const e=new Date(y,m,0);return [e.getFullYear(),String(e.getMonth()+1).padStart(2,'0'),String(e.getDate()).padStart(2,'0')].join('-');}if(period==='YEARLY')return `${y}-12-31`;return x;}
   async function showTargetForm(r={}){const html=`<form id="targetForm"><input type="hidden" id="tgId" value="${escapeAttr(r.id||'')}"><div class="row g-2"><div class="col-12 col-md-6"><label class="form-label small fw-bold">Target Name *</label><input id="tgName" class="form-control form-control-sm" required value="${escapeAttr(r.targetName||'')}"></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Period *</label><select id="tgPeriod" class="form-select form-select-sm"><option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option><option value="YEARLY">Yearly</option><option value="CUSTOM">Custom Date</option></select></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Period Start *</label><input id="tgStart" type="date" class="form-control form-control-sm" required value="${escapeAttr(appDateOnly(r.startDate)||appToday())}"></div><div class="col-6 col-md-3"><label class="form-label small">Custom End</label><input id="tgEnd" type="date" class="form-control form-control-sm" value="${escapeAttr(appDateOnly(r.endDate)||'')}"></div><div class="col-12 col-md-5"><label class="form-label small fw-bold">Product *</label><select id="tgProduct" class="form-select form-select-sm"><option>Solar PV Modules</option><option>Solar Water Heater</option><option>Solar EPC Projects - Utility/C & I/Residentials</option></select></div><div class="col-6 col-md-2"><label class="form-label small fw-bold">Sales Type</label><select id="tgSalesType" class="form-select form-select-sm"><option>All</option><option>Primary Sale</option><option>Secondary Sales</option><option>Other</option></select></div><div class="col-6 col-md-2" id="tgPvWrap"><label class="form-label small fw-bold">PV Type</label><select id="tgPvType" class="form-select form-select-sm"><option>Both</option><option>DCR</option><option>N-DCR</option></select></div><div class="col-6 col-md-2"><label class="form-label small fw-bold">Metric</label><select id="tgMetric" class="form-select form-select-sm"><option>Amount</option><option>kW</option><option>Quantity</option><option>LPD</option><option>Orders</option></select></div><div class="col-6 col-md-1"><label class="form-label small fw-bold">Target</label><input id="tgValue" type="number" min="0" step="any" class="form-control form-control-sm" required value="${escapeAttr(r.targetValue??0)}"></div></div><div class="small text-muted mt-2" id="tgPeriodPreview"></div><div class="text-end mt-3"><button type="button" class="btn btn-outline-secondary me-2" onclick="closeModal()">Close</button><button class="btn btn-warning text-dark fw-bold">Save Target</button></div></form>`;modal(html);document.getElementById('tgPeriod').value=r.periodType||'DAILY';document.getElementById('tgProduct').value=r.product||'Solar PV Modules';document.getElementById('tgSalesType').value=r.salesType||'All';document.getElementById('tgPvType').value=r.pvType||'Both';document.getElementById('tgMetric').value=r.metric||'Amount';const sync=()=>{const per=document.getElementById('tgPeriod').value,pr=document.getElementById('tgProduct').value;document.getElementById('tgEnd').disabled=per!=='CUSTOM';document.getElementById('tgPvWrap').classList.toggle('d-none',pr!=='Solar PV Modules');document.getElementById('tgPeriodPreview').textContent=`Effective period: ${document.getElementById('tgStart').value||''} → ${targetEndLocal(per,document.getElementById('tgStart').value,document.getElementById('tgEnd').value)}`;};['tgPeriod','tgStart','tgEnd','tgProduct'].forEach(id=>document.getElementById(id)?.addEventListener('change',sync));sync();document.getElementById('targetForm').onsubmit=async e=>{e.preventDefault();showProcessingMessage('Saving Target','Submitting target information to the backend. Please wait...');const period=document.getElementById('tgPeriod').value,product=document.getElementById('tgProduct').value;const payload={id:document.getElementById('tgId').value,targetName:document.getElementById('tgName').value.trim(),periodType:period,startDate:document.getElementById('tgStart').value,endDate:document.getElementById('tgEnd').value,product,salesType:document.getElementById('tgSalesType').value,pvType:product==='Solar PV Modules'?document.getElementById('tgPvType').value:'',metric:document.getElementById('tgMetric').value,targetValue:Number(document.getElementById('tgValue').value||0)};try{const r2=await callBackend('saveTarget',payload);if(!r2.success)throw Error(r2.message||'Target save failed.');showOperationMessage('Target saved',r2.message,'success');closeModal(true);await refreshData({silent:true});renderTargetModule();renderDashboardCharts();}catch(err){showOperationMessage('Target not saved',err.message,'error');}};}
-  function renderTargetModule(){const tb=document.getElementById('targetTableBody');if(!tb)return;const ts=rawData.targets||[];const orders=rawData.salesOrders||[];const rows=ts.slice().sort((a,b)=>String(b.startDate).localeCompare(String(a.startDate)));tb.innerHTML=rows.length?rows.map(t=>{const ach=targetAchievementLocal(t,orders),tar=salesOrderNum(t.targetValue||0),pct=tar?Math.min(100,ach/tar*100):0;return `<tr><td><b>${escapeHtml(t.targetName||'')}</b><small class="d-block text-muted">${escapeHtml(t.userEmail||'')}</small></td><td>${escapeHtml(targetPeriodLabel(t))}</td><td>${escapeHtml(t.product||'')}</td><td>${escapeHtml(t.salesType||'All')}</td><td>${escapeHtml(t.pvType||'-')}</td><td>${escapeHtml(t.metric||'Amount')}</td><td>${tar.toLocaleString('en-IN',{maximumFractionDigits:2})}</td><td>${ach.toLocaleString('en-IN',{maximumFractionDigits:2})}</td><td><b>${pct.toFixed(1)}%</b><div class="progress mt-1" style="height:6px"><div class="progress-bar bg-warning" style="width:${pct}%"></div></div></td><td><button class="btn btn-sm btn-outline-primary me-1" onclick='showTargetForm(${JSON.stringify(t).replace(/'/g,"&#39;")})'>Edit</button><button class="btn btn-sm btn-outline-danger" onclick="deleteTarget('${escapeAttr(t.id)}')">Delete</button></td></tr>`;}).join(''):'<tr><td colspan="10" class="text-center text-muted py-4">No targets created yet.</td></tr>';const k=document.getElementById('targetKpis');if(k){const total=ts.reduce((a,t)=>a+salesOrderNum(t.targetValue),0),ach=ts.reduce((a,t)=>a+targetAchievementLocal(t,orders),0),pct=total?Math.min(100,ach/total*100):0;k.innerHTML=`<div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Targets</small><div class="fs-4 fw-bold">${ts.length}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Target Taken</small><div class="fs-4 fw-bold">${total.toLocaleString('en-IN')}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Achievement</small><div class="fs-4 fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Overall Achievement</small><div class="fs-4 fw-bold">${pct.toFixed(1)}%</div></div></div>`;}}
+  function renderTargetModule(){const tb=document.getElementById('targetTableBody');if(!tb)return;const ts=rawData.targets||[];const orders=rawData.salesOrders||[];const rows=ts.slice().sort((a,b)=>String(b.startDate).localeCompare(String(a.startDate)));tb.innerHTML=rows.length?rows.map(t=>{const ach=targetAchievementLocal(t,orders),tar=salesOrderNum(t.targetValue||0),pct=tar?Math.min(100,ach/tar*100):0;return `<tr><td><b>${escapeHtml(t.targetName||'')}</b><small class="d-block text-muted">${escapeHtml(t.userEmail||'')}</small></td><td>${escapeHtml(targetPeriodLabel(t))}</td><td>${escapeHtml(t.product||'')}</td><td>${escapeHtml(t.salesType||'All')}</td><td>${escapeHtml(t.pvType||'-')}</td><td>${escapeHtml(t.metric||'Amount')}</td><td>${tar.toLocaleString('en-IN',{maximumFractionDigits:2})}</td><td>${ach.toLocaleString('en-IN',{maximumFractionDigits:2})}</td><td><b>${pct.toFixed(1)}%</b><div class="progress mt-1" style="height:6px"><div class="progress-bar bg-warning" style="width:${pct}%"></div></div></td><td><button class="btn btn-sm btn-outline-primary me-1" onclick='showTargetForm(${JSON.stringify(t).replace(/'/g,"&#39;")})'>Edit</button><button class="btn btn-sm btn-outline-danger" onclick="deleteTarget('${escapeAttr(t.id||t.recordId||t.targetId||'')}')">Delete</button></td></tr>`;}).join(''):'<tr><td colspan="10" class="text-center text-muted py-4">No targets created yet.</td></tr>';const k=document.getElementById('targetKpis');if(k){const total=ts.reduce((a,t)=>a+salesOrderNum(t.targetValue),0),ach=ts.reduce((a,t)=>a+targetAchievementLocal(t,orders),0),pct=total?Math.min(100,ach/total*100):0;k.innerHTML=`<div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Targets</small><div class="fs-4 fw-bold">${ts.length}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Target Taken</small><div class="fs-4 fw-bold">${total.toLocaleString('en-IN')}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Achievement</small><div class="fs-4 fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Overall Achievement</small><div class="fs-4 fw-bold">${pct.toFixed(1)}%</div></div></div>`;}}
   async function refreshTargetModule(){try{const r=await callBackendFast('getTargets',{});if(r.success)rawData.targets=r.targets||[];renderTargetModule();renderDashboardTargetSummary();}catch(e){showOperationMessage('Target refresh failed',e.message,'error');}}
-  async function deleteTarget(id){if(!confirm('Delete this target? Achievement remains derived from Sales Orders.'))return;try{const r=await callBackend('deleteTarget',{id});if(!r.success)throw Error(r.message||'Delete failed.');showOperationMessage('Target deleted',r.message,'success');await refreshData({silent:true});renderTargetModule();renderDashboardCharts();}catch(e){showOperationMessage('Target delete failed',e.message,'error');}}
+  async function deleteTarget(id){const target=(rawData.targets||[]).find(x=>String(x.id||x.recordId||x.targetId)===String(id));const resolvedId=target?.id||target?.recordId||target?.targetId||id;if(!resolvedId){showOperationMessage('Target not deleted','The selected target does not have a valid record ID. Please reload the data and try again.','error');return;}if(!confirm('Delete this target? Achievement remains derived from Sales Orders.'))return;try{const r=await callBackend('deleteTarget',ownershipPayload({id:String(resolvedId),recordId:String(resolvedId),targetId:String(resolvedId),record:target},target));if(!r.success)throw Error(r.message||'Delete failed.');showOperationMessage('Target deleted',r.message,'success');await refreshData({silent:true});renderTargetModule();renderDashboardCharts();}catch(e){showOperationMessage('Target delete failed',e.message,'error');}}
 
 
   // ---------- Import: Clients / Cold Calls / Sales Orders ----------
@@ -6960,8 +6962,9 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
   };
   function sbRow(row){
     const d=row?.data && typeof row.data==='object' ? row.data : {};
+    const derivedId = d.id ?? d.recordId ?? d.clientId ?? d.orderId ?? d.targetId ?? d.taskId ?? d.projectId ?? d.approvalId ?? d.notificationId ?? row?.record_id ?? row?.id ?? '';
     return Object.assign({}, d, {
-      id: d.id ?? row.record_id ?? row.id,
+      id: derivedId,
       userId: d.userId ?? row.owner_id ?? row.created_by,
       ownerId: d.ownerId ?? row.owner_id,
       userEmail: d.userEmail ?? row.owner_email,
@@ -7109,9 +7112,29 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       // ---------- Generic CRUD records ----------
       const module=sbModuleFromAction(action);
       if(module && /^(save|update|delete|add|submit|process|assign)/i.test(String(action))){
-        const id=payload.id||payload.recordId||payload.clientId||payload.orderId||payload.targetId||payload.taskId||payload.projectId||payload.approvalId||payload.notificationId;
+        // Resolve the record identifier from all supported module-specific fields.
+        // Older records can have clientId/orderId/etc. instead of a generic id, and
+        // some UI handlers pass the complete record under record/data.
+        const id = payload.id
+          || payload.recordId
+          || payload.clientId
+          || payload.orderId
+          || payload.targetId
+          || payload.taskId
+          || payload.projectId
+          || payload.approvalId
+          || payload.notificationId
+          || payload.record?.id
+          || payload.record?.recordId
+          || payload.record?.clientId
+          || payload.record?.orderId
+          || payload.record?.targetId
+          || payload.data?.id
+          || payload.data?.recordId
+          || payload.data?.clientId
+          || payload.data?.orderId;
         if(/^delete/i.test(action)){
-          if(!id) return {success:false,message:'Record ID is required.'};
+          if(!id) return {success:false,message:'The selected record does not have a valid record ID. Please reload the data and try again.'};
           let findQuery=supabaseClient.from('app_records').select('id').eq('module',module).eq('record_id',String(id)).limit(10);
           // Master Admin may manage any application record. Every other user
           // may delete only records belonging to their own logged-in account.
@@ -7175,8 +7198,21 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         if(!row)return {success:true}; const nd={...(row.data||{}),read:true,readAt:new Date().toISOString()}; const {error:ue}=await supabaseClient.from('app_records').update({data:nd,updated_at:new Date().toISOString()}).eq('id',row.id); return ue?{success:false,message:ue.message}:{success:true};
       }
 
-      // ---------- User/profile update ----------
+      // ---------- User/profile management ----------
+      // Supabase browser clients cannot safely delete auth.users with the anon/publishable
+      // key. Master Admin user deletion therefore uses a database RPC that deactivates
+      // the profile and blocks future application login while preserving audit/history.
+      if(action==='deleteUser'){
+        if(String(currentUser?.role||'')!=='Master Admin') return {success:false,message:'Only Master Admin can delete/deactivate users.'};
+        const uid=String(payload.id||payload.userId||'').trim();
+        if(!uid) return {success:false,message:'User ID is required.'};
+        if(uid===String(currentUser?.id||'')) return {success:false,message:'Master Admin cannot delete the currently logged-in account.'};
+        const {data,error}=await supabaseClient.rpc('master_admin_deactivate_user',{p_user_id:uid});
+        if(error) return {success:false,message:error.message};
+        return {success:true,message:'User account deactivated successfully. The user can no longer log in.',user:data?.profile||data};
+      }
       if(action==='updateUser' || action==='processUserApproval'){
+        if(String(currentUser?.role||'')!=='Master Admin') return {success:false,message:'Only Master Admin can manage user accounts.'};
         const uid=payload.id||payload.userId;
         if(!uid)return {success:false,message:'User ID is required.'};
         const patch=Object.assign({},payload); delete patch.id; delete patch.userId; delete patch.password; delete patch.authToken;
