@@ -2611,7 +2611,13 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     st.dataset.bound='1';
     st.addEventListener('change',()=>{
       const regions=regionOptionsFor(getSelectedValues('muStates'),[]);
-      populateSelect('muRegions',regions,'-- Select Region(s) --');rg.disabled=!regions.length;
+      populateSelect('muRegions',regions,'-- Select Region(s) --');
+      // Do not lock the Region control merely because the master has no rows for
+      // a selected state. The searchable multi-select allows a valid custom
+      // territory to be typed and selected in that case.
+      rg.disabled=getSelectedValues('muStates').length===0;
+      rg.title=regions.length?`${regions.length} region(s) available for selected state(s)`:'No configured regions. Type a region to add it.';
+      if(rg.dataset.smartMulti==='1')rg.dispatchEvent(new Event('change',{bubbles:true}));
     });
   }
   function reportingManagerCandidates(excludeId){const rank={'Master Admin':0,'National Head':1,'State Head':2,'Regional Head':3,'Senior Sales Executive':4};const src=(allUsersList&&allUsersList.length?allUsersList:reportingManagerDirectory)||[];return src.filter(u=>u&&rank[u.role]!==undefined&&String(u.id||u.email)!==String(excludeId||'')).sort((a,b)=>(rank[a.role]??99)-(rank[b.role]??99)||String(a.name||a.email||'').localeCompare(String(b.name||b.email||'')));}
@@ -4880,8 +4886,8 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
       // Flat region records.
       flatRecords.forEach(r=>{
         if(!r||typeof r!=='object')return;
-        const rs=r.state??r.State??r.stateName??r.StateName;
-        const rr=r.region??r.Region??r.regionName??r.RegionName;
+        const rs=r.state??r.State??r.state_name??r.stateName??r.StateName;
+        const rr=r.region??r.Region??r.region_name??r.regionName??r.RegionName;
         if(norm(rs)===norm(st) && rr!=null) add(rr);
       });
 
@@ -4956,8 +4962,8 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
     // previously selected state from remaining in the multi-select.
     populateSelect(regionId,regions,'-- Select Region --');
     setMultiSelectValues(regionId,previous.filter(r=>regions.some(x=>x.toLowerCase()===String(r).trim().toLowerCase())));
-    regionEl.disabled=states.length===0 || regions.length===0;
-    regionEl.title=states.length===0?'Select state first':(regions.length?`${regions.length} region(s) available for selected state(s)`:'No regions configured for selected state(s)');
+    regionEl.disabled=states.length===0;
+    regionEl.title=states.length===0?'Select state first':(regions.length?`${regions.length} region(s) available for selected state(s)`:'No configured regions. Type a value to add it.');
   }
   function flattenLocationChildren(prefix,kind){
     const states=getValsOrOther(prefix+'State'), districts=getValsOrOther(prefix+'District'), tehs=getValsOrOther(prefix+'Tehsil'); let out=[];
@@ -5116,13 +5122,57 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
   }
   function initAllSmartMultiSelects(){['cState','cRegion','ccState','ccRegion','suStates','suRegions','muStates','muRegions'].forEach(initSmartMultiSelect);}
 
+  function normalizeSupabaseLocationMaster(rows){
+    // Supabase returns location_master as flat rows:
+    // {state, region, district, tehsil, city_village, pin_code, active}.
+    // The rest of this application uses grouped State -> Region/District/etc.
+    // structures, so normalize the rows once here instead of making every
+    // selector understand both formats.
+    if(!Array.isArray(rows)) return;
+    const norm=v=>String(v??'').trim();
+    const key=v=>norm(v).toLowerCase();
+    const pushUnique=(arr,v)=>{v=norm(v);if(v && !arr.some(x=>key(x)===key(v)))arr.push(v);};
+    const states=[...INDIA_STATES];
+    const districts={}, tehsils={}, cities={}, pins={}, regions={};
+    rows.forEach(r=>{
+      if(!r || typeof r!=='object') return;
+      const state=norm(r.state??r.State??r.state_name??r.stateName);
+      const region=norm(r.region??r.Region??r.region_name??r.regionName);
+      const district=norm(r.district??r.District??r.district_name??r.districtName);
+      const tehsil=norm(r.tehsil??r.Tehsil??r.taluka??r.taluka_name??r.tehsil_name);
+      const city=norm(r.city_village??r.cityVillage??r.city??r.village??r.city_name??r.village_name);
+      const pin=norm(r.pin_code??r.pinCode??r.pincode??r.pin);
+      if(!state) return;
+      pushUnique(states,state);
+      if(!regions[state])regions[state]=[];
+      if(region)pushUnique(regions[state],region);
+      if(!districts[state])districts[state]=[];
+      if(district)pushUnique(districts[state],district);
+      if(!tehsils[state])tehsils[state]={};
+      if(district && !tehsils[state][district])tehsils[state][district]=[];
+      if(district && tehsil)pushUnique(tehsils[state][district],tehsil);
+      if(!cities[state])cities[state]={};
+      if(district && !cities[state][district])cities[state][district]={};
+      if(district && tehsil && !cities[state][district][tehsil])cities[state][district][tehsil]=[];
+      if(district && tehsil && city)pushUnique(cities[state][district][tehsil],city);
+      if(!pins[state])pins[state]={};
+      if(district && !pins[state][district])pins[state][district]={};
+      if(district && tehsil && !pins[state][district][tehsil])pins[state][district][tehsil]={};
+      if(district && tehsil && city && !pins[state][district][tehsil][city])pins[state][district][tehsil][city]=[];
+      if(district && tehsil && city && pin)pushUnique(pins[state][district][tehsil][city],pin);
+    });
+    locationData=Object.assign({},locationData,{states:[...new Set(states)],regions,districts,tehsils,cities,pins,locationMasterRows:rows});
+  }
+
   async function loadLocationData(){
     try{
       const res=await callBackendFast('getLocationData',{});
-      if(res.success && res.locations){
-        locationData=Object.assign(locationData,res.locations);
+      if(res.success && Array.isArray(res.locations)) normalizeSupabaseLocationMaster(res.locations);
+      else if(res.success && res.locations && typeof res.locations==='object'){
+        // Preserve compatibility with an already-grouped location response.
+        locationData=Object.assign({},locationData,res.locations);
       }
-    }catch(e){}
+    }catch(e){ console.warn('Location master load failed:',e); }
     ['c','cc','su'].forEach(bindLocationCascade);
     ['c','cc'].forEach(prefix=>populateRegionForStates(prefix,getSelectedValues(prefix+'Region')));
     initAllSmartMultiSelects();
