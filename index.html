@@ -15,7 +15,28 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+(function(){
+  function loadSupabase(src, onDone){
+    var s=document.createElement('script');
+    s.src=src;
+    s.async=false;
+    s.onload=function(){ onDone(true); };
+    s.onerror=function(){ onDone(false); };
+    document.head.appendChild(s);
+  }
+  function showSupabaseLoadFailure(){
+    window.__SUPABASE_SDK_LOAD_FAILED__=true;
+    console.error('Unable to load Supabase JavaScript SDK from CDN.');
+  }
+  loadSupabase('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', function(ok){
+    if(ok) return;
+    loadSupabase('https://unpkg.com/@supabase/supabase-js@2', function(ok2){
+      if(!ok2) showSupabaseLoadFailure();
+    });
+  });
+})();
+</script>
   <style>
     :root {
       --primary-dark: #0F172A;
@@ -7049,8 +7070,15 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     try{
       // ---------- Authentication ----------
       if(action==='login'){
-        const {data,error}=await supabaseClient.auth.signInWithPassword({email:String(payload.email||'').trim(),password:String(payload.password||'')});
-        if(error) return {success:false,message:error.message||'Invalid credentials.'};
+        if(!supabaseClient){
+          return {success:false,message:'Supabase client is unavailable. Check internet access and reload the application.'};
+        }
+        try{
+          const {data,error}=await supabaseClient.auth.signInWithPassword({
+            email:String(payload.email||'').trim(),
+            password:String(payload.password||'')
+          });
+          if(error) return {success:false,message:error.message||'Invalid credentials.'};
         const uid=data.user.id;
         const {data:profile,error:pe}=await supabaseClient.from('profiles').select('*').eq('id',uid).maybeSingle();
         if(pe) return {success:false,message:pe.message};
@@ -7061,6 +7089,14 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         }
         await supabaseClient.from('profiles').update({last_login_at:new Date().toISOString()}).eq('id',uid);
         return {success:true,authToken:data.session?.access_token||'',user:Object.assign({},profile,{authToken:data.session?.access_token||''})};
+        }catch(loginErr){
+          console.error('Supabase login network error:', loginErr);
+          const msg=String(loginErr?.message||loginErr||'Login request failed.');
+          if(/failed to fetch|networkerror|load failed|fetch/i.test(msg)){
+            return {success:false,message:'Cannot reach Supabase Auth at '+SUPABASE_CONFIG.url+'. Check your internet connection, Supabase project status, and browser/network blocking. This is a network connection problem, not a password validation error.'};
+          }
+          return {success:false,message:msg};
+        }
       }
       if(action==='selfRegister'){
         const email=String(payload.email||'').trim().toLowerCase();
@@ -7298,9 +7334,31 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     // transport is intentionally disabled so the browser can never issue
     // an HTTP request to SCRIPT_URL and produce a 405 response.
     if(!SUPABASE_ENABLED){
-      return {success:false,message:'Supabase is not configured. Check SUPABASE_CONFIG in index.html.'};
+      return {
+        success:false,
+        message: window.__SUPABASE_SDK_LOAD_FAILED__
+          ? 'Supabase SDK could not be loaded. Your browser/network is blocking the CDN. Please open the app with internet access and allow cdn.jsdelivr.net or unpkg.com.'
+          : 'Supabase client is not ready. Please reload the application and check internet access.'
+      };
     }
     return await supabaseBackendAction(action, payload || {});
+  }
+
+  async function diagnoseSupabaseConnection(){
+    const result={sdk:!!window.supabase,configured:!!(SUPABASE_CONFIG.url&&SUPABASE_CONFIG.anonKey),url:SUPABASE_CONFIG.url};
+    try{
+      const response=await fetch(SUPABASE_CONFIG.url+'/auth/v1/settings',{
+        method:'GET',
+        headers:{'apikey':SUPABASE_CONFIG.anonKey,'Content-Type':'application/json'}
+      });
+      result.http=response.status;
+      result.reachable=response.ok||response.status<500;
+    }catch(e){
+      result.reachable=false;
+      result.error=String(e?.message||e||'Network error');
+    }
+    console.log('Kosol Supabase diagnostic:',result);
+    return result;
   }
 
   async function testBackendConnection(show=true){
