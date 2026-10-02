@@ -9,10 +9,13 @@
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://script.google.com" crossorigin>
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <title>Kosol Energie Pvt Ltd - Sales Team Management System</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --primary-dark: #0F172A;
@@ -269,24 +272,6 @@
     .sales-order-crud-actions .btn:hover{transform:translateY(-1px);box-shadow:0 .25rem .5rem rgba(0,0,0,.08)}
     .sales-order-readonly{font-size:.78rem;color:#6c757d}
 
-</style>
-
-
-<style id="kosol-database-integration-ui">
-  .kosol-db-card{border:1px solid #e5e7eb!important;border-left:4px solid #fc9403!important;border-radius:12px;background:#fff!important;box-shadow:0 6px 18px rgba(15,23,42,.06)}
-  .kosol-db-provider-grid{display:grid;grid-template-columns:repeat(6,minmax(110px,1fr));gap:8px}
-  .kosol-db-provider{border:1px solid #e2e8f0;border-radius:10px;padding:10px 7px;background:#fff;text-align:center;cursor:pointer;font-size:.72rem;font-weight:700;transition:.16s}
-  .kosol-db-provider:hover{border-color:#fc9403;transform:translateY(-1px)}
-  .kosol-db-provider.active{border-color:#fc9403;background:#fff7e8;box-shadow:0 0 0 2px rgba(252,148,3,.14)}
-  .kosol-db-provider i{display:block;font-size:1.2rem;margin-bottom:4px;color:#c96f00}
-  .kosol-db-status{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-  .kosol-db-dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:#94a3b8}
-  .kosol-db-dot.ok{background:#198754}.kosol-db-dot.bad{background:#dc3545}.kosol-db-dot.warn{background:#fc9403}
-  .kosol-db-secret-note{font-size:.72rem;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px;padding:8px}
-  .kosol-db-migration-log{max-height:220px;overflow:auto;background:#0f172a;color:#e2e8f0;border-radius:8px;padding:9px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}
-  .kosol-db-fields .form-label{font-size:.74rem;font-weight:700}
-  @media(max-width:900px){.kosol-db-provider-grid{grid-template-columns:repeat(3,minmax(100px,1fr))}}
-  @media(max-width:575px){.kosol-db-provider-grid{grid-template-columns:repeat(2,minmax(100px,1fr))}}
 </style>
 
 <style id="solitaire-pipeline-theme">
@@ -717,15 +702,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
 </style>
 
 <style id="kosol-data-loader-v3">
-#kosolDataRetryBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:1085;display:none;max-width:min(92vw,620px);box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:14px}
-#kosolDataRetryBar.show{display:flex}
-#kosolDataRetryBar .kosol-message-close{width:30px;height:30px;flex:0 0 30px;padding:0;border:0;background:transparent;color:#475569;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
-#kosolDataRetryBar .kosol-message-close:hover{background:rgba(15,23,42,.08)}
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div id="kosolDataRetryBar" class="alert alert-warning align-items-center gap-2 mb-0 py-2 px-3" role="alert"><span class="small flex-grow-1"><i class="bi bi-cloud-slash me-1"></i><b>Live data is not synchronized.</b> The database did not return the latest data.</span><button type="button" class="btn btn-sm btn-dark" onclick="retryCurrentDataLoad()"><i class="bi bi-arrow-clockwise me-1"></i>Retry</button><button type="button" class="kosol-message-close" aria-label="Close message" title="Close" onclick="closeDataRetryMessage()"><i class="bi bi-x-lg"></i></button></div>
 
 
 <div id="kosolWelcome" class="kosol-welcome d-none" aria-modal="true" role="dialog">
@@ -883,18 +862,27 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
                 <div class="password-field-wrap w-100"><input type="password" id="suPassword" class="form-control" required autocomplete="new-password"><button type="button" class="password-eye-inside" aria-label="Show password" onclick="togglePasswordVisibility('suPassword','toggleSuIcon')"><i class="bi bi-eye-slash" id="toggleSuIcon"></i></button></div>
               </div>
             </div>
-            <div class="col-12 mb-2"><label class="form-label small">Address *</label><textarea id="suAddress" class="form-control form-control-sm" rows="2" required placeholder="Enter residential / communication address"></textarea></div>
-            <div class="col-12 mb-2"><label class="form-label small">Working Area</label><div class="row g-2">
-              <div class="col-12 col-md-4"><label class="form-label small">State *</label><select multiple size="3" id="suStates" class="form-select form-select-sm" required></select></div>
-              <div class="col-12 col-md-4"><label class="form-label small">Region *</label><select multiple size="3" id="suRegions" class="form-select form-select-sm" required></select><input class="form-control form-control-sm mt-1 d-none" id="suRegionManual" placeholder="Type region"></div>
-              <div class="col-12 col-md-4"><label class="form-label small">District *</label><input id="suDistricts" class="form-control form-control-sm" list="suDistrictsList" placeholder="Type or select district" required><datalist id="suDistrictsList"></datalist></div>
-            </div></div>
+            <div class="col-12 mb-1">
+              <label class="form-label small">Target Role *</label>
+              <select class="form-select form-select-sm" id="suRole" required>
+                <option value="National Head">National Head (CEO)</option>
+                <option value="State Head">State Head (State Manager)</option>
+                <option value="Regional Head">Regional Head (Regional Manager)</option>
+                <option value="Senior Sales Executive">Senior Sales Executive</option>
+                <option value="Area Sales Officer">Area Sales Officer</option>
+                <option value="Sales Executive">Sales Executive</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3 mb-2"><label class="form-label small">State *</label><select multiple size="3" id="suStates" class="form-select form-select-sm" required></select></div>
+            <div class="col-6 col-md-3 mb-2"><label class="form-label small">Region *</label><select multiple size="3" id="suRegions" class="form-select form-select-sm" required></select><input class="form-control form-control-sm mt-1 d-none" id="suRegionManual" placeholder="Type region"></div>
+            <div class="col-6 col-md-3 mb-2"><label class="form-label small">District *</label><input id="suDistricts" class="form-control form-control-sm" list="suDistrictsList" placeholder="Type or select district" required><datalist id="suDistrictsList"></datalist></div>
+            <div class="col-6 col-md-3 mb-2"><label class="form-label small">Tehsil / Taluka</label><input id="suTehsil" class="form-control form-control-sm" list="suTehsilList" placeholder="Type or select tehsil / taluka"><datalist id="suTehsilList"></datalist></div>
+            <div class="col-6 col-md-3 mb-2"><label class="form-label small">City / Village</label><input id="suCityVillage" class="form-control form-control-sm" list="suCityVillageList" placeholder="Type or select city / village"><datalist id="suCityVillageList"></datalist></div>
+            <div class="col-6 col-md-3 mb-2"><label class="form-label small">PIN Code</label><input type="text" id="suPinCode" class="form-control form-control-sm" inputmode="numeric" maxlength="6" list="suPinCodeList" placeholder="Type or select 6 digit PIN"><datalist id="suPinCodeList"></datalist></div>
           </div>
-          <div class="col-12 mb-2"><label class="form-label small">Reporting Manager *</label><select id="suReportingManagers" class="form-select form-select-sm" required></select></div>
+          <div class="col-12 mb-2"><label class="form-label small">Reporting Manager(s)</label><select id="suReportingManagers" multiple size="4" class="form-select form-select-sm"></select><small class="text-muted">Multiple reporting managers can be selected when available.</small></div>
           <button type="submit" class="btn btn-success w-100 py-2 mt-2">Submit Account Registration</button>
         </form>
-        <div class="text-center mt-2">
-        </div>
         <div class="text-center mt-3">
           <small class="text-muted">Already registered? <a href="#" class="fw-bold text-decoration-none" onclick="toggleAuthView('login')">Sign In</a></small>
         </div>
@@ -1345,48 +1333,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
               </div>
             </div>
 
-            <div id="masterAdminBackendTools" class="card card-dashboard p-2 p-md-3 mb-3 border-start border-danger border-4 d-none"><h6 class="fw-bold"><i class="bi bi-database-gear text-danger me-1"></i> Master Admin Backend & Database</h6><div class="small text-muted mb-2">Backend controls are available only to Master Admin. Use migration after updating the application schema; existing records are preserved.</div>
-
-<div id="masterAdminDatabaseIntegration" class="kosol-db-card card card-dashboard p-2 p-md-3 mb-3 d-none">
-  <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
-    <div>
-      <h6 class="fw-bold mb-1"><i class="bi bi-database-gear me-1"></i> Database Integration / Migration</h6>
-      <div class="small text-muted">Master Admin can configure, test, activate and migrate the application database. Existing Google Sheets/App Script remains available as a fallback.</div>
-    </div>
-    <div id="kosolDbStatus" class="kosol-db-status small"><span class="kosol-db-dot"></span><span>Not loaded</span></div>
-  </div>
-  <div class="kosol-db-secret-note mt-2 mb-3"><i class="bi bi-shield-lock me-1"></i> Credentials are sent only to the existing backend. Database secrets are never saved in this HTML or browser localStorage.</div>
-  <div class="kosol-db-provider-grid mb-3" id="kosolDbProviderGrid">
-    <button type="button" class="kosol-db-provider" data-provider="supabase" onclick="selectKosolDatabaseProvider('supabase')"><i class="bi bi-cloud-check"></i>Supabase</button>
-  </div>
-  <form id="kosolDatabaseConfigForm" class="kosol-db-fields">
-    <input type="hidden" id="kosolDbProvider">
-    <div class="row g-2">
-      <div class="col-12 col-md-6"><label class="form-label">Connection / API URL</label><input id="kosolDbUrl" class="form-control form-control-sm" placeholder="https://project.supabase.co or JDBC/API endpoint"></div>
-      <div class="col-6 col-md-3"><label class="form-label">Host</label><input id="kosolDbHost" class="form-control form-control-sm" placeholder="db.example.com"></div>
-      <div class="col-6 col-md-3"><label class="form-label">Port</label><input id="kosolDbPort" class="form-control form-control-sm" placeholder="5432"></div>
-      <div class="col-6 col-md-4"><label class="form-label">Database / Project Ref</label><input id="kosolDbName" class="form-control form-control-sm"></div>
-      <div class="col-6 col-md-4"><label class="form-label">Schema</label><input id="kosolDbSchema" class="form-control form-control-sm" value="public"></div>
-      <div class="col-12 col-md-4"><label class="form-label">Username</label><input id="kosolDbUsername" class="form-control form-control-sm" autocomplete="off"></div>
-      <div class="col-12 col-md-6"><label class="form-label">Password / Secret</label><input id="kosolDbSecret" type="password" class="form-control form-control-sm" autocomplete="new-password" placeholder="Leave blank to keep existing secret"></div>
-      <div class="col-12 col-md-6"><label class="form-label">API Key / Connection String</label><input id="kosolDbApiKey" type="password" class="form-control form-control-sm" autocomplete="new-password" placeholder="Leave blank to keep existing secret"></div>
-      <div class="col-12 col-md-6"><label class="form-label">SSL Mode</label><select id="kosolDbSsl" class="form-select form-select-sm"><option value="require">Require</option><option value="verify-full">Verify Full</option><option value="disable">Disable</option></select></div>
-      <div class="col-12 col-md-6"><label class="form-label">Migration Batch Size</label><input id="kosolDbBatchSize" type="number" min="50" max="5000" value="500" class="form-control form-control-sm"></div>
-    </div>
-    <div class="d-flex gap-2 flex-wrap mt-3">
-      <button type="button" class="btn btn-sm btn-outline-info" onclick="testKosolDatabaseConnection()"><i class="bi bi-plug me-1"></i>Test Connection</button>
-      <button type="button" class="btn btn-sm btn-outline-primary" onclick="saveKosolDatabaseConfig()"><i class="bi bi-save me-1"></i>Save Configuration</button>
-      <button type="button" class="btn btn-sm btn-warning text-dark fw-bold" onclick="activateKosolDatabaseProvider()"><i class="bi bi-toggle-on me-1"></i>Activate Database</button>
-      <button type="button" class="btn btn-sm btn-outline-danger" onclick="migrateKosolDatabaseNow()"><i class="bi bi-database-up me-1"></i>Run Migration</button>
-      <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadKosolDatabaseStatus(true)"><i class="bi bi-arrow-clockwise me-1"></i>Refresh Status</button>
-    </div>
-  </form>
-  <div class="row g-2 mt-2">
-    <div class="col-12 col-lg-6"><div class="small fw-bold mb-1">Migration / Activation Log</div><div id="kosolDbMigrationLog" class="kosol-db-migration-log">No database operation has been performed in this session.</div></div>
-    <div class="col-12 col-lg-6"><div class="small fw-bold mb-1">Migration History</div><div class="table-responsive border rounded"><table class="table table-sm table-striped mb-0"><thead><tr><th>Provider</th><th>Operation</th><th>Status</th><th>Started</th></tr></thead><tbody id="kosolDbHistoryBody"><tr><td colspan="4" class="text-center text-muted">No history loaded.</td></tr></tbody></table></div></div>
-  </div>
-</div>
-<div class="d-flex gap-2 flex-wrap"><button class="btn btn-sm btn-outline-primary" onclick="openBackendSettings()"><i class="bi bi-link-45deg me-1"></i> Backend Settings</button><button class="btn btn-sm btn-outline-info" onclick="testBackendConnection(true)"><i class="bi bi-activity me-1"></i> Test Backend</button><button class="btn btn-sm btn-outline-danger" onclick="migrateDatabaseNow()"><i class="bi bi-database-check me-1"></i> Database Migration</button></div></div>
+            <div id="masterAdminBackendTools" class="card card-dashboard p-2 p-md-3 mb-3 border-start border-danger border-4 d-none"><h6 class="fw-bold"><i class="bi bi-database-gear text-danger me-1"></i> Master Admin Backend & Database</h6><div class="small text-muted mb-2">Backend controls are available only to Master Admin. Use migration after updating the application schema; existing records are preserved.</div><div class="d-flex gap-2 flex-wrap"><button class="btn btn-sm btn-outline-primary" onclick="openBackendSettings()"><i class="bi bi-link-45deg me-1"></i> Backend Settings</button><button class="btn btn-sm btn-outline-info" onclick="testBackendConnection(true)"><i class="bi bi-activity me-1"></i> Test Backend</button><button class="btn btn-sm btn-outline-danger" onclick="migrateDatabaseNow()"><i class="bi bi-database-check me-1"></i> Database Migration</button></div></div>
 
 <div id="masterAdminUserDirectory" class="card card-dashboard p-2 p-md-3 d-none">
               <h6 class="fw-bold text-dark mb-2"><i class="bi bi-people-fill text-primary me-1"></i> Registered Users Directory (Master Admin Control)</h6>
@@ -1492,7 +1439,6 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
               <option value="National Head">National Head</option>
               <option value="State Head">State Head</option>
               <option value="Regional Head">Regional Head</option>
-              <option value="Team Coordinator">Team Coordinator</option>
               <option value="Senior Sales Executive">Senior Sales Executive</option>
               <option value="Area Sales Officer">Area Sales Officer</option>
               <option value="Sales Executive">Sales Executive</option>
@@ -1598,7 +1544,6 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
               <option value="National Head">National Head (CEO)</option>
               <option value="State Head">State Head</option>
               <option value="Regional Head">Regional Head</option>
-              <option value="Team Coordinator">Team Coordinator</option>
               <option value="Senior Sales Executive">Senior Sales Executive</option>
             </select>
           </div>
@@ -1809,22 +1754,20 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     return true;
   }
 
-  // Supabase is the ONLY primary application backend. No Google Apps Script URL is used.
-  const SUPABASE_URL = "https://batkezvcxifdualntadd.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_vcCFjFdsJSAxhbH594xd6A_0RXIXUv_";
-  const SUPABASE_API_URL = SUPABASE_URL + "/rest/v1";
-  const SUPABASE_AUTH_URL = SUPABASE_URL + "/auth/v1";
-  const SUPABASE_APP_FUNCTION = "kosol-app-api";
-  let supabaseClient = null;
-  function getSupabaseClient(){
-    if(supabaseClient) return supabaseClient;
-    if(!window.supabase || typeof window.supabase.createClient !== 'function') throw new Error('Supabase client library is not loaded.');
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'kosol-supabase-auth'}
-    });
-    return supabaseClient;
-  }
-  const SCRIPT_URL = ''; // Compatibility placeholder only; no Google Apps Script endpoint is used.
+  // SUPABASE CONFIGURATION
+  // The anon/publishable key is safe for browser use when Row Level Security is enabled.
+  // NEVER place a Supabase service_role key in this file.
+  const SUPABASE_CONFIG = {
+    url: "https://mxcjuncxdnaxzclrpetb.supabase.co",
+    anonKey: "sb_publishable_0djjQgzLtl5Geuj3RcinoA_P5WgrMeS"
+  };
+  const SUPABASE_ENABLED = !!(SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey && window.supabase);
+  const supabaseClient = SUPABASE_ENABLED ? window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  }) : null;
+  // Kept for compatibility with the legacy backend-settings UI. Supabase is now the primary backend.
+  const DEFAULT_SCRIPT_URL = "";
+  const SCRIPT_URL = "";
 
   let currentUser = null;
   let rawData = { clients: [], tasks: [], coldCalls: [], approvals: [], salesOrders: [], targets: [], notifications: [], todayAttendance: null };
@@ -1852,9 +1795,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   let lastSnapshotSavedAt = 0;
   const BACKGROUND_REFRESH_REASONS = new Set(['auto-poll','tab-visible','pageshow','cross-tab','online','focus']);
   const FRESH_FETCH_REASONS = new Set(['auto-poll','cross-tab','online','focus']);
-  const POLL_BASE_MS = 45000;      // check for changes every 30s while the tab is visible
-  const POLL_IDLE_MS = 120000;      // slow down after several unchanged checks
-  const POLL_MAX_MS = 180000;      // back-off ceiling after failures
+  const POLL_BASE_MS = 90000;      // background synchronization every 90s while visible
+  const POLL_IDLE_MS = 180000;     // slow down after several unchanged checks
+  const POLL_MAX_MS = 300000;      // back-off ceiling after failures
   function quickHash(s){let h=5381,i=s.length;while(i)h=(h*33)^s.charCodeAt(--i);return (h>>>0).toString(36)+':'+s.length;}
 
   // Performance: fingerprint only stable record identity/version fields instead of
@@ -1937,13 +1880,12 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     if (u.role === "National Head") return "National Head (CEO) - India";
     if (u.role === "State Head") return `State Head - ${stateStr}`;
     if (u.role === "Regional Head") return `Regional Head - ${stateStr} - ${regionStr}`;
-    if (u.role === "Team Coordinator") return "Team Coordinator - Global / All Users";
     if (u.role === "Sales Executive" || u.role === "Senior Sales Executive" || u.role === "Area Sales Officer") return `${u.role} - ${districtStr}`;
     return `${u.role}`;
   }
 
   let reportingManagerDirectory=[];
-  async function loadPublicReportingManagers(){try{const ids=['muReportingManagers','editUserReportingManagers'];ids.forEach(id=>initSmartMultiSelect(id));const r=await callBackendFast('getReportingManagers',{});if(r?.success){reportingManagerDirectory=r.managers||[];populateReportingManagerSelect('suReportingManagers',reportingManagerDirectory);populateReportingManagerSelect('muReportingManagers');populateReportingManagerSelect('editUserReportingManagers');}}catch(err){console.warn('Reporting manager list unavailable',err);}}
+  async function loadPublicReportingManagers(){try{const ids=['suReportingManagers','muReportingManagers','editUserReportingManagers'];ids.forEach(id=>initSmartMultiSelect(id));const r=await callBackendFast('getReportingManagers',{});if(r?.success){reportingManagerDirectory=r.managers||[];populateReportingManagerSelect('suReportingManagers',reportingManagerDirectory);populateReportingManagerSelect('muReportingManagers');populateReportingManagerSelect('editUserReportingManagers');}}catch(err){console.warn('Reporting manager list unavailable',err);}}
 
   document.getElementById('publicSignupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1952,10 +1894,13 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       email: document.getElementById('suEmail').value,
       phone: document.getElementById('suPhone').value,
       password: document.getElementById('suPassword').value,
-      address: document.getElementById('suAddress').value.trim(),
+      role: document.getElementById('suRole').value,
       states: getValsOrOther('suStates'),
       regions: getValsOrOther('suRegions'),
       districts: getValsOrOther('suDistricts'),
+      tehsils: getValsOrOther('suTehsil'),
+      cities: getValsOrOther('suCityVillage'),
+      pinCodes: getVals('suPinCode'),
       reportingManagers: getSelectedReportingManagers('suReportingManagers'),
       reportingTo: getSelectedReportingManagers('suReportingManagers')
     };
@@ -1973,16 +1918,14 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   });
 
   function isValidScriptUrl(value){ return false; }
-  function openBackendSettings(){
-    showOperationMessage('Supabase is the active backend','This application no longer uses a Google Apps Script URL. The active Supabase project is configured in the application.','success');
-  }
 
-  async function syncAllUsersToSupabaseAuth(showMessage=true){
-    if(currentUser?.role!=='Master Admin')return {success:false,message:'Only Master Admin can synchronize application users to Supabase Auth.'};
-    if(showMessage)showProcessingMessage('Supabase Auth setup','Creating/linking missing Auth accounts for application users…');
-    const r=await callBackend('syncApplicationUsersToAuth',{});
-    if(showMessage){closeOperationMessage();showOperationMessage(r.success?'Supabase Auth synchronization complete':'Supabase Auth synchronization failed',r.message||'Unable to synchronize users.',r.success?'success':'error');}
-    return r;
+  function openBackendSettings(){
+    const current=localStorage.getItem('solar_erp_script_url')||DEFAULT_SCRIPT_URL;
+    const value=prompt('Enter the deployed backend Web App /exec URL:',current);
+    if(value===null)return;
+    const v=value.trim();
+    if(!isValidScriptUrl(v)){showOperationMessage('Invalid backend URL','Please enter the full backend Web App URL ending in /exec.','error');return;}
+    localStorage.setItem('solar_erp_script_url',v); location.reload();
   }
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -2009,10 +1952,10 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       }
       persistSession();
       setupAppShell();
-      if(currentUser?.role==='Master Admin'){
-        setTimeout(()=>syncAllUsersToSupabaseAuth(false).catch(err=>console.warn('Auth user synchronization skipped:',err)),700);
-      }
       allowPageExit=false;
+      // After authentication, hydrate all application datasets in parallel.
+      // The UI is already visible, while every module's data is fetched immediately.
+      loadAllApplicationDataAfterLogin().catch(err=>console.warn('[Kosol] initial application data load failed:',err));
       showUserSessionPopup('welcome');
       setTimeout(syncMobileNavbarHeight,0);
     } else {
@@ -2066,6 +2009,37 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     welcomeShownThisSession=true; el.classList.remove('d-none','hide');
   }
 
+  async function loadAllApplicationDataAfterLogin(){
+    if(!currentUser) return false;
+    if(window.__kosolAllDataLoadPromise) return window.__kosolAllDataLoadPromise;
+    window.__kosolAllDataLoadPromise=(async()=>{
+      const safe=async(label,fn)=>{
+        try{return await fn();}
+        catch(e){console.warn('[Kosol] '+label+' load skipped:',e);return null;}
+      };
+      // The dashboard snapshot is the primary atomic read for core modules.
+      // The additional reads below hydrate every independently loaded area immediately
+      // after authentication instead of waiting for the user to open a tab.
+      await Promise.allSettled([
+        safe('dashboard',()=>refreshData({silent:true,reason:'initial-load',force:true})),
+        safe('locations',()=>loadLocationData()),
+        safe('user directory',()=>ensureDashboardUserDirectory()),
+        safe('reporting managers',()=>loadPublicReportingManagers()),
+        safe('projects',()=>loadSolarProjects()),
+        safe('chat users',()=>callBackendFast('getChatUsers',currentUser||{})),
+        safe('chat messages',()=>callBackendFast('getChatMessages',currentUser||{})),
+        safe('notifications',()=>callBackendFast('getNotifications',currentUser||{})),
+        safe('targets',()=>callBackendFast('getTargets',currentUser||{})),
+        safe('attendance approvals',()=>currentUser.role==='Master Admin'?callBackendFast('getPendingAttendanceApprovals',currentUser||{}):Promise.resolve(null)),
+        safe('pending users',()=>currentUser.role==='Master Admin'?fetchPendingUsers():Promise.resolve(null))
+      ]);
+      try{ applyDashboardFilters(); }catch(e){}
+      try{ renderDashboardUserFilters(); }catch(e){}
+      return true;
+    })().finally(()=>{window.__kosolAllDataLoadPromise=null;});
+    return window.__kosolAllDataLoadPromise;
+  }
+
   function setupAppShell() {
     persistSession();
     document.getElementById('authScreen').classList.add('d-none');
@@ -2090,24 +2064,18 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       document.getElementById('mobileMenuUserManagement').classList.remove('d-none');
     }
 
-    if(isTeamCoordinatorUser(currentUser)){
-      document.getElementById('dashboardScopeHeader').innerText='Scope: Team Coordinator - All Users / All Heads';
-    }
-
     if(currentUser.role === "Master Admin") {
       document.getElementById('adminApprovalSection').classList.remove('d-none');
       document.getElementById('masterAdminUserDirectory').classList.remove('d-none');
       document.getElementById('masterAdminBackendTools')?.classList.remove('d-none');
-      document.getElementById('masterAdminDatabaseIntegration')?.classList.remove('d-none');
       document.getElementById('btnRefreshLocationMaster')?.classList.remove('d-none');
-      setTimeout(()=>loadKosolDatabaseStatus(false),900);
-      // Do not compete with the initial dashboard request. Admin-only data is deferred.
+      // Master Admin data is also hydrated immediately after login.
       if(deferredAdminTimer) clearTimeout(deferredAdminTimer);
-      deferredAdminTimer=setTimeout(()=>{if(currentUser?.role==='Master Admin') fetchPendingUsers();},3200);
+      deferredAdminTimer=null;
     }
 
-    // Location master is needed by entry forms, not by the initial dashboard.
-    // Load it after the dashboard has started so login feels immediate.
+    // Location data is loaded immediately by loadAllApplicationDataAfterLogin().
+    // Keep the deferred timer as a safety fallback only.
     scheduleDeferredLocationData();
     setTimeout(()=>{if(currentUser&&document.visibilityState==='visible')touchUserActivity();},1800);
     persistSession();
@@ -2220,7 +2188,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       if(!res || res.success===false || !payload){
         if(options.reason==='auto-poll') pollFailureCount++;
         showDataSyncStatus('error',res?.message||payload?.message||'Unable to load dashboard data.');
-        if(!silent || options.reason==='initial-load') showOperationMessage('Data loading failed',res?.message||payload?.message||'Unable to load dashboard data.','error');
+        if(!silent && options.reason!=='auto-poll' && options.reason!=='tab-visible' && options.reason!=='focus' && options.reason!=='online' && options.reason!=='pageshow' && options.reason!=='cross-tab') showOperationMessage('Data loading failed',res?.message||payload?.message||'Unable to load dashboard data.','error');
         return false;
       }
 
@@ -2448,13 +2416,6 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   function isMasterAdminUser(){
     return String(currentUser?.role||'').trim().toLowerCase()==='master admin';
   }
-  function isTeamCoordinatorUser(user=currentUser){
-    return String(user?.role||'').trim().toLowerCase()==='team coordinator';
-  }
-  function hasGlobalReadScope(user=currentUser){
-    const r=String(user?.role||'').trim().toLowerCase();
-    return r==='master admin'||r==='admin'||r==='team coordinator';
-  }
   function recordOwnerMatchesUser(record){
     if(!record || !currentUser) return false;
     if(isMasterAdminUser()) return true;
@@ -2552,7 +2513,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     const record=rawData.clients.find(x=>String(x.id)===String(clientId));
     if(!record || !requireOwnRecord(record,'delete')) return;
     if(!confirm("Are you sure you want to delete this client record?")) return;
-    const res = await callBackend('deleteClient', ownershipPayload({ id: clientId },record));
+    const resolvedId=record.id||record.recordId||record.clientId||clientId;
+    const res = await callBackend('deleteClient', ownershipPayload({ id:String(resolvedId), recordId:String(resolvedId), clientId:String(resolvedId), record },record));
     if(res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
       refreshData();
@@ -2599,7 +2561,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     const record=rawData.coldCalls.find(x=>String(x.id)===String(ccId));
     if(!record || !requireOwnRecord(record,'delete')) return;
     if (!confirm("Are you sure you want to delete this cold call log entry?")) return;
-    const res = await callBackend('deleteColdCall', ownershipPayload({ id: ccId },record));
+    const resolvedId=record.id||record.recordId||record.coldCallId||ccId;
+    const res = await callBackend('deleteColdCall', ownershipPayload({ id:String(resolvedId), recordId:String(resolvedId), coldCallId:String(resolvedId), record },record));
     if (res.success) {
       showModuleResult('Operation completed',res.message||'The operation was completed successfully.');
       refreshData();
@@ -2640,7 +2603,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     if(!payload.states.length||!payload.regions.length){showOperationMessage('Territory required','Select State(s) and Region(s) before creating the user.','error');return;}
     showProcessingMessage('Creating user','Creating login credentials and activating the user...');
     try{
-      const res=await callBackend('createManagedUser',payload);
+      const res=await callBackend('selfRegister',payload);
       if(!res?.success){showOperationMessage('User creation failed',res?.message||'Unable to create user.','error');return;}
       const newId=res.user?.id||res.userId||res.id||res.data?.userId||res.data?.id;
       if(newId)await callBackend('processUserApproval',{userId:newId,approve:true});
@@ -3921,7 +3884,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     const cleanArr=v=>Array.isArray(v)?v.map(x=>String(x||'').trim()).filter(Boolean):String(v||'').split(/[,|]/).map(x=>x.trim()).filter(Boolean);
     const norm=v=>String(v||'').trim().toLowerCase();
     const uniq=a=>[...new Set((a||[]).map(x=>String(x||'').trim()).filter(Boolean))];
-    const roleOrder={'Master Admin':0,'Admin':1,'National Head':2,'State Head':3,'Regional Head':4,'Team Coordinator':5,'Area Sales Officer':6,'Senior Sales Executive':7,'Sales Executive':8};
+    const roleOrder={'Master Admin':0,'Admin':1,'National Head':2,'State Head':3,'Regional Head':4,'Area Sales Officer':5,'Senior Sales Executive':6,'Sales Executive':7};
     const roleLabel=r=>r||'User';
     const detail=(u)=>{
       const states=cleanArr(u.states), regions=cleanArr(u.regions), districts=cleanArr(u.districts), tehsils=cleanArr(u.tehsils), cities=cleanArr(u.cities||u.cityVillage), pins=cleanArr(u.pinCodes||u.pins);
@@ -3941,7 +3904,6 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     const national=active.filter(u=>u.role==='National Head');
     const stateHeads=active.filter(u=>u.role==='State Head');
     const regional=active.filter(u=>u.role==='Regional Head');
-    const coordinators=active.filter(u=>u.role==='Team Coordinator');
     const senior=active.filter(u=>u.role==='Senior Sales Executive');
     const areaSales=active.filter(u=>u.role==='Area Sales Officer');
     const sales=active.filter(u=>u.role==='Sales Executive');
@@ -4141,7 +4103,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   function dashboardHeadTeam(head,users){
     const list=(users||allUsersList||[]).filter(u=>u&&dashboardNorm(u.status||u.approvalStatus||'active')!=='rejected');
     if(!head)return [];
-    if(head.role==='Master Admin'||head.role==='Admin'||head.role==='Team Coordinator')return list;
+    if(head.role==='Master Admin'||head.role==='Admin')return list;
 
     const identityKeys=u=>new Set([u?.id,u?.userId,u?.email,u?.name].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm));
     const keyOf=u=>dashboardNorm(u?.id||u?.userId||u?.email||u?.name||'');
@@ -4180,7 +4142,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   function dashboardEligibleUsers(){
     const users=Array.isArray(allUsersList)?allUsersList:[], me=currentUser||{};
     const activeUsers=users.filter(u=>u&&dashboardNorm(u.status||u.approvalStatus||'active')!=='rejected');
-    if(me.role==='Master Admin'||me.role==='Admin'||me.role==='Team Coordinator') return activeUsers;
+    if(me.role==='Master Admin'||me.role==='Admin') return activeUsers;
     const ids=u=>new Set([u?.id,u?.userId,u?.email,u?.name,u?.employeeId].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm));
     const myIds=ids(me);
     const same=(a,b)=>[...ids(a)].some(x=>ids(b).has(x));
@@ -4311,7 +4273,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
 
     const states=[...new Set(users.flatMap(u=>dashboardArr(u.states)).filter(v=>!dashboardIsAll(v)))].sort((a,b)=>a.localeCompare(b));
     let stateSel=null;
-    if(currentUser.role==='Master Admin'||currentUser.role==='National Head'||currentUser.role==='Team Coordinator'){
+    if(currentUser.role==='Master Admin'||currentUser.role==='National Head'){
       stateSel=add('dashboardStateFilter','State',states.map(x=>({value:x,text:x})));
     }
 
@@ -5461,9 +5423,9 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
   function renderDashboardTargetSummary(){const box=document.getElementById('dashboardTargetSummary');if(!box)return;const ts=rawData.targets||[];if(!ts.length){box.innerHTML='<div class="text-muted small">No targets created yet. Use My Target to create one.</div>';return;}box.innerHTML=ts.slice(0,8).map(t=>{const ach=targetAchievementLocal(t,rawData.salesOrders||[]),tar=salesOrderNum(t.targetValue||t.target||0),pct=tar?Math.min(100,ach/tar*100):0;return `<div class="mb-3"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><b>${escapeHtml(t.targetName||'Target')}</b><small class="d-block text-muted">${escapeHtml(t.product||'')} · ${escapeHtml(t.metric||'Amount')} · ${escapeHtml(t.pvType||'')} · ${escapeHtml(t.salesType||'All')} · ${escapeHtml(targetPeriodLabel(t))}</small></div><div class="fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})} / ${tar.toLocaleString('en-IN',{maximumFractionDigits:2})} (${pct.toFixed(1)}%)</div></div><div class="progress mt-1" style="height:9px"><div class="progress-bar bg-warning" style="width:${pct}%"></div></div></div>`;}).join('');}
   function targetEndLocal(period,start,end){const x=appDateOnly(start||appToday());if(!x)return appToday();const [y,m,d]=x.split('-').map(Number);if(period==='CUSTOM')return appDateOnly(end)||x;if(period==='DAILY')return x;if(period==='WEEKLY'){const e=new Date(y,m-1,d);e.setDate(e.getDate()+6);return [e.getFullYear(),String(e.getMonth()+1).padStart(2,'0'),String(e.getDate()).padStart(2,'0')].join('-');}if(period==='MONTHLY'){const e=new Date(y,m,0);return [e.getFullYear(),String(e.getMonth()+1).padStart(2,'0'),String(e.getDate()).padStart(2,'0')].join('-');}if(period==='YEARLY')return `${y}-12-31`;return x;}
   async function showTargetForm(r={}){const html=`<form id="targetForm"><input type="hidden" id="tgId" value="${escapeAttr(r.id||'')}"><div class="row g-2"><div class="col-12 col-md-6"><label class="form-label small fw-bold">Target Name *</label><input id="tgName" class="form-control form-control-sm" required value="${escapeAttr(r.targetName||'')}"></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Period *</label><select id="tgPeriod" class="form-select form-select-sm"><option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option><option value="YEARLY">Yearly</option><option value="CUSTOM">Custom Date</option></select></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Period Start *</label><input id="tgStart" type="date" class="form-control form-control-sm" required value="${escapeAttr(appDateOnly(r.startDate)||appToday())}"></div><div class="col-6 col-md-3"><label class="form-label small">Custom End</label><input id="tgEnd" type="date" class="form-control form-control-sm" value="${escapeAttr(appDateOnly(r.endDate)||'')}"></div><div class="col-12 col-md-5"><label class="form-label small fw-bold">Product *</label><select id="tgProduct" class="form-select form-select-sm"><option>Solar PV Modules</option><option>Solar Water Heater</option><option>Solar EPC Projects - Utility/C & I/Residentials</option></select></div><div class="col-6 col-md-2"><label class="form-label small fw-bold">Sales Type</label><select id="tgSalesType" class="form-select form-select-sm"><option>All</option><option>Primary Sale</option><option>Secondary Sales</option><option>Other</option></select></div><div class="col-6 col-md-2" id="tgPvWrap"><label class="form-label small fw-bold">PV Type</label><select id="tgPvType" class="form-select form-select-sm"><option>Both</option><option>DCR</option><option>N-DCR</option></select></div><div class="col-6 col-md-2"><label class="form-label small fw-bold">Metric</label><select id="tgMetric" class="form-select form-select-sm"><option>Amount</option><option>kW</option><option>Quantity</option><option>LPD</option><option>Orders</option></select></div><div class="col-6 col-md-1"><label class="form-label small fw-bold">Target</label><input id="tgValue" type="number" min="0" step="any" class="form-control form-control-sm" required value="${escapeAttr(r.targetValue??0)}"></div></div><div class="small text-muted mt-2" id="tgPeriodPreview"></div><div class="text-end mt-3"><button type="button" class="btn btn-outline-secondary me-2" onclick="closeModal()">Close</button><button class="btn btn-warning text-dark fw-bold">Save Target</button></div></form>`;modal(html);document.getElementById('tgPeriod').value=r.periodType||'DAILY';document.getElementById('tgProduct').value=r.product||'Solar PV Modules';document.getElementById('tgSalesType').value=r.salesType||'All';document.getElementById('tgPvType').value=r.pvType||'Both';document.getElementById('tgMetric').value=r.metric||'Amount';const sync=()=>{const per=document.getElementById('tgPeriod').value,pr=document.getElementById('tgProduct').value;document.getElementById('tgEnd').disabled=per!=='CUSTOM';document.getElementById('tgPvWrap').classList.toggle('d-none',pr!=='Solar PV Modules');document.getElementById('tgPeriodPreview').textContent=`Effective period: ${document.getElementById('tgStart').value||''} → ${targetEndLocal(per,document.getElementById('tgStart').value,document.getElementById('tgEnd').value)}`;};['tgPeriod','tgStart','tgEnd','tgProduct'].forEach(id=>document.getElementById(id)?.addEventListener('change',sync));sync();document.getElementById('targetForm').onsubmit=async e=>{e.preventDefault();showProcessingMessage('Saving Target','Submitting target information to the backend. Please wait...');const period=document.getElementById('tgPeriod').value,product=document.getElementById('tgProduct').value;const payload={id:document.getElementById('tgId').value,targetName:document.getElementById('tgName').value.trim(),periodType:period,startDate:document.getElementById('tgStart').value,endDate:document.getElementById('tgEnd').value,product,salesType:document.getElementById('tgSalesType').value,pvType:product==='Solar PV Modules'?document.getElementById('tgPvType').value:'',metric:document.getElementById('tgMetric').value,targetValue:Number(document.getElementById('tgValue').value||0)};try{const r2=await callBackend('saveTarget',payload);if(!r2.success)throw Error(r2.message||'Target save failed.');showOperationMessage('Target saved',r2.message,'success');closeModal(true);await refreshData({silent:true});renderTargetModule();renderDashboardCharts();}catch(err){showOperationMessage('Target not saved',err.message,'error');}};}
-  function renderTargetModule(){const tb=document.getElementById('targetTableBody');if(!tb)return;const ts=rawData.targets||[];const orders=rawData.salesOrders||[];const rows=ts.slice().sort((a,b)=>String(b.startDate).localeCompare(String(a.startDate)));tb.innerHTML=rows.length?rows.map(t=>{const ach=targetAchievementLocal(t,orders),tar=salesOrderNum(t.targetValue||0),pct=tar?Math.min(100,ach/tar*100):0;return `<tr><td><b>${escapeHtml(t.targetName||'')}</b><small class="d-block text-muted">${escapeHtml(t.userEmail||'')}</small></td><td>${escapeHtml(targetPeriodLabel(t))}</td><td>${escapeHtml(t.product||'')}</td><td>${escapeHtml(t.salesType||'All')}</td><td>${escapeHtml(t.pvType||'-')}</td><td>${escapeHtml(t.metric||'Amount')}</td><td>${tar.toLocaleString('en-IN',{maximumFractionDigits:2})}</td><td>${ach.toLocaleString('en-IN',{maximumFractionDigits:2})}</td><td><b>${pct.toFixed(1)}%</b><div class="progress mt-1" style="height:6px"><div class="progress-bar bg-warning" style="width:${pct}%"></div></div></td><td><button class="btn btn-sm btn-outline-primary me-1" onclick='showTargetForm(${JSON.stringify(t).replace(/'/g,"&#39;")})'>Edit</button><button class="btn btn-sm btn-outline-danger" onclick="deleteTarget('${escapeAttr(t.id)}')">Delete</button></td></tr>`;}).join(''):'<tr><td colspan="10" class="text-center text-muted py-4">No targets created yet.</td></tr>';const k=document.getElementById('targetKpis');if(k){const total=ts.reduce((a,t)=>a+salesOrderNum(t.targetValue),0),ach=ts.reduce((a,t)=>a+targetAchievementLocal(t,orders),0),pct=total?Math.min(100,ach/total*100):0;k.innerHTML=`<div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Targets</small><div class="fs-4 fw-bold">${ts.length}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Target Taken</small><div class="fs-4 fw-bold">${total.toLocaleString('en-IN')}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Achievement</small><div class="fs-4 fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Overall Achievement</small><div class="fs-4 fw-bold">${pct.toFixed(1)}%</div></div></div>`;}}
+  function renderTargetModule(){const tb=document.getElementById('targetTableBody');if(!tb)return;const ts=rawData.targets||[];const orders=rawData.salesOrders||[];const rows=ts.slice().sort((a,b)=>String(b.startDate).localeCompare(String(a.startDate)));tb.innerHTML=rows.length?rows.map(t=>{const ach=targetAchievementLocal(t,orders),tar=salesOrderNum(t.targetValue||0),pct=tar?Math.min(100,ach/tar*100):0;return `<tr><td><b>${escapeHtml(t.targetName||'')}</b><small class="d-block text-muted">${escapeHtml(t.userEmail||'')}</small></td><td>${escapeHtml(targetPeriodLabel(t))}</td><td>${escapeHtml(t.product||'')}</td><td>${escapeHtml(t.salesType||'All')}</td><td>${escapeHtml(t.pvType||'-')}</td><td>${escapeHtml(t.metric||'Amount')}</td><td>${tar.toLocaleString('en-IN',{maximumFractionDigits:2})}</td><td>${ach.toLocaleString('en-IN',{maximumFractionDigits:2})}</td><td><b>${pct.toFixed(1)}%</b><div class="progress mt-1" style="height:6px"><div class="progress-bar bg-warning" style="width:${pct}%"></div></div></td><td><button class="btn btn-sm btn-outline-primary me-1" onclick='showTargetForm(${JSON.stringify(t).replace(/'/g,"&#39;")})'>Edit</button><button class="btn btn-sm btn-outline-danger" onclick="deleteTarget('${escapeAttr(t.id||t.recordId||t.targetId||'')}')">Delete</button></td></tr>`;}).join(''):'<tr><td colspan="10" class="text-center text-muted py-4">No targets created yet.</td></tr>';const k=document.getElementById('targetKpis');if(k){const total=ts.reduce((a,t)=>a+salesOrderNum(t.targetValue),0),ach=ts.reduce((a,t)=>a+targetAchievementLocal(t,orders),0),pct=total?Math.min(100,ach/total*100):0;k.innerHTML=`<div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Targets</small><div class="fs-4 fw-bold">${ts.length}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Target Taken</small><div class="fs-4 fw-bold">${total.toLocaleString('en-IN')}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Achievement</small><div class="fs-4 fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})}</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Overall Achievement</small><div class="fs-4 fw-bold">${pct.toFixed(1)}%</div></div></div>`;}}
   async function refreshTargetModule(){try{const r=await callBackendFast('getTargets',{});if(r.success)rawData.targets=r.targets||[];renderTargetModule();renderDashboardTargetSummary();}catch(e){showOperationMessage('Target refresh failed',e.message,'error');}}
-  async function deleteTarget(id){if(!confirm('Delete this target? Achievement remains derived from Sales Orders.'))return;try{const r=await callBackend('deleteTarget',{id});if(!r.success)throw Error(r.message||'Delete failed.');showOperationMessage('Target deleted',r.message,'success');await refreshData({silent:true});renderTargetModule();renderDashboardCharts();}catch(e){showOperationMessage('Target delete failed',e.message,'error');}}
+  async function deleteTarget(id){const target=(rawData.targets||[]).find(x=>String(x.id||x.recordId||x.targetId)===String(id));const resolvedId=target?.id||target?.recordId||target?.targetId||id;if(!resolvedId){showOperationMessage('Target not deleted','The selected target does not have a valid record ID. Please reload the data and try again.','error');return;}if(!confirm('Delete this target? Achievement remains derived from Sales Orders.'))return;try{const r=await callBackend('deleteTarget',ownershipPayload({id:String(resolvedId),recordId:String(resolvedId),targetId:String(resolvedId),record:target},target));if(!r.success)throw Error(r.message||'Delete failed.');showOperationMessage('Target deleted',r.message,'success');await refreshData({silent:true});renderTargetModule();renderDashboardCharts();}catch(e){showOperationMessage('Target delete failed',e.message,'error');}}
 
 
   // ---------- Import: Clients / Cold Calls / Sales Orders ----------
@@ -5887,6 +5849,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
   }
   async function markOneNotification(id){return notificationCardClick(id);}
   async function openAttendanceNotificationAction(notificationId){closeModal(true);await switchTab('attendance');setTimeout(()=>document.getElementById('attendanceActionContainer')?.scrollIntoView({behavior:'smooth',block:'center'}),250);}
+  async function migrateDatabaseNow(){if(currentUser?.role!=='Master Admin'){showOperationMessage('Access denied','Only Master Admin can run database migration.','error');return;}if(!confirm('Run database migration now? Existing records will be preserved.'))return;showProcessingMessage('Database migration','Updating backend data and normalizing existing sales order data...');const r=await callBackend('migrateDatabase',{});closeOperationMessage();showOperationMessage(r.success?'Migration completed':'Migration failed',r.message,r.success?'success':'error');if(r.success)await refreshData({silent:true});}
 
   function dashboardPeriod(){return document.getElementById('dateFilterType')?.selectedOptions?.[0]?.textContent||'All Time';}
   function dashboardSubject(){return currentUser?.name || 'User';}
@@ -6911,7 +6874,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     catch(e){return String(action||'')+'|'+String(payload||'');}
   }
   function isBackendReadAction(action){
-    return /^(get|fetch|load|list|search|check|validate|dashboard)/i.test(String(action||'')) || String(action||'')==='getDatabaseIntegrationStatus';
+    return /^(get|fetch|load|list|search|check|validate|dashboard)/i.test(String(action||''));
   }
   let backendCacheGeneration=0;
 
@@ -6986,90 +6949,366 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     return v;
   }
 
-  async function callBackendRaw(action, payload) {
-    const requestPayload=(payload && typeof payload==='object')?Object.assign({},payload):{};
-    const publicActions=new Set(['login','selfRegister','bootstrapMasterAdmin','health','getReportingManagers','requestPasswordResetOtp','resetPasswordWithOtp']);
+  // ============================================================
+  // SUPABASE BACKEND ADAPTER
+  // Keeps the existing application action names intact while replacing
+  // Google Apps Script/Google Sheets operations with Supabase.
+  // ============================================================
+  const SUPABASE_MODULE_MAP = {
+    clients:'clients', coldCalls:'coldCalls', salesOrders:'salesOrders', targets:'targets',
+    tasks:'tasks', approvals:'approvals', notifications:'notifications', attendance:'attendance',
+    projects:'projects', projectTasks:'projectTasks', projectInvoices:'projectInvoices',
+    users:'users', user:'users'
+  };
+  // Each module owns exactly one kind of id. Cross-reference ids (e.g. a cold call's clientId)
+  // must never be used as that record's own key.
+  const SB_ID_FIELDS={clients:['clientId'],coldCalls:['coldCallId'],salesOrders:['orderId','salesOrderId'],targets:['targetId'],tasks:['taskId'],projects:['projectId'],projectTasks:['taskId'],projectInvoices:['invoiceId'],approvals:['approvalId','requestId'],notifications:['notificationId'],attendance:['attendanceId']};
+  const SB_ID_PREFIX={clients:'CL',coldCalls:'CC',salesOrders:'SO',targets:'TG',tasks:'TK',approvals:'AP',notifications:'NT',attendance:'AT',projects:'PR',projectTasks:'PT',projectInvoices:'PI',taskReplies:'TR'};
+  function sbNewId(module){
+    const pre=SB_ID_PREFIX[module]||'REC';
+    return pre+'-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase();
+  }
+  function sbRow(row){
+    const d=row?.data && typeof row.data==='object' ? row.data : {};
+    const _has=v=>v!==undefined&&v!==null&&String(v).trim()!=='';
+    const derivedId=[row?.record_id,d.id,d.recordId,...(SB_ID_FIELDS[row?.module]||[]).map(k=>d[k]),row?.id].find(_has)??'';
+    return Object.assign({}, d, {
+      id: derivedId,
+      userId: d.userId ?? row.owner_id ?? row.created_by,
+      ownerId: d.ownerId ?? row.owner_id,
+      userEmail: d.userEmail ?? row.owner_email,
+      ownerEmail: d.ownerEmail ?? row.owner_email,
+      createdBy: d.createdBy ?? row.created_by_email,
+      createdAt: d.createdAt ?? row.created_at,
+      updatedAt: d.updatedAt ?? row.updated_at,
+      state: d.state ?? row.state,
+      region: d.region ?? row.region,
+      district: d.district ?? row.district,
+      city: d.city ?? row.city,
+      village: d.village ?? row.village,
+      status: d.status ?? row.status
+    });
+  }
+  function sbModuleFromAction(action,payload={}){
+    const a=String(action||'');
+    const low=a.toLowerCase();
+    // Explicit aliases first. This prevents action-name variations from falling
+    // through to the old "adapter does not implement" message.
+    if(/projectinvoice|generateprojectinvoice/.test(low)) return 'projectInvoices';
+    if(/projecttask|saveprojecttask/.test(low)) return 'projectTasks';
+    if(/projectstage|saveproject|updateprojectstage|getprojectdata|projectdata/.test(low)) return 'projects';
+    if(/salesorder|sales_order|sales order/.test(low)) return 'salesOrders';
+    if(/coldcall|cold_call|cold call/.test(low)) return 'coldCalls';
+    if(/client|lead/.test(low)) return 'clients';
+    if(/target/.test(low)) return 'targets';
+    if(/attendance/.test(low)) return 'attendance';
+    if(/approval/.test(low)) return 'approvals';
+    if(/notification/.test(low)) return 'notifications';
+    if(/taskreply/.test(low)) return 'taskReplies';
+    if(/task/.test(low)) return 'tasks';
+    // Payload module is accepted as a final explicit hint for custom CRUD calls.
+    const pm=String(payload?.module||'').trim();
+    if(SUPABASE_MODULE_MAP[pm]) return SUPABASE_MODULE_MAP[pm];
+    return null;
+  }
+  function sbCrudOperation(action){
+    const a=String(action||'').toLowerCase();
+    if(/^delete|^remove/.test(a)) return 'delete';
+    if(/^update|^edit|^patch/.test(a)) return 'update';
+    if(/^save|^create|^add|^insert|^submit/.test(a)) return 'insert';
+    if(/^process|^assign|^mark/.test(a)) return 'upsert';
+    return null;
+  }
+  function sbOwnerPayload(payload={}){
+    // Every ordinary CRUD operation is owned by the currently authenticated
+    // application user. Never trust owner/user IDs supplied by the browser.
+    // This keeps create/update ownership consistent and prevents one user
+    // from writing another user's records through manipulated payloads.
+    const uid = currentUser?.id || null;
+    const email = currentUser?.email || null;
+    const name = currentUser?.name || null;
+    return {
+      owner_id: uid,
+      owner_email: email,
+      owner_name: name,
+      created_by: uid,
+      created_by_email: email,
+      updated_by: uid,
+      updated_by_email: email,
+      state: Array.isArray(payload.states)?payload.states[0]:payload.state || payload.State || null,
+      region: Array.isArray(payload.regions)?payload.regions[0]:payload.region || payload.Region || null,
+      district: Array.isArray(payload.districts)?payload.districts[0]:payload.district || payload.District || null,
+      city: Array.isArray(payload.cities)?payload.cities[0]:payload.city || payload.City || null,
+      village: payload.village || payload.Village || null,
+      record_date: payload.date || payload.entryDate || payload.startDate || null,
+      status: payload.status || null
+    };
+  }
+  async function supabaseBackendAction(action,payload={}){
+    if(!SUPABASE_ENABLED) return {success:false,message:'Supabase is not configured. Check SUPABASE_CONFIG in index.html.'};
     try{
-      const sb=getSupabaseClient();
+      // ---------- Authentication ----------
       if(action==='login'){
-        const email=String(requestPayload.email||'').trim().toLowerCase();
-        const password=String(requestPayload.password||'');
-        if(!email||!password) return {success:false,message:'Email and password are required.'};
-        const {data,error}=await sb.auth.signInWithPassword({email,password});
-        if(error) return {success:false,message:error.message||'Invalid Supabase Auth credentials.'};
-        const token=data?.session?.access_token||'';
-        if(!token||!data?.user) return {success:false,message:'Supabase Auth did not return a valid session.'};
-        const {data:profile,error:profileError}=await sb.from('app_users').select('*').eq('email',email).maybeSingle();
-        if(profileError) return {success:false,message:'Supabase login succeeded, but the application user profile could not be loaded: '+profileError.message};
-        if(!profile) return {success:false,message:'Supabase Auth account exists, but no matching app_users profile was found for '+email+'. Create/link the application user profile first.'};
-        return {success:true,user:profile,authToken:token,session:data.session};
-      }
-      if(action==='bootstrapMasterAdmin'){
-        const {data,error}=await sb.functions.invoke(SUPABASE_APP_FUNCTION,{body:{action,payload:requestPayload}});
-        if(error)return {success:false,message:error.message||'Master Admin setup service is unavailable.'};
-        return data||{success:false,message:'Master Admin setup returned an empty response.'};
-      }
-      if(action==='health'){
-        const {error}=await sb.from('app_users').select('id',{head:true,count:'exact'});
-        return error?{success:false,message:'Supabase connection failed: '+error.message}:{success:true,version:'Supabase Data API',provider:'Supabase'};
+        const {data,error}=await supabaseClient.auth.signInWithPassword({email:String(payload.email||'').trim(),password:String(payload.password||'')});
+        if(error) return {success:false,message:error.message||'Invalid credentials.'};
+        const uid=data.user.id;
+        const {data:profile,error:pe}=await supabaseClient.from('profiles').select('*').eq('id',uid).maybeSingle();
+        if(pe) return {success:false,message:pe.message};
+        if(!profile) return {success:false,message:'User profile was not found. Create the profile row or run the supplied database schema.'};
+        if(profile.approved!==true || profile.active===false || String(profile.status||'').toLowerCase()!=='approved'){
+          await supabaseClient.auth.signOut();
+          return {success:false,message:'Your account is awaiting Master Admin approval.'};
+        }
+        await supabaseClient.from('profiles').update({last_login_at:new Date().toISOString()}).eq('id',uid);
+        return {success:true,authToken:data.session?.access_token||'',user:Object.assign({},profile,{authToken:data.session?.access_token||''})};
       }
       if(action==='selfRegister'){
-        const email=String(requestPayload.email||'').trim().toLowerCase();
-        const password=String(requestPayload.password||requestPayload.newPassword||'');
-        const authPayload={email,password};
-        const {data,error}=await sb.auth.signUp(authPayload);
-        if(error) return {success:false,message:error.message||'Supabase registration failed.'};
-        const u=requestPayload.user||requestPayload;
-        const profile={id:String(u.id||data?.user?.id||crypto.randomUUID()),name:u.name||u.fullName||email.split('@')[0],email,phone:u.phone||'',role:u.role||'Sales Executive',status:'Pending',approval_status:'Pending',raw_data:u};
-        const {error:pe}=await sb.from('app_users').upsert(profile,{onConflict:'email'});
-        if(pe) return {success:false,message:'Supabase Auth account created, but application profile creation failed: '+pe.message};
-        return {success:true,message:'Registration submitted successfully. Complete any required email verification and administrator approval.',user:profile,authToken:data?.session?.access_token||''};
+        const email=String(payload.email||'').trim().toLowerCase();
+        const password=String(payload.password||'');
+        if(!email || !password) return {success:false,message:'Email/Login ID and password are required.'};
+        // Use an isolated, non-persisting client so creating an account never replaces the
+        // logged-in (e.g. Master Admin) session of the browser.
+        const signupClient=window.supabase.createClient(SUPABASE_CONFIG.url,SUPABASE_CONFIG.anonKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+        // Supabase Auth is used only as the application's credential/session store.
+        // Email confirmation is NOT part of the application workflow. A new account
+        // is immediately signed out and remains blocked until Master Admin approval.
+        const {data,error}=await signupClient.auth.signUp({email,password,options:{data:{name:payload.name||'',role:payload.role||'Sales Executive',phone:payload.phone||''}}});
+        if(error) return {success:false,message:error.message};
+        if(data.user?.id){
+          const profile={id:data.user.id,email,name:payload.name,phone:payload.phone,role:payload.role||'Sales Executive',designation:payload.designation||payload.role,status:'Pending',approved:false,active:true,states:payload.states||[],regions:payload.regions||[],districts:payload.districts||[],cities:payload.cities||payload.tehsils||[],profile_data:{reportingManagers:payload.reportingManagers||[],reportingTo:payload.reportingTo||[]}};
+          const {error:pe}=await signupClient.from('profiles').upsert(profile,{onConflict:'id'});
+          if(pe) return {success:false,message:pe.message};
+          // Never leave a newly registered user authenticated. Only Master Admin
+          // approval changes the profile gate that permits application login.
+          try{ await signupClient.auth.signOut(); }catch(_){ }
+        }
+        return {success:true,userId:data.user?.id||null,user:{id:data.user?.id||null},message:'Registration submitted successfully. Your account is pending Master Admin approval. No email verification is required.'};
+      }
+      if(action==='health'){
+        const {error}=await supabaseClient.from('profiles').select('id',{count:'exact',head:true});
+        return error?{success:false,message:error.message}:{success:true,version:'Supabase',message:'Supabase database connected.'};
+      }
+      if(action==='logout'){
+        await supabaseClient.auth.signOut(); return {success:true};
       }
       if(action==='requestPasswordResetOtp'){
-        const email=String(requestPayload.identifier||'').trim().toLowerCase();
-        const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
-        return error?{success:false,message:error.message}:{success:true,message:'Password reset instructions have been sent to the registered email address.',masked:email};
+        if(payload.method==='email'){
+          const {error}=await supabaseClient.auth.resetPasswordForEmail(String(payload.identifier||'').trim(),{redirectTo:location.href});
+          return error?{success:false,message:error.message}:{success:true,masked:'your registered email',message:'Password reset link sent to your email.'};
+        }
+        return {success:false,message:'Phone OTP reset requires Supabase phone authentication to be configured.'};
       }
       if(action==='resetPasswordWithOtp'){
-        const {error}=await sb.auth.updateUser({password:String(requestPayload.newPassword||'')});
+        const {error}=await supabaseClient.auth.updateUser({password:payload.newPassword});
         return error?{success:false,message:error.message}:{success:true,message:'Password updated successfully.'};
       }
-      const {data:sessionData}=await sb.auth.getSession();
-      const accessToken=sessionData?.session?.access_token||currentUser?.authToken||'';
-      if(!accessToken && !publicActions.has(action)){
-        clearPersistedSession();currentUser=null;
-        return {success:false,message:'Your Supabase login session is missing. Please sign in again.'};
-      }
-      requestPayload.email=requestPayload.email||currentUser?.email||'';
-      requestPayload.userId=requestPayload.userId||currentUser?.id||'';
-      requestPayload.userRole=requestPayload.userRole||currentUser?.role||'';
-      requestPayload.userEmail=requestPayload.userEmail||currentUser?.email||'';
-      requestPayload.authToken=accessToken;
 
-      // All privileged/multi-table application operations run through a Supabase Edge Function.
-      // The browser sends only the user's JWT; the Edge Function performs server-side authorization
-      // and database work with its protected secret key.
-      const {data,error}=await sb.functions.invoke(SUPABASE_APP_FUNCTION,{body:{action,payload:requestPayload}});
-      if(error){
-        console.error('Supabase Edge Function failed:',action,error);
-        return {success:false,message:`Supabase backend operation failed: ${error.message||String(error)}. Deploy the '${SUPABASE_APP_FUNCTION}' Edge Function for application CRUD/operations.`};
+      // ---------- User directory ----------
+      if(action==='getAllUsersDirectory' || action==='getReportingManagers' || action==='getPendingUsers'){
+        const {data,error}=await supabaseClient.from('profiles').select('*').order('name');
+        if(error) return {success:false,message:error.message};
+        if(action==='getReportingManagers') return {success:true,managers:(data||[]).filter(x=>x.active!==false&&x.approved===true)};
+        if(action==='getPendingUsers') return {success:true,users:(data||[]).filter(x=>x.approved!==true||x.status==='Pending')};
+        return {success:true,users:data||[],data:data||[]};
       }
-      if(!data || typeof data!=='object') return {success:false,message:'Supabase backend returned an invalid response.'};
-      const result=cleanNullText(data);
-      if(result.success===false && /session expired|authentication required|unauthorized|jwt/i.test(String(result.message||''))){clearPersistedSession();currentUser=null;try{await sb.auth.signOut();}catch(_){} }
-      return result;
+
+      // ---------- Location master ----------
+      if(action==='getLocationData'){
+        const {data,error}=await supabaseClient.from('location_master').select('*').eq('active',true).limit(50000);
+        if(error) return {success:false,message:error.message};
+        return {success:true,locations:data||[],data:data||[]};
+      }
+      if(action==='lookupPinCode'){
+        const {data,error}=await supabaseClient.from('location_master').select('*').eq('pin_code',String(payload.pin||'')).limit(20);
+        if(error) return {success:false,message:error.message};
+        return {success:true,data:data?.[0]||null,results:data||[]};
+      }
+
+      // ---------- Dashboard ----------
+      if(action==='getDashboardData'){
+        const modules=['clients','coldCalls','salesOrders','targets','tasks','approvals','notifications','attendance','projects','projectTasks','projectInvoices'];
+        const {data:rows,error}=await supabaseClient.from('app_records').select('*').in('module',modules).order('created_at',{ascending:false}).limit(10000);
+        if(error) return {success:false,message:error.message};
+        const {data:users}=await supabaseClient.from('profiles').select('*').order('name');
+        const grouped={clients:[],coldCalls:[],salesOrders:[],targets:[],tasks:[],approvals:[],notifications:[],attendance:[],projects:[],projectTasks:[],projectInvoices:[],teamUsers:users||[],todayAttendance:null};
+        (rows||[]).forEach(r=>{const k=r.module; if(grouped[k]) grouped[k].push(sbRow(r));});
+        const today=new Date().toISOString().slice(0,10); grouped.todayAttendance=grouped.attendance.find(a=>String(a.date||a.recordDate||'').slice(0,10)===today)||null;
+        return {success:true,data:grouped};
+      }
+
+      // ---------- Generic CRUD records ----------
+      // These actions have dedicated handlers further below and must not be captured by the generic CRUD path.
+      const SB_RESERVED_ACTIONS=['processUserApproval','markNotificationRead','updateUser','deleteUser'];
+      // Actions where the acting user is legitimately not the record owner (assignee / approver).
+      const SB_UNSCOPED_ACTIONS=['processGeneralApproval','processAttendanceApproval','updateTaskStatus'];
+      const module=SB_RESERVED_ACTIONS.includes(action)?null:sbModuleFromAction(action,payload);
+      const crudOperation=sbCrudOperation(action);
+      if(module && crudOperation){
+        const uid=currentUser?.id||'';
+        const isAdmin=String(currentUser?.role||'')==='Master Admin';
+        const ownerScoped=!isAdmin && !SB_UNSCOPED_ACTIONS.includes(action);
+        const pick=(...vals)=>vals.find(v=>v!==undefined&&v!==null&&String(v).trim()!=='');
+        const explicitId=pick(payload.id,payload.recordId,payload.record?.id,payload.record?.recordId,payload.data?.id,payload.data?.recordId);
+        const typedId=pick(...(SB_ID_FIELDS[module]||[]).flatMap(k=>[payload[k],payload.record?.[k],payload.data?.[k]]));
+        // Creates only trust an explicit id; other operations may also use the module's own id field.
+        const id=crudOperation==='insert'?explicitId:pick(explicitId,typedId);
+
+        // Locate rows by record_id first, then (legacy rows without record_id) by primary key.
+        const findRows=async(limit)=>{
+          let q=supabaseClient.from('app_records').select('id,record_id,data,owner_id').eq('module',module).eq('record_id',String(id)).limit(limit);
+          if(ownerScoped) q=q.eq('owner_id',uid);
+          const {data,error}=await q;
+          if(error) return {error};
+          if(data?.length) return {rows:data};
+          let q2=supabaseClient.from('app_records').select('id,record_id,data,owner_id').eq('module',module).eq('id',String(id)).limit(limit);
+          if(ownerScoped) q2=q2.eq('owner_id',uid);
+          const r2=await q2;
+          return {rows:(r2&&!r2.error&&r2.data)?r2.data:[]};
+        };
+
+        if(crudOperation==='delete'){
+          if(!id) return {success:false,message:'The selected record does not have a valid record ID. Please reload the data and try again.'};
+          const found=await findRows(10);
+          if(found.error) return {success:false,message:found.error.message};
+          if(!found.rows.length) return {success:false,message:'Record not found in your individual account, or you do not have permission to delete it.'};
+          let delQuery=supabaseClient.from('app_records').delete().in('id',found.rows.map(x=>x.id));
+          if(ownerScoped) delQuery=delQuery.eq('owner_id',uid);
+          const {data:deleted,error}=await delQuery.select('id');
+          if(error) return {success:false,message:error.message};
+          if(!deleted?.length) return {success:false,message:'Delete was blocked by database permissions (check Row Level Security policies on app_records).'};
+          return {success:true,message:'Record deleted successfully.'};
+        }
+
+        // Never persist credentials/tokens inside shared record rows.
+        const clean=Object.assign({},payload); delete clean.authToken; delete clean.password;
+        if(action==='processGeneralApproval'){
+          clean.status=payload.approve===false?'REJECTED':'APPROVED';
+          clean.approverRemarks=payload.remarks||'';
+          clean.approvedBy=currentUser?.email||'';
+          clean.approvedAt=new Date().toISOString();
+        }
+        const nowIso=new Date().toISOString();
+        const meta=sbOwnerPayload(payload);
+
+        let existing=null;
+        if(id){
+          const found=await findRows(1);
+          if(found.error) return {success:false,message:found.error.message};
+          existing=found.rows[0]||null;
+        }
+        if(existing){
+          // UPDATE: merge into the stored record (do not wipe fields) and keep original ownership.
+          const merged=Object.assign({},existing.data||{},clean,{id:String(id)});
+          ['userId','userEmail','ownerId','ownerEmail','createdBy','createdByUserId'].forEach(k=>{
+            const v=existing.data?.[k]; if(v!==undefined&&v!==null&&v!=='') merged[k]=v;
+          });
+          const upd={record_id:String(id),data:merged,updated_at:nowIso,updated_by:meta.updated_by,updated_by_email:meta.updated_by_email};
+          ['state','region','district','city','village','record_date','status'].forEach(k=>{ if(meta[k]!==null&&meta[k]!==undefined&&meta[k]!=='') upd[k]=meta[k]; });
+          if(clean.status) upd.status=clean.status;
+          let updateQuery=supabaseClient.from('app_records').update(upd).eq('id',existing.id);
+          if(ownerScoped) updateQuery=updateQuery.eq('owner_id',uid);
+          const {data,error}=await updateQuery.select().maybeSingle();
+          if(error) return {success:false,message:error.message};
+          if(!data) return {success:false,message:'Update was blocked by database permissions (check Row Level Security policies on app_records).'};
+          return {success:true,message:'Record saved successfully.',data:sbRow(data),record:data};
+        }
+        if(crudOperation==='update'){
+          return {success:false,message:'Record not found in your individual account, or you do not have permission to edit it.'};
+        }
+        // INSERT: always give the record its own stable id so edit/delete can find it later.
+        const newId=id?String(id):sbNewId(module);
+        const row={module,record_id:newId,...meta,data:Object.assign({},clean,{id:newId}),updated_at:nowIso};
+        const {data,error}=await supabaseClient.from('app_records').insert(row).select().single();
+        if(error) return {success:false,message:error.message};
+        return {success:true,message:'Record saved successfully.',data:sbRow(data),record:data,id:newId};
+      }
+
+      // Generic module readers used by individual screens.
+      if(module && /^(get|fetch|load|list|search)/i.test(String(action))){
+        const {data,error}=await supabaseClient.from('app_records').select('*').eq('module',module).order('created_at',{ascending:false}).limit(10000);
+        if(error) return {success:false,message:error.message};
+        return {success:true,data:(data||[]).map(sbRow),records:(data||[]).map(sbRow)};
+      }
+
+      // ---------- Chat ----------
+      if(action==='getChatUsers'){
+        const {data,error}=await supabaseClient.from('profiles').select('*').neq('id',currentUser?.id||'').eq('active',true).order('name');
+        return error?{success:false,message:error.message}:{success:true,users:data||[]};
+      }
+      if(action==='getChatMessages'){
+        const {data,error}=await supabaseClient.from('chat_messages').select('*').or(`and(sender_id.eq.${currentUser?.id},recipient_id.eq.${payload.peerId}),and(sender_id.eq.${payload.peerId},recipient_id.eq.${currentUser?.id})`).order('created_at');
+        if(error) return {success:false,message:error.message};
+        return {success:true,messages:(data||[]).map(m=>({id:m.id,senderId:m.sender_id,senderEmail:m.sender_email,message:m.message,timestamp:m.created_at,read:!!m.read_at}))};
+      }
+      if(action==='sendChatMessage'){
+        const {data,error}=await supabaseClient.from('chat_messages').insert({sender_id:currentUser?.id,sender_email:currentUser?.email,sender_name:currentUser?.name,recipient_id:payload.receiverId,recipient_email:payload.receiverEmail,message:payload.message}).select().single();
+        return error?{success:false,message:error.message}:{success:true,data};
+      }
+      if(action==='markNotificationRead'){
+        const id=payload.id||payload.notificationId; const {data,error}=await supabaseClient.from('app_records').select('id,record_id,data').eq('module','notifications').limit(10000);
+        if(error) return {success:false,message:error.message}; const row=(data||[]).find(r=>String(r.record_id||r.id)===String(id)||String(r.data?.id||'')===String(id));
+        if(!row)return {success:true}; const nd={...(row.data||{}),read:true,readAt:new Date().toISOString()}; const {error:ue}=await supabaseClient.from('app_records').update({data:nd,updated_at:new Date().toISOString()}).eq('id',row.id); return ue?{success:false,message:ue.message}:{success:true};
+      }
+
+      // ---------- User/profile management ----------
+      // Supabase browser clients cannot safely delete auth.users with the anon/publishable
+      // key. Master Admin user deletion therefore uses a database RPC that deactivates
+      // the profile and blocks future application login while preserving audit/history.
+      if(action==='deleteUser'){
+        if(String(currentUser?.role||'')!=='Master Admin') return {success:false,message:'Only Master Admin can delete/deactivate users.'};
+        const uid=String(payload.id||payload.userId||'').trim();
+        if(!uid) return {success:false,message:'User ID is required.'};
+        if(uid===String(currentUser?.id||'')) return {success:false,message:'Master Admin cannot delete the currently logged-in account.'};
+        const {data,error}=await supabaseClient.rpc('delete_application_user',{p_user_id:uid});
+        if(error) return {success:false,message:error.message};
+        return {success:true,message:'User account deactivated successfully. The user can no longer log in.',user:data?.profile||data};
+      }
+      if(action==='updateUser' || action==='processUserApproval'){
+        if(String(currentUser?.role||'')!=='Master Admin') return {success:false,message:'Only Master Admin can manage user accounts.'};
+        const uid=payload.id||payload.userId;
+        if(!uid)return {success:false,message:'User ID is required.'};
+        let patch={};
+        if(action==='processUserApproval'){
+          const approve=payload.approve!==undefined?payload.approve!==false:payload.approved!==false;
+          patch={approved:approve,status:approve?'Approved':'Rejected',active:approve?(payload.active!==false):false};
+        }else{
+          // Only columns that exist on profiles; the edit form also sends fields that are not columns.
+          ['name','email','phone','role','designation','states','regions','districts','cities','status','approved','active'].forEach(k=>{ if(payload[k]!==undefined) patch[k]=payload[k]; });
+          const rm=payload.reportingManagers||payload.reportingTo;
+          if(rm){
+            const {data:cur}=await supabaseClient.from('profiles').select('profile_data').eq('id',uid).maybeSingle();
+            patch.profile_data=Object.assign({},cur?.profile_data||{},{reportingManagers:rm,reportingTo:payload.reportingTo||rm});
+          }
+        }
+        const {data,error}=await supabaseClient.from('profiles').update(patch).eq('id',uid).select().maybeSingle();
+        if(error) return {success:false,message:error.message};
+        if(!data) return {success:false,message:'User update was blocked by database permissions (check Row Level Security policies on profiles).'};
+        return {success:true,message:'User updated successfully.',user:data};
+      }
+
+      return {success:false,message:`Supabase adapter does not yet implement action: ${action}`};
     }catch(err){
-      console.error('Supabase request failed:',action,err);
-      return {success:false,message:err?.message||'Unable to reach Supabase. Check the project URL, publishable key, Supabase Auth, RLS policies, and Edge Function deployment.'};
+      console.error('Supabase operation failed:',action,err);
+      return {success:false,message:err?.message||'Supabase operation failed.'};
     }
   }
 
+  async function callBackendRaw(action, payload) {
+    // Supabase is the sole active backend. The legacy Google Apps Script
+    // transport is intentionally disabled so the browser can never issue
+    // an HTTP request to SCRIPT_URL and produce a 405 response.
+    if(!SUPABASE_ENABLED){
+      return {success:false,message:'Supabase is not configured. Check SUPABASE_CONFIG in index.html.'};
+    }
+    return await supabaseBackendAction(action, payload || {});
+  }
+
   async function testBackendConnection(show=true){
-    if(show)showProcessingMessage('Checking Supabase','Testing the live Supabase connection...');
+    if(show)showProcessingMessage('Checking backend','Testing the live backend connection...');
     const res=await callBackend('health',{});
     if(show)closeOperationMessage();
-    if(res.success){if(show)showOperationMessage('Supabase connected',`Live Supabase Data API is reachable. Version ${res.version||'unknown'}.`,'success');return true;}
-    if(show)showOperationMessage('Supabase connection failed',res.message||'Unable to reach Supabase.','error');
+    if(res.success){if(show)showOperationMessage('Backend connected',`Live backend is reachable. Version ${res.version||'unknown'}.`,'success');return true;}
+    if(show)showOperationMessage('Backend connection failed',res.message||'Unable to reach backend.','error');
     return false;
   }
 
@@ -7812,7 +8051,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   }
   function dashIsHead(){
     const r=String(currentUser?.role||'');
-    return r==='Master Admin'||r==='Admin'||r==='Team Coordinator'||/head/i.test(r);
+    return r==='Master Admin'||r==='Admin'||/head/i.test(r);
   }
   function getDashboardFilterContext(){
     const uf=document.getElementById('dashboardUserFilter')?.value||'ALL';
@@ -7863,7 +8102,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     // team member. TEAM:ALL is the explicit equivalent shown in the dropdown.
     // Master Admin/Admin retain unrestricted All behavior.
     if(c.uf==='ALL'||c.uf==='TEAM:ALL'){
-      if(currentUser?.role==='Master Admin'||currentUser?.role==='Admin'||currentUser?.role==='Team Coordinator') return true;
+      if(currentUser?.role==='Master Admin'||currentUser?.role==='Admin') return true;
       if(c.hasTeam) return dashboardOwnerMatches(item,currentUser) ||
         c.team.some(u=>dashboardOwnerMatches(item,u));
       return dashboardOwnerMatches(item,currentUser);
@@ -7895,7 +8134,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   function dashboardTargetMatchesScope(target,c){
     if(!target||!c) return false;
     if(c.uf==='ALL'||c.uf==='TEAM:ALL'){
-      if(currentUser?.role==='Master Admin'||currentUser?.role==='Admin'||currentUser?.role==='Team Coordinator') return true;
+      if(currentUser?.role==='Master Admin'||currentUser?.role==='Admin') return true;
       if(c.hasTeam){
         return dashboardTargetOwnerMatches(target,currentUser) ||
                c.team.some(u=>dashboardTargetOwnerMatches(target,u));
@@ -8062,125 +8301,9 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
 })();
 </script>
 
-<script id="kosol-data-loader-v3-hook">
-setInterval(()=>{
-  const state=document.getElementById('dashboardSyncState');
-  const bar=document.getElementById('kosolDataRetryBar');
-  if(!state||!bar)return;
-  if(!window.__kosolRetryBarDismissed)bar.classList.toggle('show',String(state.className||'').includes(' error'));
-},1000);
-</script>
-<style id="kosol-data-loader-v4-style">
-#kosol-live-loader-v4{position:fixed;right:14px;bottom:14px;z-index:11999;display:none;width:min(92vw,440px);background:#fff;border:1px solid #dee2e6;border-left:4px solid #fc9403;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);padding:10px 12px;font-size:.78rem}
-#kosol-live-loader-v4.show{display:block}
-#kosol-live-loader-v4 .small{color:#64748b}
-#kosol-live-loader-v4 .kosol-live-head{display:flex;align-items:center;gap:8px}
-#kosol-live-loader-v4 .kosol-live-close{margin-left:auto;width:30px;height:30px;border:0;background:transparent;color:#64748b;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;padding:0}
-#kosol-live-loader-v4 .kosol-live-close:hover{background:#f1f5f9;color:#0f172a}
-#kosol-live-loader-v4 .kosol-sync-spinner{width:17px;height:17px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:kosolSyncSpin .72s linear infinite;flex:0 0 auto}
-#kosol-live-loader-v4 .kosol-sync-spinner.done{display:none}
-@keyframes kosolSyncSpin{to{transform:rotate(360deg)}}
-</style>
-<script id="kosol-data-loader-v4">
-(function(){
-  'use strict';
-  const V4={active:false,attempt:0,lastError:'',started:0,lastSuccess:0};
-  window.__kosolDataLoaderV4=V4;
-  function ensureBox(){
-    let b=document.getElementById('kosol-live-loader-v4');
-    if(!b){b=document.createElement('div');b.id='kosol-live-loader-v4';document.body.appendChild(b);}
-    return b;
-  }
-  function status(msg,show){const b=ensureBox();b.innerHTML='<div class="kosol-live-head"><span class="kosol-sync-spinner'+(show?'':' done')+'" aria-hidden="true"></span><b><i class="bi bi-database me-1"></i>Database</b><button type="button" class="kosol-live-close" aria-label="Close" title="Close" onclick="closeLiveDataMessage()"><i class="bi bi-x-lg"></i></button></div><div class="small mt-1">'+esc(msg||'')+'</div>';b.classList.toggle('show',!!show);}
-  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-  function requiredArrays(p){return ['clients','coldCalls','tasks','approvals','salesOrders','targets','notifications','teamUsers'].filter(k=>!Array.isArray(p?.[k]));}
-  window.closeLiveDataMessage=function(){const b=document.getElementById('kosol-live-loader-v4');if(b)b.classList.remove('show');};
-  window.closeDataRetryMessage=function(){window.__kosolRetryBarDismissed=true;const b=document.getElementById('kosolDataRetryBar');if(b)b.classList.remove('show');};
-  async function directDashboardFetch(payload){
-    const attempts=2; let last=null;
-    for(let n=1;n<=attempts;n++){
-      V4.attempt=n; V4.started=Date.now();
-      status(n===1?'Synchronizing latest Supabase data…':'Retrying Supabase synchronization…',true);
-      try{
-        const result=await callBackendFast('getDashboardData',payload,{fresh:true});
-        const elapsed=Date.now()-V4.started;
-        window.__kosolLastBackendDiagnostics={ok:!!result?.success,elapsedMs:elapsed,attempt:n,provider:'Supabase'};
-        if(!result||result.success===false) throw new Error(result?.message||'Supabase rejected the dashboard request.');
-        const p=result.data&&typeof result.data==='object'?result.data:result;
-        const missing=requiredArrays(p);
-        if(missing.length) throw new Error('Supabase dashboard response is incomplete. Missing: '+missing.join(', ')+'.');
-        V4.lastSuccess=Date.now(); V4.lastError='';
-        status('Supabase data synchronized in '+Math.round(elapsed/1000)+'s.',false);
-        setTimeout(()=>status('',false),1200);
-        return result;
-      }catch(e){
-        last=e; V4.lastError=e?.message||String(e);
-        if(n<attempts) await new Promise(r=>setTimeout(r,1200));
-      }
-    }
-    throw last||new Error('Unable to load live Supabase dashboard data.');
-  }
-  window.__kosolDirectDashboardFetch=directDashboardFetch;
 
-  // Replace only the dashboard refresh function. All existing GS actions and all other
-  // application functions remain untouched. The existing GS file is NOT changed.
-  const originalRefreshData=window.refreshData;
-  window.__kosolOriginalRefreshDataV4=originalRefreshData;
-  window.refreshData=async function(options={}){
-    if(typeof currentUser==='undefined' || !currentUser)return false;
-    // currentUser is a top-level lexical variable in the application; do not read it from window.
-    const background=new Set(['auto-poll','tab-visible','pageshow','cross-tab','online','focus']).has(options.reason);
-    if(window.__kosolV4RefreshInFlight){
-      if(background)return false;
-      return window.__kosolV4RefreshInFlight;
-    }
-    const run=(async()=>{
-      const silent=options.silent!==false;
-      try{
-        const u=currentUser;
-        if(!u?.email||!u?.authToken)throw new Error('Your secure login session is missing. Please sign in again.');
-        const payload={email:u.email,authToken:u.authToken,userId:u.id||u.userId||'',userEmail:u.email,userRole:u.role||''};
-        const res=await directDashboardFetch(payload);
-        const p=res.data&&typeof res.data==='object'?res.data:res;
-        // Atomically update every dashboard dataset. This is deliberately explicit so a
-        // malformed/partial backend response can never wipe the browser state with blanks.
-        rawData.clients=p.clients;rawData.coldCalls=p.coldCalls;rawData.tasks=p.tasks;rawData.approvals=p.approvals;
-        rawData.salesOrders=p.salesOrders;rawData.targets=p.targets;rawData.notifications=p.notifications;rawData.teamUsers=p.teamUsers;
-        if(Object.prototype.hasOwnProperty.call(p,'todayAttendance'))rawData.todayAttendance=p.todayAttendance||null;
-        allUsersList=rawData.teamUsers.slice();
-        try{cleanNullText(rawData);}catch(_){}
-        lastDataFingerprint=fastDashboardFingerprint(rawData);
-        dashboardStatsCacheKey='';dashboardStatsCacheValue=null;
-        salesOrderRepeatMapCacheKey='';salesOrderRepeatMapCache=new Map();
-        lastSuccessfulDataRefresh=Date.now();pollFailureCount=0;pollUnchangedCount=0;
-        try{refreshReportingManagerSelectors();}catch(_){}
-        try{syncNotificationBadgeAfterRefresh();}catch(_){}
-        evaluateAttendanceWindowState();
-        applyDashboardFilters();
-        if(activeTabId==='clients')renderClients();
-        else if(activeTabId==='tasks')renderTasks();
-        else if(activeTabId==='approvals')renderApprovals();
-        else if(activeTabId==='coldcalls')renderColdCalls();
-        else if(activeTabId==='salesorders')renderSalesOrders();
-        else if(activeTabId==='targets')renderTargetModule();
-        else if(activeTabId==='pipelineleads'||activeTabId==='pipelineorders')renderPipelineBoards();
-        window.__kosolRetryBarDismissed=true; showDataSyncStatus('synced','Database data synchronized successfully.');
-        updateLiveSyncIndicator?.();
-        try{scheduleFastSnapshotSave();}catch(_){}
-        return true;
-      }catch(e){
-        console.error('KOSOL V4 live data load failed:',e);
-        window.__kosolRetryBarDismissed=false; showDataSyncStatus('error',e?.message||String(e));
-        if(!silent||options.reason==='initial-load')showOperationMessage('Live data could not be loaded',e?.message||String(e),'error');
-        return false;
-      }
-    })();
-    window.__kosolV4RefreshInFlight=run;
-    try{return await run;}finally{window.__kosolV4RefreshInFlight=null;}
-  };
-  window.retryCurrentDataLoad=()=>window.refreshData({silent:false,reason:'manual-retry',force:true});
-})();
-</script>
+
+
 <style id="kosol-form-behavior-v8">
 /* Data-entry forms stay open until the user closes them or a confirmed save completes. */
 .modal[data-kosol-entry-modal="1"] .modal-dialog{max-height:calc(100vh - 2rem)}
@@ -8288,1501 +8411,6 @@ setInterval(()=>{
   const observer=new MutationObserver(function(){markEntryModals();scanNoMatch();});
   function init(){markEntryModals();scanNoMatch();installRepeatAutomation();observer.observe(document.body,{childList:true,subtree:true});}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();
-</script>
-
-
-<!-- ================================================================
-     KOSOL DATABASE INTEGRATION / MIGRATION JAVASCRIPT
-     Frontend-only controller for the Master Admin database module.
-     It uses the Supabase backend and existing callBackend/callBackendFast
-     functions; database credentials are sent to the server-side backend and
-     are NOT stored in browser localStorage.
-     ================================================================ -->
-<script id="kosol-database-integration-js">
-  'use strict';
-
-  // ---- Master Admin Database Integration / Migration Manager ----
-  const KOSOL_DB_PROVIDER_LABELS={supabase:'Supabase'};
-  let kosolDbState={provider:'supabase',activeProvider:'supabase',status:'unknown',history:[]};
-  function kosolDbLog(message,reset=false){
-    const el=document.getElementById('kosolDbMigrationLog');if(!el)return;
-    const stamp=new Date().toLocaleString();if(reset)el.textContent=`[${stamp}] ${message}`;else el.textContent+=`\\n[${stamp}] ${message}`;el.scrollTop=el.scrollHeight;
-  }
-  function selectKosolDatabaseProvider(provider){
-    if(provider!=='supabase'){provider='supabase';}
-    if(!isMasterAdminUser()){showOperationMessage('Access denied','Only Master Admin can configure the application database.','error');return;}
-    kosolDbState.provider='supabase';const hidden=document.getElementById('kosolDbProvider');if(hidden)hidden.value=provider;
-    document.querySelectorAll('.kosol-db-provider').forEach(b=>b.classList.toggle('active',b.dataset.provider===provider));
-    const defaults={supabase:['https://batkezvcxifdualntadd.supabase.co','','','public']};
-    const d=defaults[provider]||['','','','public'];const set=(id,v)=>{const e=document.getElementById(id);if(e&&v!==undefined)e.value=v;};
-    if(provider==='supabase'){set('kosolDbUrl',d[0]);set('kosolDbPort','');}else{set('kosolDbUrl',d[0]);set('kosolDbPort',d[1]);}
-    set('kosolDbSchema',d[3]);kosolDbLog(`Selected ${KOSOL_DB_PROVIDER_LABELS[provider]||provider}.`);
-  }
-  function kosolDbPayload(){
-    const val=id=>String(document.getElementById(id)?.value||'').trim();
-    return {provider:'supabase',connectionUrl:val('kosolDbUrl'),host:val('kosolDbHost'),port:val('kosolDbPort'),database:val('kosolDbName'),schema:val('kosolDbSchema')||'public',username:val('kosolDbUsername'),secret:val('kosolDbSecret'),apiKey:val('kosolDbApiKey'),sslMode:val('kosolDbSsl')||'require',batchSize:Number(val('kosolDbBatchSize')||500)};
-  }
-  function renderKosolDbStatus(s){
-    s=s||{};kosolDbState=Object.assign({},kosolDbState,s);
-    const box=document.getElementById('kosolDbStatus');if(box){const status=String(s.status||'unknown').toLowerCase(),ok=status==='connected'||status==='active',bad=status==='error'||status==='failed';box.innerHTML=`<span class="kosol-db-dot ${ok?'ok':bad?'bad':'warn'}"></span><span>${escapeHtml(KOSOL_DB_PROVIDER_LABELS[s.activeProvider||s.provider]||s.activeProvider||s.provider||'Unknown')}</span><span class="badge ${ok?'bg-success':bad?'bg-danger':'bg-warning text-dark'}">${escapeHtml(s.status||'Unknown')}</span>`;}
-    if(s.provider)selectKosolDatabaseProvider(String(s.provider));
-    const set=(id,v)=>{const e=document.getElementById(id);if(e&&v!==undefined&&v!==null)e.value=String(v);};
-    set('kosolDbProvider','supabase');set('kosolDbUrl',s.connectionUrl||'');set('kosolDbHost',s.host||'');set('kosolDbPort',s.port||'');set('kosolDbName',s.database||'');set('kosolDbSchema',s.schema||'public');set('kosolDbUsername',s.username||'');set('kosolDbSsl',s.sslMode||'require');
-    const body=document.getElementById('kosolDbHistoryBody');if(body){const h=Array.isArray(s.history)?s.history:[];body.innerHTML=h.length?h.map(x=>`<tr><td>${escapeHtml(KOSOL_DB_PROVIDER_LABELS[x.provider]||x.provider||'')}</td><td>${escapeHtml(x.operation||'')}</td><td><span class="badge ${String(x.status).toLowerCase()==='success'?'bg-success':'bg-secondary'}">${escapeHtml(x.status||'')}</span></td><td>${escapeHtml(x.startedAt||'')}</td></tr>`).join(''):`<tr><td colspan="4" class="text-center text-muted">No history loaded.</td></tr>`;}
-  }
-  async function loadKosolDatabaseStatus(showMessage=false){
-    if(!isMasterAdminUser())return;try{const r=await callBackendFast('getDatabaseIntegrationStatus',{}, {fresh:true});if(r?.success){renderKosolDbStatus(r);if(showMessage)showOperationMessage('Database status refreshed','Current database configuration/status loaded.','success');}else if(showMessage)showOperationMessage('Database status unavailable',r?.message||'The backend does not expose the database integration API yet.','error');}catch(e){if(showMessage)showOperationMessage('Database status unavailable',e.message||String(e),'error');}
-  }
-  async function testKosolDatabaseConnection(){
-    if(!isMasterAdminUser())return showOperationMessage('Access denied','Only Master Admin can test database connections.','error');
-    const p=kosolDbPayload();kosolDbLog(`Testing ${KOSOL_DB_PROVIDER_LABELS[p.provider]||p.provider} connection...`,true);showProcessingMessage('Testing database','Validating the selected database connection securely through the backend...');
-    const r=await callBackend('testDatabaseConnection',p);closeOperationMessage();kosolDbLog(r?.success?`Connection test successful: ${r.message||'Connected.'}`:`Connection test failed: ${r?.message||'Unable to connect.'}`);showOperationMessage(r?.success?'Connection successful':'Connection failed',r?.message||'',r?.success?'success':'error');if(r?.success)renderKosolDbStatus(Object.assign({},r,p));
-  }
-  async function saveKosolDatabaseConfig(){
-    if(!isMasterAdminUser())return showOperationMessage('Access denied','Only Master Admin can save database configuration.','error');
-    const p=kosolDbPayload();showProcessingMessage('Saving database configuration','Saving credentials securely in the backend...');const r=await callBackend('saveDatabaseIntegrationConfig',p);closeOperationMessage();kosolDbLog(r?.success?`Configuration saved for ${KOSOL_DB_PROVIDER_LABELS[p.provider]}.`:`Configuration save failed: ${r?.message||'Unknown error.'}`);showOperationMessage(r?.success?'Configuration saved':'Configuration not saved',r?.message||'',r?.success?'success':'error');if(r?.success)await loadKosolDatabaseStatus(false);
-  }
-  async function activateKosolDatabaseProvider(){
-    if(!isMasterAdminUser())return showOperationMessage('Access denied','Only Master Admin can activate a database.','error');
-    const p=kosolDbPayload();if(!confirm(`Activate ${KOSOL_DB_PROVIDER_LABELS[p.provider]||p.provider} as the application database?`))return;showProcessingMessage('Activating database','Testing and switching the application database...');const r=await callBackend('activateDatabaseProvider',p);closeOperationMessage();kosolDbLog(r?.success?`Database activated: ${KOSOL_DB_PROVIDER_LABELS[p.provider]}.`:`Activation failed: ${r?.message||'Unknown error.'}`);showOperationMessage(r?.success?'Database activated':'Activation failed',r?.message||'',r?.success?'success':'error');if(r?.success)await loadKosolDatabaseStatus(false);
-  }
-  async function migrateKosolDatabaseNow(){
-    if(!isMasterAdminUser())return showOperationMessage('Access denied','Only Master Admin can migrate the application database.','error');
-    const p=kosolDbPayload();if(!confirm(`Migrate application data into ${KOSOL_DB_PROVIDER_LABELS[p.provider]||p.provider}? Stable record IDs will be preserved where possible.`))return;
-    showProcessingMessage('Preparing database migration','Reading the current application datasets before migration...');
-    let snapshot={};
-    try{
-      const dash=await callBackendFast('getDashboardData',{},{fresh:true});
-      const d=dash?.data&&typeof dash.data==='object'?dash.data:dash;
-      const pr=await callBackendFast('getProjectData',{}, {fresh:true});
-      const ud=await callBackendFast('getAllUsersDirectory',currentUser,{fresh:true});
-      snapshot={clients:d?.clients||[],coldCalls:d?.coldCalls||[],tasks:d?.tasks||[],approvals:d?.approvals||[],salesOrders:d?.salesOrders||[],targets:d?.targets||[],notifications:d?.notifications||[],teamUsers:ud?.users||d?.teamUsers||[],todayAttendance:d?.todayAttendance||null,projects:pr?.projects||[],projectTasks:pr?.tasks||[],projectInvoices:pr?.invoices||[],stages:pr?.stages||[]};
-    }catch(e){closeOperationMessage();return showOperationMessage('Migration preparation failed',e.message||String(e),'error');}
-    showProcessingMessage('Database migration','Migrating users, clients, visits, sales, targets, projects, tasks, approvals, attendance, notifications and chat data in batches...');
-    const r=await callBackend('migrateApplicationDatabase',Object.assign({},p,{snapshot}));closeOperationMessage();kosolDbLog(r?.success?`Migration completed. ${r.message||''}`:`Migration failed: ${r?.message||'Unknown error.'}`);showOperationMessage(r?.success?'Database migration completed':'Database migration failed',r?.message||'',r?.success?'success':'error');if(r?.success){await loadKosolDatabaseStatus(false);await refreshData({silent:true});}
-  }
-  document.getElementById('kosolDatabaseConfigForm')?.addEventListener('submit',e=>e.preventDefault());
-
-  async function migrateDatabaseNow(){if(currentUser?.role!=='Master Admin'){showOperationMessage('Access denied','Only Master Admin can run database migration.','error');return;}if(!confirm('Run database migration now? Existing records will be preserved.'))return;showProcessingMessage('Database migration','Updating backend data and normalizing existing sales order data...');const r=await callBackend('migrateDatabase',{});closeOperationMessage();showOperationMessage(r.success?'Migration completed':'Migration failed',r.message,r.success?'success':'error');if(r.success)await refreshData({silent:true});}
-
-
-</script>
-
-<script id="kosol-embedded-supabase-schema" type="text/plain">-- KOSOL SUPABASE SINGLE-FILE SETUP SQL
--- Run this complete block once in Supabase SQL Editor.
-
--- ============================================================
--- KOSOL ENERGIE PVT LTD - SALES TEAM MANAGEMENT SYSTEM
--- SUPABASE / POSTGRESQL APPLICATION SCHEMA
--- Generated for the existing Kosol HTML application.
---
--- Architecture:
---   Browser -> Supabase Auth / Data API / Edge Function -> Supabase PostgreSQL
---   Supabase secret key stays server-side in the Edge Function.
---
--- Stable TEXT IDs and raw_data JSONB preserve legacy fields during migration.
--- ============================================================
-
-begin;
-
-create extension if not exists pgcrypto;
-
--- ---------- PRIVATE / SYSTEM ----------
-create schema if not exists private;
-
-create table if not exists private.database_connections (
-  id uuid primary key default gen_random_uuid(),
-  provider text not null check (provider in
-    ('google_sheets','mysql','oracle','sqlserver','mongodb','supabase')),
-  display_name text,
-  connection_url text,
-  host text,
-  port integer,
-  database_name text,
-  schema_name text default 'public',
-  username text,
-  secret_ref text, -- reference to Apps Script Properties / secret manager; never store the secret itself here
-  api_key_ref text,
-  ssl_mode text default 'require',
-  is_active boolean not null default false,
-  config_version integer not null default 1,
-  last_tested_at timestamptz,
-  last_test_status text,
-  last_test_message text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create table if not exists private.migration_jobs (
-  id uuid primary key default gen_random_uuid(),
-  source_provider text not null,
-  target_provider text not null,
-  status text not null default 'QUEUED'
-    check(status in ('QUEUED','RUNNING','SUCCESS','PARTIAL','FAILED','CANCELLED')),
-  batch_size integer not null default 500,
-  total_records bigint default 0,
-  processed_records bigint default 0,
-  inserted_records bigint default 0,
-  updated_records bigint default 0,
-  skipped_records bigint default 0,
-  failed_records bigint default 0,
-  started_at timestamptz,
-  completed_at timestamptz,
-  error_message text,
-  details jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now()
-);
-
--- ---------- USERS / ORGANISATION ----------
-create table if not exists public.app_users (
-  id text primary key,
-  name text not null,
-  email text not null unique,
-  phone text,
-  address text,
-  password_hash text,
-  role text not null check (role in (
-    'Master Admin','Admin','National Head','State Head',
-    'Regional Head','Team Coordinator','Senior Sales Executive',
-    'Area Sales Officer','Sales Executive'
-  )),
-  status text not null default 'Active',
-  approval_status text,
-  can_create_users boolean not null default false,
-  can_view_all_users boolean not null default false,
-  states text[] not null default '{}',
-  regions text[] not null default '{}',
-  districts text[] not null default '{}',
-  tehsils text[] not null default '{}',
-  cities text[] not null default '{}',
-  pin_codes text[] not null default '{}',
-  reporting_to text,
-  reporting_managers text[] not null default '{}',
-  last_login_at timestamptz,
-  last_activity_at timestamptz,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  raw_data jsonb not null default '{}'::jsonb
-);
-
--- Safe upgrade for an existing database created before the address field was added.
-alter table public.app_users add column if not exists address text;
-
-create index if not exists idx_app_users_role on public.app_users(role);
-create index if not exists idx_app_users_status on public.app_users(status);
-create index if not exists idx_app_users_reporting_to on public.app_users(reporting_to);
-create index if not exists idx_app_users_email on public.app_users(lower(email));
-
-create table if not exists public.user_reporting (
-  id text primary key,
-  manager_user_id text not null references public.app_users(id) on delete cascade,
-  member_user_id text not null references public.app_users(id) on delete cascade,
-  relationship_type text not null default 'REPORTS_TO',
-  is_active boolean not null default true,
-  created_at timestamptz not null default now(),
-  unique(manager_user_id, member_user_id)
-);
-
-create index if not exists idx_user_reporting_manager on public.user_reporting(manager_user_id);
-create index if not exists idx_user_reporting_member on public.user_reporting(member_user_id);
-
-create table if not exists public.user_territories (
-  id text primary key,
-  user_id text not null references public.app_users(id) on delete cascade,
-  state text,
-  region text,
-  district text,
-  tehsil text,
-  city_village text,
-  pin_code text,
-  is_active boolean not null default true,
-  created_at timestamptz not null default now(),
-  unique(user_id,state,region,district,tehsil,city_village,pin_code)
-);
-
-create index if not exists idx_user_territories_user on public.user_territories(user_id);
-create index if not exists idx_user_territories_state on public.user_territories(state);
-create index if not exists idx_user_territories_region on public.user_territories(region);
-
--- ---------- CLIENTS / LEADS / VISITS ----------
-create table if not exists public.clients (
-  id text primary key,
-  selected_client_id text,
-  owner_user_id text references public.app_users(id) on delete set null,
-  owner_email text,
-  created_by_user_id text references public.app_users(id) on delete set null,
-  org_name text not null,
-  contact_name text,
-  mobile text,
-  office_mobile text,
-  email text,
-  gstin text,
-  state text,
-  region text,
-  district text,
-  tehsil text,
-  city_village text,
-  pin_code text,
-  address text,
-  sales_order_status text,
-  sales_type text,
-  lead_temperature text,
-  visit_type text,
-  visit_count integer not null default 1,
-  visit_status text,
-  meeting_status text,
-  call_status text,
-  entry_date date,
-  activity_date date,
-  next_follow_up_date date,
-  requirements text,
-  remarks text,
-  location_image_url text,
-  location_image_data text,
-  pipeline_stage text,
-  lead_source text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_clients_owner on public.clients(owner_user_id);
-create index if not exists idx_clients_org on public.clients(lower(org_name));
-create index if not exists idx_clients_mobile on public.clients(mobile);
-create index if not exists idx_clients_date on public.clients(entry_date);
-create index if not exists idx_clients_pipeline_stage on public.clients(pipeline_stage);
-
-create table if not exists public.client_activities (
-  id text primary key,
-  client_id text references public.clients(id) on delete cascade,
-  user_id text references public.app_users(id) on delete set null,
-  activity_type text not null,
-  activity_date date not null default current_date,
-  visit_type text,
-  visit_status text,
-  meeting_status text,
-  call_status text,
-  lead_temperature text,
-  requirements text,
-  remarks text,
-  location_image_url text,
-  next_follow_up_date date,
-  raw_data jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now()
-);
-
-create index if not exists idx_client_activities_client on public.client_activities(client_id);
-create index if not exists idx_client_activities_user on public.client_activities(user_id);
-create index if not exists idx_client_activities_date on public.client_activities(activity_date);
-
-create table if not exists public.pipeline_leads (
-  id text primary key,
-  client_id text references public.clients(id) on delete set null,
-  owner_user_id text references public.app_users(id) on delete set null,
-  stage text not null default 'New',
-  lead_temperature text,
-  source text,
-  expected_value numeric(18,2) default 0,
-  expected_close_date date,
-  status text default 'OPEN',
-  remarks text,
-  raw_data jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create index if not exists idx_pipeline_leads_owner on public.pipeline_leads(owner_user_id);
-create index if not exists idx_pipeline_leads_stage on public.pipeline_leads(stage);
-
--- ---------- COLD CALLING ----------
-create table if not exists public.cold_calls (
-  id text primary key,
-  client_id text references public.clients(id) on delete set null,
-  owner_user_id text references public.app_users(id) on delete set null,
-  owner_email text,
-  created_by_user_id text references public.app_users(id) on delete set null,
-  org_name text,
-  client_name text,
-  contact_name text,
-  phone text,
-  office_phone text,
-  email text,
-  state text,
-  region text,
-  district text,
-  tehsil text,
-  city_village text,
-  pin_code text,
-  visit_type text,
-  visit_count integer not null default 1,
-  address text,
-  reason_for_no_visit text,
-  call_status text,
-  call_outcome text,
-  lead_temperature text,
-  requirements text,
-  remarks text,
-  entry_date date,
-  activity_date date,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_cold_calls_owner on public.cold_calls(owner_user_id);
-create index if not exists idx_cold_calls_org on public.cold_calls(lower(org_name));
-create index if not exists idx_cold_calls_phone on public.cold_calls(phone);
-create index if not exists idx_cold_calls_date on public.cold_calls(entry_date);
-
--- ---------- SALES ORDERS ----------
-create table if not exists public.sales_orders (
-  id text primary key,
-  client_id text references public.clients(id) on delete set null,
-  owner_user_id text references public.app_users(id) on delete set null,
-  owner_email text,
-  created_by_user_id text references public.app_users(id) on delete set null,
-  org_name text,
-  client_name text,
-  contact_number text,
-  pi_status text,
-  order_for text,
-  sales_type text,
-  pv_type text,
-  dcr_panel_quantity numeric(18,4) default 0,
-  dcr_panel_wp numeric(18,4) default 0,
-  dcr_rate_per_wp numeric(18,6) default 0,
-  dcr_kw numeric(18,4) default 0,
-  dcr_amount numeric(18,2) default 0,
-  ndcr_panel_quantity numeric(18,4) default 0,
-  ndcr_panel_wp numeric(18,4) default 0,
-  ndcr_rate_per_wp numeric(18,6) default 0,
-  ndcr_kw numeric(18,4) default 0,
-  ndcr_amount numeric(18,2) default 0,
-  panel_quantity numeric(18,4) default 0,
-  panel_wp numeric(18,4) default 0,
-  rate_per_wp numeric(18,6) default 0,
-  lpd numeric(18,4) default 0,
-  rate_per_lpd numeric(18,6) default 0,
-  sales_lpd numeric(18,4) default 0,
-  project_kw numeric(18,4) default 0,
-  rate_per_kw numeric(18,6) default 0,
-  repeat_count integer not null default 1,
-  kw numeric(18,4) default 0,
-  amount numeric(18,2) default 0,
-  order_date date,
-  remarks text,
-  created_by text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_sales_orders_owner on public.sales_orders(owner_user_id);
-create index if not exists idx_sales_orders_client on public.sales_orders(client_id);
-create index if not exists idx_sales_orders_date on public.sales_orders(order_date);
-create index if not exists idx_sales_orders_order_for on public.sales_orders(order_for);
-
-create table if not exists public.pipeline_orders (
-  id text primary key,
-  sales_order_id text references public.sales_orders(id) on delete cascade,
-  stage text not null default 'New',
-  owner_user_id text references public.app_users(id) on delete set null,
-  status text default 'OPEN',
-  expected_amount numeric(18,2) default 0,
-  expected_close_date date,
-  remarks text,
-  raw_data jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
--- ---------- TARGETS ----------
-create table if not exists public.targets (
-  id text primary key,
-  user_id text references public.app_users(id) on delete cascade,
-  user_email text,
-  target_name text,
-  period_type text,
-  start_date date,
-  end_date date,
-  product text,
-  sales_type text,
-  pv_type text,
-  metric text,
-  target_value numeric(18,2) default 0,
-  remarks text,
-  status text default 'ACTIVE',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_targets_user on public.targets(user_id);
-create index if not exists idx_targets_period on public.targets(start_date,end_date);
-
--- ---------- PROJECT PLANNING / EPC ----------
-create table if not exists public.projects (
-  id text primary key,
-  organization text not null,
-  project_name text not null,
-  project_type text default 'Solar EPC',
-  capacity_kw numeric(18,4) default 0,
-  manager text,
-  manager_user_id text references public.app_users(id) on delete set null,
-  start_date date,
-  target_date date,
-  status text default 'New',
-  remarks text,
-  owner_user_id text references public.app_users(id) on delete set null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_projects_owner on public.projects(owner_user_id);
-create index if not exists idx_projects_status on public.projects(status);
-
-create table if not exists public.project_tasks (
-  id text primary key,
-  project_id text references public.projects(id) on delete cascade,
-  stage text not null,
-  task text not null,
-  status text default 'Pending',
-  due_date date,
-  assigned_to text,
-  assigned_user_id text references public.app_users(id) on delete set null,
-  remarks text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_project_tasks_project on public.project_tasks(project_id);
-create index if not exists idx_project_tasks_assigned on public.project_tasks(assigned_user_id);
-create index if not exists idx_project_tasks_stage on public.project_tasks(stage);
-
-create table if not exists public.project_invoices (
-  id text primary key,
-  project_id text references public.projects(id) on delete cascade,
-  stage text not null,
-  invoice_no text,
-  amount numeric(18,2) not null default 0,
-  status text default 'GENERATED',
-  generated_at timestamptz not null default now(),
-  created_by_user_id text references public.app_users(id) on delete set null,
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_project_invoices_project on public.project_invoices(project_id);
-create index if not exists idx_project_invoices_stage on public.project_invoices(stage);
-
--- ---------- TASKS / CONVERSATIONS ----------
-create table if not exists public.tasks (
-  id text primary key,
-  description text not null,
-  assigned_to text,
-  assigned_user_id text references public.app_users(id) on delete set null,
-  created_by_user_id text references public.app_users(id) on delete set null,
-  follow_up_target_date date,
-  status text default 'Pending',
-  remarks text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_tasks_assigned on public.tasks(assigned_user_id);
-create index if not exists idx_tasks_status on public.tasks(status);
-create index if not exists idx_tasks_due on public.tasks(follow_up_target_date);
-
-create table if not exists public.task_replies (
-  id text primary key,
-  task_id text references public.tasks(id) on delete cascade,
-  sender_user_id text references public.app_users(id) on delete set null,
-  message text not null,
-  created_at timestamptz not null default now(),
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_task_replies_task on public.task_replies(task_id);
-
--- ---------- APPROVALS ----------
-create table if not exists public.approvals (
-  id text primary key,
-  requested_by_user_id text references public.app_users(id) on delete set null,
-  requested_by_email text,
-  requested_by_name text,
-  requested_by_role text,
-  target_approver_role text,
-  category text,
-  details text,
-  status text not null default 'PENDING',
-  approver_user_id text references public.app_users(id) on delete set null,
-  approver_remarks text,
-  approved_at timestamptz,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_approvals_status on public.approvals(status);
-create index if not exists idx_approvals_requested_by on public.approvals(requested_by_user_id);
-
--- ---------- ATTENDANCE ----------
-create table if not exists public.attendance (
-  id text primary key,
-  user_id text references public.app_users(id) on delete cascade,
-  email text,
-  attendance_date date not null,
-  check_in_at timestamptz,
-  check_out_at timestamptz,
-  status text default 'PRESENT',
-  late_explanation text,
-  approval_status text,
-  approved_by_user_id text references public.app_users(id) on delete set null,
-  approved_at timestamptz,
-  notes text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  raw_data jsonb not null default '{}'::jsonb,
-  unique(user_id,attendance_date)
-);
-
-create index if not exists idx_attendance_date on public.attendance(attendance_date);
-create index if not exists idx_attendance_user on public.attendance(user_id);
-
--- ---------- NOTIFICATIONS ----------
-create table if not exists public.notifications (
-  id text primary key,
-  user_id text references public.app_users(id) on delete cascade,
-  type text,
-  module text,
-  record_id text,
-  title text,
-  message text,
-  read boolean not null default false,
-  created_at timestamptz not null default now(),
-  read_at timestamptz,
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_notifications_user_read on public.notifications(user_id,read,created_at desc);
-create index if not exists idx_notifications_record on public.notifications(record_id);
-
--- ---------- TEAM CHAT ----------
-create table if not exists public.chat_messages (
-  id text primary key,
-  sender_id text references public.app_users(id) on delete set null,
-  sender_email text,
-  receiver_id text references public.app_users(id) on delete set null,
-  receiver_email text,
-  message text not null,
-  read boolean not null default false,
-  created_at timestamptz not null default now(),
-  read_at timestamptz,
-  raw_data jsonb not null default '{}'::jsonb
-);
-
-create index if not exists idx_chat_sender_receiver on public.chat_messages(sender_id,receiver_id,created_at);
-create index if not exists idx_chat_receiver_read on public.chat_messages(receiver_id,read,created_at);
-
--- ---------- LOCATION MASTER ----------
-create table if not exists public.location_master (
-  id text primary key,
-  state text,
-  region text,
-  district text,
-  tehsil text,
-  city_village text,
-  pin_code text,
-  source text,
-  is_active boolean not null default true,
-  raw_data jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create index if not exists idx_location_state on public.location_master(state);
-create index if not exists idx_location_region on public.location_master(region);
-create index if not exists idx_location_district on public.location_master(district);
-create index if not exists idx_location_pin on public.location_master(pin_code);
-
--- ---------- AUDIT / IMPORT / GENERIC DATA ----------
-create table if not exists public.audit_log (
-  id uuid primary key default gen_random_uuid(),
-  actor_user_id text references public.app_users(id) on delete set null,
-  actor_email text,
-  actor_role text,
-  action text not null,
-  module text,
-  record_id text,
-  before_data jsonb,
-  after_data jsonb,
-  success boolean not null default true,
-  message text,
-  created_at timestamptz not null default now()
-);
-
-create index if not exists idx_audit_actor on public.audit_log(actor_user_id,created_at desc);
-create index if not exists idx_audit_module_record on public.audit_log(module,record_id,created_at desc);
-
-create table if not exists public.import_jobs (
-  id text primary key,
-  module text not null,
-  source_name text,
-  source_type text,
-  status text not null default 'QUEUED',
-  total_rows bigint default 0,
-  processed_rows bigint default 0,
-  inserted_rows bigint default 0,
-  updated_rows bigint default 0,
-  skipped_rows bigint default 0,
-  failed_rows bigint default 0,
-  error_message text,
-  created_by_user_id text references public.app_users(id) on delete set null,
-  started_at timestamptz,
-  completed_at timestamptz,
-  raw_data jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now()
-);
-
-create table if not exists public.app_settings (
-  setting_key text primary key,
-  setting_value jsonb not null default '{}'::jsonb,
-  is_sensitive boolean not null default false,
-  updated_by_user_id text references public.app_users(id) on delete set null,
-  updated_at timestamptz not null default now()
-);
-
--- ---------- UPDATED_AT TRIGGER ----------
-create or replace function public.set_updated_at()
-returns trigger language plpgsql as $$
-begin
-  new.updated_at = now();
-  return new;
-end $$;
-
-do $$
-declare
-  t text;
-begin
-  foreach t in array array[
-    'app_users','clients','pipeline_leads','cold_calls','sales_orders','pipeline_orders',
-    'targets','projects','project_tasks','tasks','approvals','attendance',
-    'location_master','app_settings'
-  ] loop
-    execute format('drop trigger if exists trg_%s_updated_at on public.%I',t,t);
-    execute format('create trigger trg_%s_updated_at before update on public.%I for each row execute function public.set_updated_at()',t,t);
-  end loop;
-end $$;
-
--- ---------- DASHBOARD VIEWS ----------
-create or replace view public.dashboard_user_summary as
-select
-  u.id,
-  u.name,
-  u.email,
-  u.role,
-  u.status,
-  coalesce(c.client_count,0) as client_count,
-  coalesce(cc.cold_call_count,0) as cold_call_count,
-  coalesce(so.sales_order_count,0) as sales_order_count,
-  coalesce(so.sales_amount,0) as sales_amount,
-  coalesce(t.target_count,0) as target_count,
-  coalesce(p.project_count,0) as project_count
-from public.app_users u
-left join (
-  select owner_user_id,count(*) client_count from public.clients group by owner_user_id
-) c on c.owner_user_id=u.id
-left join (
-  select owner_user_id,count(*) cold_call_count from public.cold_calls group by owner_user_id
-) cc on cc.owner_user_id=u.id
-left join (
-  select owner_user_id,count(*) sales_order_count,coalesce(sum(amount),0) sales_amount
-  from public.sales_orders group by owner_user_id
-) so on so.owner_user_id=u.id
-left join (
-  select user_id,count(*) target_count from public.targets group by user_id
-) t on t.user_id=u.id
-left join (
-  select owner_user_id,count(*) project_count from public.projects group by owner_user_id
-) p on p.owner_user_id=u.id;
-
--- ---------- SECURITY ----------
--- The current application uses Apps Script as its server-side API.
--- Keep all Supabase secret-key access server-side. No browser role receives
--- direct unrestricted access.
-alter table public.app_users enable row level security;
-alter table public.user_reporting enable row level security;
-alter table public.user_territories enable row level security;
-alter table public.clients enable row level security;
-alter table public.client_activities enable row level security;
-alter table public.pipeline_leads enable row level security;
-alter table public.cold_calls enable row level security;
-alter table public.sales_orders enable row level security;
-alter table public.pipeline_orders enable row level security;
-alter table public.targets enable row level security;
-alter table public.projects enable row level security;
-alter table public.project_tasks enable row level security;
-alter table public.project_invoices enable row level security;
-alter table public.tasks enable row level security;
-alter table public.task_replies enable row level security;
-alter table public.approvals enable row level security;
-alter table public.attendance enable row level security;
-alter table public.notifications enable row level security;
-alter table public.chat_messages enable row level security;
-alter table public.location_master enable row level security;
-alter table public.audit_log enable row level security;
-alter table public.import_jobs enable row level security;
-alter table public.app_settings enable row level security;
-
--- Remove broad Data API privileges. The Apps Script backend should use the
--- server-side Supabase secret key / backend connection.
-do $$
-declare
-  t text;
-begin
-  foreach t in array array[
-    'app_users','user_reporting','user_territories','clients','client_activities',
-    'pipeline_leads','cold_calls','sales_orders','pipeline_orders','targets','projects',
-    'project_tasks','project_invoices','tasks','task_replies','approvals','attendance',
-    'notifications','chat_messages','location_master','audit_log','import_jobs','app_settings'
-  ] loop
-    execute format('revoke all on table public.%I from anon, authenticated',t);
-    execute format('grant all on table public.%I to service_role',t);
-  end loop;
-end $$;
-
--- Explicitly prevent direct anonymous/authenticated access to the dashboard view.
-revoke all on public.dashboard_user_summary from anon, authenticated;
-grant select on public.dashboard_user_summary to service_role;
-
-commit;
-
--- ============================================================
--- MIGRATION NOTES
--- ============================================================
--- 1. Import legacy Users -> app_users.
--- 2. Build user_reporting from reportingTo/reportingManagers.
--- 3. Import Clients -> clients; optionally create one client_activities row
---    per visit/activity if the legacy sheet contains repeated visit rows.
--- 4. Import Cold Calls -> cold_calls.
--- 5. Import Sales Orders -> sales_orders.
--- 6. Import Targets -> targets.
--- 7. Import Projects/Project Tasks/Invoices -> corresponding tables.
--- 8. Import Tasks/Replies, Approvals, Attendance, Notifications and Chat.
--- 9. Import location master -> location_master.
--- 10. Preserve any unmapped legacy columns in raw_data JSONB.
---
--- The Team Coordinator role is a global read/check role in the application.
--- It is intentionally not granted Master Admin CRUD or database configuration
--- privileges by this schema.
-
-
--- AUTH / RLS SETUP
-
--- Run after kosol_supabase_schema.sql in the Supabase SQL Editor.
--- This setup is for the browser publishable-key architecture.
--- The application CRUD Edge Function uses a server-side secret and performs
--- privileged writes after validating the signed-in Supabase Auth user.
-
-alter table public.app_users add column if not exists auth_user_id uuid unique;
-create index if not exists idx_app_users_auth_user_id on public.app_users(auth_user_id);
-
--- Link an existing application user to its Supabase Auth account by email.
--- Run this for each existing user after creating the corresponding Auth account:
--- update public.app_users set auth_user_id = '<AUTH-USER-UUID>' where lower(email)=lower('user@example.com');
-
-alter table public.app_users enable row level security;
-
-drop policy if exists app_users_select_own_profile on public.app_users;
-create policy app_users_select_own_profile
-on public.app_users
-for select
-to authenticated
-using (
-  auth_user_id = auth.uid()
-  or lower(email) = lower(coalesce(auth.jwt()->>'email',''))
-);
-
-drop policy if exists app_users_update_own_profile on public.app_users;
-create policy app_users_update_own_profile
-on public.app_users
-for update
-to authenticated
-using (
-  auth_user_id = auth.uid()
-  or lower(email) = lower(coalesce(auth.jwt()->>'email',''))
-)
-with check (
-  auth_user_id = auth.uid()
-  or lower(email) = lower(coalesce(auth.jwt()->>'email',''))
-);
-
--- The browser does not receive a secret/service-role key. All cross-user reads,
--- global Team Coordinator/Master Admin access, and privileged CRUD are performed
--- by the kosol-app-api Edge Function after it validates the user's JWT.
--- Do NOT create a broad anon policy such as "using (true)" for business tables.
-
--- Recommended grants for the browser profile lookup.
-revoke all on table public.app_users from anon;
-grant select on table public.app_users to authenticated;
-</script>
-<script id="kosol-embedded-edge-function" type="text/plain">// KOSOL ENERGIE PVT LTD - SUPABASE EDGE FUNCTION
-// Supabase is the sole application backend.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || 'https://batkezvcxifdualntadd.supabase.co';
-const SECRET = Deno.env.get('SUPABASE_SECRET_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-const admin = createClient(SUPABASE_URL, SECRET, { auth: { persistSession: false } });
-const TABLE_COLUMNS: Record<string,string[]> = {
-  "app_users": [
-    "id",
-    "name",
-    "email",
-    "phone",
-    "address",
-    "password_hash",
-    "role",
-    "status",
-    "approval_status",
-    "can_create_users",
-    "can_view_all_users",
-    "states",
-    "regions",
-    "districts",
-    "tehsils",
-    "cities",
-    "pin_codes",
-    "reporting_to",
-    "reporting_managers",
-    "last_login_at",
-    "last_activity_at",
-    "created_at",
-    "updated_at",
-    "raw_data"
-  ],
-  "user_reporting": [
-    "id",
-    "manager_user_id",
-    "member_user_id",
-    "relationship_type",
-    "is_active",
-    "created_at"
-  ],
-  "user_territories": [
-    "id",
-    "user_id",
-    "state",
-    "region",
-    "district",
-    "tehsil",
-    "city_village",
-    "pin_code",
-    "is_active",
-    "created_at"
-  ],
-  "clients": [
-    "id",
-    "selected_client_id",
-    "owner_user_id",
-    "owner_email",
-    "created_by_user_id",
-    "org_name",
-    "contact_name",
-    "mobile",
-    "office_mobile",
-    "email",
-    "gstin",
-    "state",
-    "region",
-    "district",
-    "tehsil",
-    "city_village",
-    "pin_code",
-    "address",
-    "sales_order_status",
-    "sales_type",
-    "lead_temperature",
-    "visit_type",
-    "visit_count",
-    "visit_status",
-    "meeting_status",
-    "call_status",
-    "entry_date",
-    "activity_date",
-    "next_follow_up_date",
-    "requirements",
-    "remarks",
-    "location_image_url",
-    "location_image_data",
-    "pipeline_stage",
-    "lead_source",
-    "created_at",
-    "updated_at",
-    "raw_data"
-  ],
-  "client_activities": [
-    "id",
-    "client_id",
-    "user_id",
-    "activity_type",
-    "activity_date",
-    "visit_type",
-    "visit_status",
-    "meeting_status",
-    "call_status",
-    "lead_temperature",
-    "requirements",
-    "remarks",
-    "location_image_url",
-    "next_follow_up_date",
-    "raw_data",
-    "created_at"
-  ],
-  "pipeline_leads": [
-    "id",
-    "client_id",
-    "owner_user_id",
-    "stage",
-    "lead_temperature",
-    "source",
-    "expected_value",
-    "expected_close_date",
-    "status",
-    "remarks",
-    "raw_data",
-    "created_at",
-    "updated_at"
-  ],
-  "cold_calls": [
-    "id",
-    "client_id",
-    "owner_user_id",
-    "owner_email",
-    "created_by_user_id",
-    "org_name",
-    "client_name",
-    "contact_name",
-    "phone",
-    "office_phone",
-    "email",
-    "state",
-    "region",
-    "district",
-    "tehsil",
-    "city_village",
-    "pin_code",
-    "visit_type",
-    "visit_count",
-    "address",
-    "reason_for_no_visit",
-    "call_status",
-    "call_outcome",
-    "lead_temperature",
-    "requirements",
-    "remarks",
-    "entry_date",
-    "activity_date",
-    "created_at",
-    "updated_at",
-    "raw_data"
-  ],
-  "sales_orders": [
-    "id",
-    "client_id",
-    "owner_user_id",
-    "owner_email",
-    "created_by_user_id",
-    "org_name",
-    "client_name",
-    "contact_number",
-    "pi_status",
-    "order_for",
-    "sales_type",
-    "pv_type",
-    "dcr_panel_quantity",
-    "dcr_panel_wp",
-    "dcr_rate_per_wp",
-    "dcr_kw",
-    "dcr_amount",
-    "ndcr_panel_quantity",
-    "ndcr_panel_wp",
-    "ndcr_rate_per_wp",
-    "ndcr_kw",
-    "ndcr_amount",
-    "panel_quantity",
-    "panel_wp",
-    "rate_per_wp",
-    "lpd",
-    "rate_per_lpd",
-    "sales_lpd",
-    "project_kw",
-    "rate_per_kw",
-    "repeat_count",
-    "kw",
-    "amount",
-    "order_date",
-    "remarks",
-    "created_by",
-    "created_at",
-    "updated_at",
-    "raw_data"
-  ],
-  "pipeline_orders": [
-    "id",
-    "sales_order_id",
-    "stage",
-    "owner_user_id",
-    "status",
-    "expected_amount",
-    "expected_close_date",
-    "remarks",
-    "raw_data",
-    "created_at",
-    "updated_at"
-  ],
-  "targets": [
-    "id",
-    "user_id",
-    "user_email",
-    "target_name",
-    "period_type",
-    "start_date",
-    "end_date",
-    "product",
-    "sales_type",
-    "pv_type",
-    "metric",
-    "target_value",
-    "remarks",
-    "status",
-    "created_at",
-    "updated_at",
-    "raw_data"
-  ],
-  "projects": [
-    "id",
-    "organization",
-    "project_name",
-    "project_type",
-    "capacity_kw",
-    "manager",
-    "manager_user_id",
-    "start_date",
-    "target_date",
-    "status",
-    "remarks",
-    "owner_user_id",
-    "created_at",
-    "updated_at",
-    "raw_data"
-  ],
-  "project_tasks": [
-    "id",
-    "project_id",
-    "stage",
-    "task",
-    "status",
-    "due_date",
-    "assigned_to",
-    "assigned_user_id",
-    "remarks",
-    "created_at",
-    "updated_at",
-    "raw_data"
-  ],
-  "project_invoices": [
-    "id",
-    "project_id",
-    "stage",
-    "invoice_no",
-    "amount",
-    "status",
-    "generated_at",
-    "created_by_user_id",
-    "raw_data"
-  ],
-  "tasks": [
-    "id",
-    "description",
-    "assigned_to",
-    "assigned_user_id",
-    "created_by_user_id",
-    "follow_up_target_date",
-    "status",
-    "remarks",
-    "created_at",
-    "updated_at",
-    "raw_data"
-  ],
-  "task_replies": [
-    "id",
-    "task_id",
-    "sender_user_id",
-    "message",
-    "created_at",
-    "raw_data"
-  ],
-  "approvals": [
-    "id",
-    "requested_by_user_id",
-    "requested_by_email",
-    "requested_by_name",
-    "requested_by_role",
-    "target_approver_role",
-    "category",
-    "details",
-    "status",
-    "approver_user_id",
-    "approver_remarks",
-    "approved_at",
-    "created_at",
-    "updated_at",
-    "raw_data"
-  ],
-  "attendance": [
-    "id",
-    "user_id",
-    "email",
-    "attendance_date",
-    "check_in_at",
-    "check_out_at",
-    "status",
-    "late_explanation",
-    "approval_status",
-    "approved_by_user_id",
-    "approved_at",
-    "notes",
-    "created_at",
-    "updated_at",
-    "raw_data"
-  ],
-  "notifications": [
-    "id",
-    "user_id",
-    "type",
-    "module",
-    "record_id",
-    "title",
-    "message",
-    "read",
-    "created_at",
-    "read_at",
-    "raw_data"
-  ],
-  "chat_messages": [
-    "id",
-    "sender_id",
-    "sender_email",
-    "receiver_id",
-    "receiver_email",
-    "message",
-    "read",
-    "created_at",
-    "read_at",
-    "raw_data"
-  ],
-  "location_master": [
-    "id",
-    "state",
-    "region",
-    "district",
-    "tehsil",
-    "city_village",
-    "pin_code",
-    "source",
-    "is_active",
-    "raw_data",
-    "created_at",
-    "updated_at"
-  ],
-  "audit_log": [
-    "id",
-    "actor_user_id",
-    "actor_email",
-    "actor_role",
-    "action",
-    "module",
-    "record_id",
-    "before_data",
-    "after_data",
-    "success",
-    "message",
-    "created_at"
-  ],
-  "import_jobs": [
-    "id",
-    "module",
-    "source_name",
-    "source_type",
-    "status",
-    "total_rows",
-    "processed_rows",
-    "inserted_rows",
-    "updated_rows",
-    "skipped_rows",
-    "failed_rows",
-    "error_message",
-    "created_by_user_id",
-    "started_at",
-    "completed_at",
-    "raw_data",
-    "created_at"
-  ],
-  "app_settings": [
-    "setting_key",
-    "setting_value",
-    "is_sensitive",
-    "updated_by_user_id",
-    "updated_at"
-  ]
-};
-const GLOBAL_ROLES = new Set(['Master Admin','Team Coordinator']);
-const ADMIN_ROLES = new Set(['Master Admin','Admin']);
-
-function json(body:unknown,status=200){return new Response(JSON.stringify(body),{status,headers:{...corsHeaders,'Content-Type':'application/json'}})}
-function norm(v:unknown){return String(v??'').trim()}
-function lower(v:unknown){return norm(v).toLowerCase()}
-function toSnake(v:string){return String(v||'').replace(/([a-z0-9])([A-Z])/g,'$1_$2').replace(/[\s-]+/g,'_').toLowerCase()}
-function idOf(p:any){return norm(p?.id||p?.recordId||p?.orderId||p?.targetId||p?.projectId||p?.taskId||p?.userId)}
-function newId(){return crypto.randomUUID()}
-function pickSource(source:any,col:string){
-  const candidates=[col,col.replace(/_([a-z])/g,(_,c)=>c.toUpperCase())];
-  for(const k of candidates)if(source?.[k]!==undefined&&source?.[k]!==null)return source[k];
-  const wanted=toSnake(col); for(const k of Object.keys(source||{}))if(toSnake(k)===wanted)return source[k];
-  return undefined;
-}
-function sanitizeRow(table:string,source:any,profile:any,action=''){
-  const row:any={};
-  for(const col of TABLE_COLUMNS[table]||[]){const v=pickSource(source,col);if(v!==undefined)row[col]=v;}
-  if(!row.id)row.id=idOf(source)||newId();
-  if(['clients','cold_calls','sales_orders','projects','pipeline_leads','pipeline_orders'].includes(table)){row.owner_user_id=row.owner_user_id||profile.id;row.owner_email=row.owner_email||profile.email}
-  if(['clients','cold_calls','sales_orders'].includes(table))row.created_by_user_id=row.created_by_user_id||profile.id;
-  if(table==='tasks')row.created_by_user_id=row.created_by_user_id||profile.id;
-  if(table==='targets'){row.user_id=row.user_id||profile.id;row.user_email=row.user_email||profile.email}
-  if(table==='attendance'){row.user_id=row.user_id||profile.id;row.email=row.email||profile.email}
-  if(table==='notifications')row.user_id=row.user_id||profile.id;
-  if(table==='approvals'){row.requested_by_user_id=row.requested_by_user_id||profile.id;row.requested_by_email=row.requested_by_email||profile.email;row.requested_by_name=row.requested_by_name||profile.name;row.requested_by_role=row.requested_by_role||profile.role}
-  row.raw_data={...(row.raw_data||{}),_kosol_action:action,_source_keys:Object.keys(source||{})};
-  delete row.password;delete row.newPassword;
-  return row;
-}
-async function authenticate(req:Request){
-  const jwt=(req.headers.get('Authorization')||'').replace(/^Bearer\s+/i,'').trim();
-  if(!jwt)throw new Error('Authentication required.');
-  if(!SECRET)throw new Error('Supabase server secret is not configured.');
-  const {data,error}=await admin.auth.getUser(jwt);if(error||!data?.user)throw new Error('Invalid or expired Supabase session.');
-  const email=lower(data.user.email);
-  let {data:profile,error:pe}=await admin.from('app_users').select('*').eq('auth_user_id',data.user.id).maybeSingle();
-  if(pe)throw new Error('Unable to load application user profile: '+pe.message);
-  if(!profile){const fallback=await admin.from('app_users').select('*').eq('email',email).maybeSingle();if(fallback.error)throw new Error('Unable to load application user profile: '+fallback.error.message);profile=fallback.data||null;}
-  if(!profile)throw new Error('No app_users profile is linked to this Supabase Auth account.');
-  if(String(profile.auth_user_id||'')!==String(data.user.id)){await admin.from('app_users').update({auth_user_id:data.user.id}).eq('id',profile.id);profile.auth_user_id=data.user.id;}
-  if(lower(profile.status)==='inactive')throw new Error('This user account is inactive.');if(lower(profile.approval_status)==='rejected')throw new Error('This user account has been rejected.');
-  return {authUser:data.user,profile};
-}
-function canViewAll(profile:any){return GLOBAL_ROLES.has(norm(profile?.role))||profile?.can_view_all_users===true}
-function assertAdmin(profile:any){if(!ADMIN_ROLES.has(norm(profile?.role)))throw new Error('Only Master Admin/Admin can perform this operation.')}
-function assertGlobal(profile:any){if(!canViewAll(profile))throw new Error('This operation requires global user-data access.')}
-
-async function reportingScopeUserIds(profile:any){
-  if(canViewAll(profile)) return null;
-  const {data:rows,error}=await admin.from('app_users').select('id,email,name,reporting_to,reporting_managers,status,approval_status');
-  if(error)throw new Error(error.message);
-  const active=(rows||[]).filter((u:any)=>lower(u.status||'active')!=='inactive'&&lower(u.approval_status||'approved')!=='rejected');
-  const normId=(v:any)=>dashboardKey(v);
-  const meKeys=new Set([profile.id,profile.email,profile.name].filter(Boolean).map(normId));
-  const allowed=new Set<string>();
-  const identity=(u:any)=>[u?.id,u?.email,u?.name].filter(Boolean).map(normId);
-  const refs=(u:any)=>{const out:any[]=[]; for(const k of ['reporting_to','reporting_managers']){const v=u?.[k]; if(Array.isArray(v))out.push(...v); else if(v)out.push(...String(v).split(/[,|]/));} return out.filter(Boolean).map(normId);};
-  for(const u of active){if(identity(u).some((k:string)=>meKeys.has(k))) allowed.add(String(u.id));}
-  let frontier=active.filter((u:any)=>!allowed.has(String(u.id))&&refs(u).some((r:string)=>meKeys.has(r)));
-  while(frontier.length){
-    for(const u of frontier)allowed.add(String(u.id));
-    const parentKeys=new Set(frontier.flatMap(identity));
-    const next=active.filter((u:any)=>!allowed.has(String(u.id))&&refs(u).some((r:string)=>parentKeys.has(r)));
-    frontier=next;
-  }
-  return allowed;
-}
-function dashboardKey(v:any){return String(v??'').trim().toLowerCase();}
-
-async function listTable(table:string,profile:any,payload:any={}){
-  const scopeIds=await reportingScopeUserIds(profile);
-  let q=admin.from(table).select('*').limit(Math.min(Number(payload.limit||5000),10000));
-  if(scopeIds!==null){
-    const ids=[...scopeIds];
-    if(table==='app_users'){ q=ids.length?q.in('id',ids):q.limit(0); }
-    else if(['clients','cold_calls','sales_orders','projects','pipeline_leads','pipeline_orders'].includes(table)){
-      const cols=TABLE_COLUMNS[table]||[]; const ors:string[]=[];
-      if(cols.includes('owner_user_id'))ors.push(`owner_user_id.in.(${ids.join(',')})`);
-      if(cols.includes('created_by_user_id'))ors.push(`created_by_user_id.in.(${ids.join(',')})`);
-      if(cols.includes('user_id'))ors.push(`user_id.in.(${ids.join(',')})`);
-      if(ors.length)q=q.or(ors.join(','));else q=q.limit(0);
-    } else if(['targets','tasks','approvals','attendance','notifications'].includes(table)){
-      const cols=TABLE_COLUMNS[table]||[]; const ors:string[]=[];
-      if(cols.includes('user_id'))ors.push(`user_id.in.(${ids.join(',')})`);
-      if(cols.includes('owner_user_id'))ors.push(`owner_user_id.in.(${ids.join(',')})`);
-      if(cols.includes('created_by_user_id'))ors.push(`created_by_user_id.in.(${ids.join(',')})`);
-      if(cols.includes('requested_by_user_id'))ors.push(`requested_by_user_id.in.(${ids.join(',')})`);
-      if(ors.length)q=q.or(ors.join(','));else q=q.limit(0);
-    } else if(table==='chat_messages'){
-      q=q.or(`sender_id.in.(${ids.join(',')}),receiver_id.in.(${ids.join(',')})`);
-    }
-  }
-  const {data,error}=await q;if(error)throw new Error(error.message);return data||[];
-}
-
-async function audit(profile:any,action:string,module:string,recordId:string,before:any,after:any,success=true,message=''){try{await admin.from('audit_log').insert({actor_user_id:profile.id,actor_email:profile.email,actor_role:profile.role,action,module,record_id:recordId||null,before_data:before||null,after_data:after||null,success,message})}catch(_){} }
-async function upsertOne(table:string,p:any,profile:any,action:string){
-  const row=sanitizeRow(table,p,profile,action),id=String(row.id);let before:any=null;const old=await admin.from(table).select('*').eq('id',id).maybeSingle();before=old.data||null;
-  if(before&&!canViewAll(profile)){const owner=before.owner_user_id||before.created_by_user_id||before.user_id;if(owner&&String(owner)!==String(profile.id)&&lower(before.owner_email)!==lower(profile.email))throw new Error('You can modify only your own records.')}
-  const {data,error}=await admin.from(table).upsert(row,{onConflict:'id'}).select('*').single();if(error)throw new Error(error.message);await audit(profile,action,table,id,before,data,true,'Saved');return {success:true,data,message:'Saved successfully.'};
-}
-async function updateOne(table:string,p:any,profile:any,action:string){
-  const id=idOf(p);if(!id)throw new Error('A record ID is required.');const {data:before,error:be}=await admin.from(table).select('*').eq('id',id).maybeSingle();if(be)throw new Error(be.message);if(!before)throw new Error('Record not found.');
-  if(!canViewAll(profile)){const owner=before.owner_user_id||before.created_by_user_id||before.user_id;if(owner&&String(owner)!==String(profile.id)&&lower(before.owner_email)!==lower(profile.email))throw new Error('You can modify only your own records.')}
-  const patch=sanitizeRow(table,{...before,...p,id},profile,action);delete patch.id;delete patch.created_at;
-  const {data,error}=await admin.from(table).update(patch).eq('id',id).select('*').single();if(error)throw new Error(error.message);await audit(profile,action,table,id,before,data,true,'Updated');return {success:true,data,message:'Updated successfully.'};
-}
-async function deleteOne(table:string,p:any,profile:any,action:string){
-  const id=idOf(p);if(!id)throw new Error('A record ID is required.');const {data:before,error:be}=await admin.from(table).select('*').eq('id',id).maybeSingle();if(be)throw new Error(be.message);if(!before)throw new Error('Record not found.');
-  if(!canViewAll(profile)){const owner=before.owner_user_id||before.created_by_user_id||before.user_id;if(owner&&String(owner)!==String(profile.id))throw new Error('You can delete only your own records.')}
-  const {error}=await admin.from(table).delete().eq('id',id);if(error)throw new Error(error.message);await audit(profile,action,table,id,before,null,true,'Deleted');return {success:true,message:'Deleted successfully.'};
-}
-async function databaseStatus(profile:any){assertAdmin(profile);const {data:setting}=await admin.from('app_settings').select('*').eq('setting_key','database.primary').maybeSingle();const {data:logs}=await admin.from('audit_log').select('action,success,message,created_at').eq('module','database').order('created_at',{ascending:false}).limit(20);return {success:true,provider:'supabase',activeProvider:'supabase',status:'active',connectionUrl:SUPABASE_URL,schema:'public',configuration:setting?.setting_value||{provider:'supabase',connectionUrl:SUPABASE_URL,schema:'public'},history:(logs||[]).map((x:any)=>({provider:'supabase',operation:x.action,status:x.success?'SUCCESS':'FAILED',startedAt:x.created_at,message:x.message}))}}
-async function testDatabase(profile:any){assertAdmin(profile);const {error}=await admin.from('app_users').select('id').limit(1);if(error){await audit(profile,'testDatabaseConnection','database','',null,null,false,error.message);throw new Error(error.message)}await audit(profile,'testDatabaseConnection','database','',null,null,true,'Supabase connection successful');return {success:true,provider:'supabase',status:'connected',message:'Supabase database connection is working.'}}
-async function saveDatabaseConfig(profile:any){assertAdmin(profile);const value={provider:'supabase',connectionUrl:SUPABASE_URL,schema:'public',configuredAt:new Date().toISOString()};const {error}=await admin.from('app_settings').upsert({setting_key:'database.primary',setting_value:value,is_sensitive:false,updated_by_user_id:profile.id},{onConflict:'setting_key'});if(error)throw new Error(error.message);await audit(profile,'saveDatabaseIntegrationConfig','database','',null,value,true,'Supabase is the sole active provider');return {success:true,...value,message:'Supabase is configured as the primary and only application database.'}}
-const MIGRATION_TABLES:any={teamUsers:'app_users',users:'app_users',clients:'clients',coldCalls:'cold_calls',salesOrders:'sales_orders',targets:'targets',projects:'projects',projectTasks:'project_tasks',projectInvoices:'project_invoices',tasks:'tasks',approvals:'approvals',todayAttendance:'attendance',attendance:'attendance',notifications:'notifications',pipelineLeads:'pipeline_leads',pipelineOrders:'pipeline_orders'};
-async function migrateSnapshot(snapshot:any,profile:any){
-  assertAdmin(profile);const results:any[]=[];let processed=0,failed=0;const order=Object.keys(MIGRATION_TABLES);
-  for(const key of order){const table=MIGRATION_TABLES[key],rows=Array.isArray(snapshot?.[key])?snapshot[key]:[];if(!rows.length)continue;let localFail=0;
-    for(let i=0;i<rows.length;i+=200){const chunk=rows.slice(i,i+200).map((r:any)=>sanitizeRow(table,r,profile,'migrateApplicationDatabase'));const {data,error}=await admin.from(table).upsert(chunk,{onConflict:'id'}).select('id');if(error){localFail+=chunk.length;failed+=chunk.length;results.push({table,key,status:'FAILED',message:error.message})}else processed+=(data||[]).length}
-    results.push({table,key,status:localFail?'PARTIAL':'SUCCESS',processed:rows.length,failed:localFail});
-  }
-  const status=failed?'PARTIAL':'SUCCESS';await audit(profile,'migrateApplicationDatabase','database','',null,{status,processed,failed,results},failed===0,`Migration ${status}`);return {success:true,status,processed,failed,results,message:`Supabase migration completed: ${processed} processed successfully, ${failed} failed.`};
-}
-function dashboardShape(r:any,p:any){return {clients:r.clients||[],coldCalls:r.cold_calls||[],salesOrders:r.sales_orders||[],targets:r.targets||[],tasks:r.tasks||[],approvals:r.approvals||[],notifications:r.notifications||[],teamUsers:r.app_users||[],projects:r.projects||[],pipelineLeads:r.pipeline_leads||[],pipelineOrders:r.pipeline_orders||[],todayAttendance:(r.attendance||[]).find((x:any)=>String(x.user_id||'')===String(p.id))||null}}
-
-function tempPassword(){return 'Kosol@'+crypto.randomUUID().replace(/-/g,'').slice(0,12)+'9!';}
-async function bootstrapMasterAdmin(p:any){
-  const email=lower(p?.email),password=norm(p?.password),setupKey=norm(p?.setupKey);
-  if(!email||!password||password.length<8)throw new Error('Master Admin email and a password of at least 8 characters are required.');
-  const configuredKey=Deno.env.get('KOSOL_FIRST_ADMIN_SETUP_KEY')||'';
-  if(!configuredKey)throw new Error('First-time setup is not enabled. Set the KOSOL_FIRST_ADMIN_SETUP_KEY Edge Function secret first.');
-  if(setupKey!==configuredKey)throw new Error('Invalid first-time setup key.');
-  const {data:admins,error:ae}=await admin.from('app_users').select('*').eq('role','Master Admin').order('created_at');
-  if(ae)throw new Error(ae.message);if(!admins?.length)throw new Error('No Master Admin application profile exists yet. Create the Master Admin profile in app_users first.');
-  const profile=admins.find((x:any)=>lower(x.email)===email);if(!profile)throw new Error('The supplied email does not match an existing Master Admin application profile.');
-  const linked=admins.some((x:any)=>String(x.auth_user_id||''));if(linked&&String(profile.auth_user_id||'')!=='')return {success:true,message:'This Master Admin is already linked to Supabase Auth.',user:profile};
-  if(linked)throw new Error('A Master Admin Supabase Auth account is already linked. Sign in with that account or use the existing linked administrator.');
-  const {data:created,error:ce}=await admin.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{name:profile.name,role:'Master Admin'}});
-  if(ce)throw new Error(ce.message);const authId=created.user?.id;if(!authId)throw new Error('Supabase Auth did not return a user ID.');
-  const {data:updated,error:ue}=await admin.from('app_users').update({auth_user_id:authId,status:'Active',approval_status:'Approved',role:'Master Admin'}).eq('id',profile.id).select('*').single();
-  if(ue){try{await admin.auth.admin.deleteUser(authId)}catch(_){};throw new Error('Auth account was created but application profile linking failed: '+ue.message)}
-  return {success:true,message:'Master Admin Supabase Auth account created and linked successfully. You can now sign in.',user:updated};
-}
-async function syncApplicationUsersToAuth(profile:any){
-  assertAdmin(profile);const {data:rows,error}=await admin.from('app_users').select('*').order('created_at');if(error)throw new Error(error.message);
-  const created:any[]=[];const linked:any[]=[];const skipped:any[]=[];const failed:any[]=[];
-  const existingUsers=(await admin.auth.admin.listUsers({page:1,perPage:1000})).data?.users||[];
-  for(const row of rows||[]){
-    const email=lower(row.email);if(!email){skipped.push({id:row.id,name:row.name,reason:'Missing email'});continue;}
-    if(String(row.auth_user_id||'')){linked.push({id:row.id,email,authUserId:row.auth_user_id});continue;}
-    let authUser:any=null;let temp='';
-    try{
-      authUser=existingUsers.find((u:any)=>lower(u.email)===email)||null;
-      if(authUser){await admin.from('app_users').update({auth_user_id:authUser.id}).eq('id',row.id);linked.push({id:row.id,email,authUserId:authUser.id});continue;}
-      temp=tempPassword();const made=await admin.auth.admin.createUser({email,password:temp,email_confirm:true,user_metadata:{name:row.name||email.split('@')[0],role:row.role||'Sales Executive'}});if(made.error)throw made.error;
-      authUser=made.data.user;if(!authUser)throw new Error('No Auth user returned.');
-      const {error:ue}=await admin.from('app_users').update({auth_user_id:authUser.id,raw_data:{...(row.raw_data||{}),supabase_auth_setup:'completed',supabase_auth_created_at:new Date().toISOString(),temporary_password_issued:true}}).eq('id',row.id);
-      if(ue){try{await admin.auth.admin.deleteUser(authUser.id)}catch(_){};throw ue;}
-      created.push({id:row.id,email,name:row.name,role:row.role,temporaryPassword:temp,authUserId:authUser.id});
-    }catch(err){failed.push({id:row.id,email,name:row.name,error:err instanceof Error?err.message:String(err)})}
-  }
-  const message=`Supabase Auth synchronization completed. Created ${created.length}, linked ${linked.length}, skipped ${skipped.length}, failed ${failed.length}.`;
-  await audit(profile,'syncApplicationUsersToAuth','authentication','',null,{created:created.map(x=>({...x,temporaryPassword:'[issued]'})),linked,skipped,failed},failed.length===0,message);
-  return {success:failed.length===0,message,created,linked,skipped,failed,warning:created.length?'Newly created users received temporary passwords. Master Admin should securely provide them and require password reset.':''};
-}
-
-async function handlePublic(action:string,p:any):Promise<any>{
-  if(action==='bootstrapMasterAdmin')return bootstrapMasterAdmin(p);
-  if(action==='getReportingManagers'){
-    const {data,error}=await admin.from('app_users').select('id,name,email,role,status').eq('status','Active').order('name');
-    if(error)throw new Error(error.message);
-    return {success:true,managers:data||[],users:data||[],data:data||[]};
-  }
-  if(action==='selfRegister'){
-    const email=lower(p?.email),password=norm(p?.password||p?.newPassword),name=norm(p?.name||p?.fullName||email.split('@')[0]);
-    if(!email||!password)throw new Error('Email and password are required.');
-    if(password.length<8)throw new Error('Password must contain at least 8 characters.');
-    const {data:created,error:ae}=await admin.auth.admin.createUser({email,password,email_confirm:false,user_metadata:{name}});
-    if(ae)throw new Error(ae.message);
-    const authId=created.user?.id||crypto.randomUUID();
-    const reportingManagers=Array.isArray(p?.reportingManagers)?p.reportingManagers.filter(Boolean):norm(p?.reportingManagers||p?.reportingTo)?[norm(p.reportingManagers||p.reportingTo)]:[];
-    const profile={id:authId,auth_user_id:authId,name,email,phone:norm(p?.phone),address:norm(p?.address),role:'Sales Executive',status:'Pending',approval_status:'Pending',can_create_users:false,can_view_all_users:false,states:Array.isArray(p?.states)?p.states:[],regions:Array.isArray(p?.regions)?p.regions:[],districts:Array.isArray(p?.districts)?p.districts:[norm(p?.districts)].filter(Boolean),reporting_to:reportingManagers[0]||null,reporting_managers:reportingManagers,raw_data:{self_registered:true}};
-    const {error:pe}=await admin.from('app_users').upsert(profile,{onConflict:'email'});
-    if(pe){try{await admin.auth.admin.deleteUser(authId)}catch(_){};throw new Error('Auth account was created but application profile creation failed: '+pe.message)}
-    return {success:true,message:'Registration submitted. The account remains Pending until a Master Admin approves it.',user:profile};
-  }
-  throw new Error('This action requires an authenticated Supabase session.');
-}
-
-async function handle(action:string,p:any,profile:any){
-  if(action==='syncApplicationUsersToAuth')return syncApplicationUsersToAuth(profile);
-  if(action==='health'||action==='testDatabaseConnection')return testDatabase(profile);
-  if(action==='getDatabaseIntegrationStatus')return databaseStatus(profile);
-  if(action==='saveDatabaseIntegrationConfig'||action==='activateDatabaseProvider')return saveDatabaseConfig(profile);
-  if(action==='migrateApplicationDatabase')return migrateSnapshot(p?.snapshot||{},profile);
-  if(action==='migrateDatabase')return {success:true,message:'Supabase is already the active application database; no Google Apps Script migration is required.'};
-  if(action==='getAllUsersDirectory'||action==='getChatUsers'||action==='getReportingManagers'){const users=await listTable('app_users',profile,p);return {success:true,users,data:users,managers:users}}
-  if(action==='getPendingUsers'){assertAdmin(profile);const {data,error}=await admin.from('app_users').select('*').eq('status','Pending').order('created_at',{ascending:false});if(error)throw new Error(error.message);return {success:true,users:data||[],data:data||[]}}
-  if(action==='getDashboardData'){const names=['clients','cold_calls','sales_orders','targets','tasks','approvals','notifications','app_users','projects','pipeline_leads','pipeline_orders','attendance'];const r:any={};await Promise.all(names.map(async t=>r[t]=await listTable(t,profile,p)));return {success:true,data:dashboardShape(r,profile)}}
-  if(action==='getProjectData'){const [projects,tasks,invoices]=await Promise.all([listTable('projects',profile,p),listTable('project_tasks',profile,p),listTable('project_invoices',profile,p)]);return {success:true,projects,tasks,invoices}}
-  if(action==='getTargets'){const targets=await listTable('targets',profile,p);return {success:true,targets,data:targets}}
-  if(action==='getNotifications')return {success:true,notifications:await listTable('notifications',profile,p)};
-  if(action==='getChatMessages')return {success:true,messages:await listTable('chat_messages',profile,p)};
-  if(action==='getPendingAttendanceApprovals'){assertGlobal(profile);return {success:true,data:await listTable('attendance',profile,p)}}
-  if(action==='getTaskHistory')return {success:true,data:await listTable('task_replies',profile,p)};
-  if(action==='getLocationData')return {success:true,data:await listTable('location_master',profile,p)};
-  if(action==='getImportSchema')return {success:true,tables:TABLE_COLUMNS};
-  if(action==='lookupPinCode'){const pin=norm(p?.pin);if(!/^\d{6}$/.test(pin))throw new Error('A valid 6-digit PIN code is required.');const response=await fetch(`https://api.postalpincode.in/pincode/${pin}`);if(!response.ok)throw new Error(`PIN lookup HTTP ${response.status}`);const body=await response.json(),po=body?.[0]?.PostOffice?.[0];if(!po)return {success:false,message:body?.[0]?.Message||'PIN code not found.'};return {success:true,data:{state:po.State||'',district:po.District||'',tehsil:po.Block||po.Division||'',cityVillage:po.Name||'',pinCode:pin,raw:body[0]}}}
-  if(action==='refreshLGDLocationMaster'){assertAdmin(profile);return {success:true,message:'Location master endpoint is ready for an approved location dataset import.'};}
-  if(action==='createManagedUser'){
-    assertAdmin(profile);const email=lower(p?.email),password=norm(p?.password),name=norm(p?.name||email.split('@')[0]);if(!email||!password||password.length<8)throw new Error('Name, email and password of at least 8 characters are required.');
-    const {data:made,error:ae}=await admin.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{name,role:p?.role||'Sales Executive'}});if(ae)throw new Error(ae.message);const authId=made.user?.id;if(!authId)throw new Error('Supabase Auth user creation failed.');
-    const profileRow={id:String(p?.id||crypto.randomUUID()),auth_user_id:authId,name,email,phone:norm(p?.phone),address:norm(p?.address),role:p?.role||'Sales Executive',status:'Active',approval_status:'Approved',can_create_users:false,can_view_all_users:p?.role==='Team Coordinator',states:p?.states||[],regions:p?.regions||[],districts:p?.districts||[],tehsils:p?.tehsils||[],cities:p?.cities||[],pin_codes:p?.pinCodes||[],reporting_to:p?.reportingTo||[],reporting_managers:p?.reportingManagers||[],raw_data:{created_by_master_admin:profile.id,created_at:new Date().toISOString()}};
-    const {data:saved,error:pe}=await admin.from('app_users').upsert(profileRow,{onConflict:'email'}).select('*').single();if(pe){try{await admin.auth.admin.deleteUser(authId)}catch(_){};throw new Error('Auth account was created but application profile creation failed: '+pe.message)}
-    return {success:true,user:saved,authUserId:authId,message:`${name} was created and linked to Supabase Auth.`};
-  }
-  const saveMap:any={saveClient:'clients',saveColdCall:'cold_calls',saveSalesOrder:'sales_orders',saveTarget:'targets',saveProject:'projects',saveProjectTask:'project_tasks',saveTask:'tasks',submitApprovalRequest:'approvals',sendChatMessage:'chat_messages',markAttendance:'attendance',addTaskReply:'task_replies',generateProjectInvoice:'project_invoices',assignTask:'tasks',submitLateExplanation:'approvals'};
-  if(saveMap[action])return upsertOne(saveMap[action],p,profile,action);
-  const updateMap:any={updateClient:'clients',updateColdCall:'cold_calls',updateSalesOrder:'sales_orders',updateTaskStatus:'tasks',updateProjectStage:'projects',updateUser:'app_users',markNotificationRead:'notifications',processAttendanceApproval:'attendance',processGeneralApproval:'approvals',processUserApproval:'app_users'};
-  if(updateMap[action]){if(action==='updateUser'||action==='processUserApproval')assertAdmin(profile);return updateOne(updateMap[action],p,profile,action)}
-  const deleteMap:any={deleteClient:'clients',deleteColdCall:'cold_calls',deleteSalesOrder:'sales_orders',deleteTarget:'targets',deleteUser:'app_users'};
-  if(deleteMap[action]){if(action==='deleteUser')assertAdmin(profile);return deleteOne(deleteMap[action],p,profile,action)}
-  if(action==='touchUserActivity'){const {error}=await admin.from('app_users').update({last_activity_at:new Date().toISOString()}).eq('id',profile.id);if(error)throw new Error(error.message);return {success:true}}
-  if(action==='importModuleData'){assertAdmin(profile);return migrateSnapshot(p?.snapshot||{},profile)}
-  throw new Error(`Supabase Edge Function does not implement action '${action}'.`);
-}
-Deno.serve(async(req:Request)=>{if(req.method==='OPTIONS')return new Response('ok',{headers:corsHeaders});try{const body=await req.json();const action=String(body?.action||'');const payload=body?.payload||{};if(['getReportingManagers','selfRegister','bootstrapMasterAdmin'].includes(action))return json(await handlePublic(action,payload));const {profile}=await authenticate(req);return json(await handle(action,payload,profile))}catch(e){console.error(e);return json({success:false,message:e instanceof Error?e.message:String(e)},401)}});
-
-</script>
-<script id="kosol-single-file-schema-js">
-(function(){'use strict';
-window.KOSOL_EMBEDDED_SUPABASE_SCHEMA=document.getElementById('kosol-embedded-supabase-schema')?.textContent||'';
-window.KOSOL_EMBEDDED_EDGE_FUNCTION=document.getElementById('kosol-embedded-edge-function')?.textContent||'';
-window.copyKosolEdgeFunction=async function(){const src=window.KOSOL_EMBEDDED_EDGE_FUNCTION||'';if(!src)return;try{await navigator.clipboard.writeText(src)}catch(e){const ta=document.createElement('textarea');ta.value=src;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}const el=document.getElementById('kosolEmbeddedSchemaStatus');if(el)el.textContent='Edge Function source copied. Save it as supabase/functions/kosol-app-api/index.ts and deploy it once.'};
-window.copyKosolEmbeddedSchema=async function(){const sql=window.KOSOL_EMBEDDED_SUPABASE_SCHEMA||'';if(!sql)return;try{await navigator.clipboard.writeText(sql)}catch(e){const ta=document.createElement('textarea');ta.value=sql;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}const el=document.getElementById('kosolEmbeddedSchemaStatus');if(el)el.textContent='Complete SQL copied. Open Supabase → SQL Editor, paste it and Run once.'};
-window.showKosolEmbeddedSchema=function(){const sql=window.KOSOL_EMBEDDED_SUPABASE_SCHEMA||'';let modal=document.getElementById('kosolEmbeddedSchemaModal');if(!modal){modal=document.createElement('div');modal.id='kosolEmbeddedSchemaModal';modal.className='modal fade';modal.tabIndex=-1;modal.innerHTML='<div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Embedded Supabase SQL Schema</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><textarea class="form-control font-monospace small" style="min-height:60vh" id="kosolEmbeddedSchemaText" readonly></textarea></div><div class="modal-footer"><button class="btn btn-primary" type="button" onclick="copyKosolEmbeddedSchema()">Copy SQL</button><button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button></div></div></div>';document.body.appendChild(modal)}document.getElementById('kosolEmbeddedSchemaText').value=sql;if(window.bootstrap?.Modal)window.bootstrap.Modal.getOrCreateInstance(modal).show()};
-window.verifyKosolSupabaseSetup=async function(){const el=document.getElementById('kosolEmbeddedSchemaStatus');if(el)el.textContent='Checking Supabase…';try{const sb=window.ensureSupabaseClient?window.ensureSupabaseClient():null;if(!sb)throw new Error('Supabase client is not initialized.');const {error}=await sb.from('app_settings').select('key').limit(1);if(error)throw error;if(el)el.textContent='Supabase connection successful; app_settings is reachable.'}catch(e){if(el)el.textContent='Check failed: '+(e.message||String(e))}};
 })();
 </script>
 </body>
