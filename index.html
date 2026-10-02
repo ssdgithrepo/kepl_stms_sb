@@ -1758,8 +1758,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   // The anon/publishable key is safe for browser use when Row Level Security is enabled.
   // NEVER place a Supabase service_role key in this file.
   const SUPABASE_CONFIG = {
-    url: "https://mxcjuncxdnaxzclrpetb.supabase.co",
-    anonKey: "sb_publishable_0djjQgzLtl5Geuj3RcinoA_P5WgrMeS"
+    url: "https://mzyqhlisajmocifzhvvu.supabase.co",
+    anonKey: "sb_publishable_5pSb6axIOz5fKxpQ4hdolQ_TFAPstI7"
   };
   const SUPABASE_ENABLED = !!(SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey && window.supabase);
   const supabaseClient = SUPABASE_ENABLED ? window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
@@ -7027,9 +7027,6 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     const uid = currentUser?.id || null;
     const email = currentUser?.email || null;
     const name = currentUser?.name || null;
-    // Keep audit/ownership columns populated from the authenticated session.
-    // The SQL schema also has server-side RLS, so these values are informational
-    // and are never treated as trusted identity input from the form payload.
     return {
       owner_id: uid,
       owner_email: email,
@@ -7228,18 +7225,9 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
 
       // Generic module readers used by individual screens.
       if(module && /^(get|fetch|load|list|search)/i.test(String(action))){
-        // Do not add a client-side owner filter here. Supabase RLS is the source
-        // of truth for visibility, which is required for Head roles to inspect
-        // permitted team-member records as well as their own records.
-        let q=supabaseClient.from('app_records').select('*').eq('module',module).order('created_at',{ascending:false}).limit(10000);
-        if(payload?.userId && ['Master Admin','National Head','State Head','Regional Head','Area Sales Officer'].includes(String(currentUser?.role||''))){
-          const selected=String(payload.userId).trim();
-          if(selected && selected!=='all' && selected!=='All') q=q.eq('owner_id',selected);
-        }
-        const {data,error}=await q;
+        const {data,error}=await supabaseClient.from('app_records').select('*').eq('module',module).order('created_at',{ascending:false}).limit(10000);
         if(error) return {success:false,message:error.message};
-        const rows=(data||[]).map(sbRow);
-        return {success:true,data:rows,records:rows};
+        return {success:true,data:(data||[]).map(sbRow),records:(data||[]).map(sbRow)};
       }
 
       // ---------- Chat ----------
