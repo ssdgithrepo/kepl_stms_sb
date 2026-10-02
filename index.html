@@ -7027,6 +7027,9 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     const uid = currentUser?.id || null;
     const email = currentUser?.email || null;
     const name = currentUser?.name || null;
+    // Keep audit/ownership columns populated from the authenticated session.
+    // The SQL schema also has server-side RLS, so these values are informational
+    // and are never treated as trusted identity input from the form payload.
     return {
       owner_id: uid,
       owner_email: email,
@@ -7225,9 +7228,18 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
 
       // Generic module readers used by individual screens.
       if(module && /^(get|fetch|load|list|search)/i.test(String(action))){
-        const {data,error}=await supabaseClient.from('app_records').select('*').eq('module',module).order('created_at',{ascending:false}).limit(10000);
+        // Do not add a client-side owner filter here. Supabase RLS is the source
+        // of truth for visibility, which is required for Head roles to inspect
+        // permitted team-member records as well as their own records.
+        let q=supabaseClient.from('app_records').select('*').eq('module',module).order('created_at',{ascending:false}).limit(10000);
+        if(payload?.userId && ['Master Admin','National Head','State Head','Regional Head','Area Sales Officer'].includes(String(currentUser?.role||''))){
+          const selected=String(payload.userId).trim();
+          if(selected && selected!=='all' && selected!=='All') q=q.eq('owner_id',selected);
+        }
+        const {data,error}=await q;
         if(error) return {success:false,message:error.message};
-        return {success:true,data:(data||[]).map(sbRow),records:(data||[]).map(sbRow)};
+        const rows=(data||[]).map(sbRow);
+        return {success:true,data:rows,records:rows};
       }
 
       // ---------- Chat ----------
