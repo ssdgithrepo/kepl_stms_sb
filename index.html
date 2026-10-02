@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- KOSOL SUPABASE FINAL BUILD: mzyqhlisajmocifzhvvu -->
   <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7108,12 +7109,28 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         // Supabase Auth is used only as the application's credential/session store.
         // Email confirmation is NOT part of the application workflow. A new account
         // is immediately signed out and remains blocked until Master Admin approval.
-        const {data,error}=await signupClient.auth.signUp({email,password,options:{data:{name:payload.name||'',role:payload.role||'Sales Executive',phone:payload.phone||''}}});
+        const {data,error}=await signupClient.auth.signUp({email,password,options:{data:{
+          name:payload.name||'',
+          role:payload.role||'Sales Executive',
+          phone:payload.phone||'',
+          designation:payload.designation||payload.role||'Sales Executive',
+          states:payload.states||[],
+          regions:payload.regions||[],
+          districts:payload.districts||[],
+          cities:payload.cities||payload.tehsils||[],
+          reportingManagers:payload.reportingManagers||payload.reportingTo||[],
+          reportingTo:payload.reportingTo||payload.reportingManagers||[]
+        }}});
         if(error) return {success:false,message:error.message};
         if(data.user?.id){
           const profile={id:data.user.id,email,name:payload.name,phone:payload.phone,role:payload.role||'Sales Executive',designation:payload.designation||payload.role,status:'Pending',approved:false,active:true,states:payload.states||[],regions:payload.regions||[],districts:payload.districts||[],cities:payload.cities||payload.tehsils||[],profile_data:{reportingManagers:payload.reportingManagers||[],reportingTo:payload.reportingTo||[]}};
           const {error:pe}=await signupClient.from('profiles').upsert(profile,{onConflict:'id'});
-          if(pe) return {success:false,message:pe.message};
+          // The database trigger already creates the pending profile. If email confirmation
+          // is enabled, the isolated client may not have an authenticated session, so an
+          // RLS rejection here is not fatal as long as Auth created the account.
+          if(pe && !/row-level security|permission denied|not authenticated|jwt/i.test(String(pe.message||''))){
+            return {success:false,message:pe.message};
+          }
           // Never leave a newly registered user authenticated. Only Master Admin
           // approval changes the profile gate that permits application login.
           try{ await signupClient.auth.signOut(); }catch(_){ }
