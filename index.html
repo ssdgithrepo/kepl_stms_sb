@@ -1044,7 +1044,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
           <div class="card card-dashboard p-3 mb-3 border-start border-warning border-5 bg-white">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
               <div>
-                <h6 class="fw-bold mb-1"><i class="bi bi-clock-history text-warning me-1"></i> Daily Mon–Fri Attendance: 09:00 AM start / 9-hour workday</h6>
+                <h6 class="fw-bold mb-1"><i class="bi bi-clock-history text-warning me-1"></i> Daily Mon–Sat Attendance: 09:00 AM start / 9-hour workday</h6>
                 <small class="text-muted" id="attendanceLiveStatusText">Checking daily check-in window state...</small>
               </div>
               <div class="d-flex gap-1 align-items-center"><button class="btn btn-sm btn-outline-warning position-relative" onclick="openNotifications()" title="Notifications"><i class="bi bi-bell-fill"></i><span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span></button><button class="btn btn-sm btn-outline-secondary module-refresh" onclick="refreshModule('attendance')" title="Refresh attendance"><i class="bi bi-arrow-clockwise"></i></button><div id="attendanceActionContainer"></div></div>
@@ -2802,7 +2802,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
 
   function evaluateAttendanceWindowState() {
     const now=new Date(), day=now.getDay(), h=now.getHours()+now.getMinutes()/60;
-    const weekday=day>=1&&day<=5, statusText=document.getElementById('attendanceLiveStatusText'), actionBox=document.getElementById('attendanceActionContainer');
+    const weekday=day>=1&&day<=6, statusText=document.getElementById('attendanceLiveStatusText'), actionBox=document.getElementById('attendanceActionContainer');
     if(rawData.todayAttendance){const att=rawData.todayAttendance;const bc=String(att.status).includes('APPROVED')?'bg-success':String(att.status).includes('PENDING')?'bg-warning text-dark':'bg-danger';statusText.innerHTML=`Today's Log: <strong>${escapeHtml(att.type)}</strong> (${escapeHtml(att.timestamp)}) | <span class="badge ${bc}">${escapeHtml(att.status)}</span><br><small>${escapeHtml(att.remarks||att.explanation||'')} · 9-hour workday</small>`;actionBox.innerHTML='<button class="btn btn-sm btn-outline-secondary" disabled><i class="bi bi-check2-circle me-1"></i> Checked In</button>';return;}
     if(!weekday){statusText.innerHTML='<span class="text-muted fw-bold">Weekend — attendance punch is closed.</span>';actionBox.innerHTML='';return;}
     if(h<9){statusText.innerHTML='<span class="text-primary fw-bold">Punch-in opens at 09:00 AM.</span> Expected working time: 9 hours.';actionBox.innerHTML='<button class="btn btn-sm btn-outline-primary" disabled>Not open yet</button>';return;}
@@ -6176,10 +6176,10 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
           title:'Cold call follow-up: '+(c.orgName||c.organization||c.clientName||'Lead'),message:'Last call outcome "'+(c.outcome||c.callOutcome)+'" was '+age+' days ago with no later activity.',timestamp:todayStr});
       });
 
-    // 7) ATTENDANCE: weekday, after the 09:15 window, no punch recorded today.
+    // 7) ATTENDANCE: Monday-Saturday, after the 11:00 window, no punch recorded today.
     const now=new Date(), wd=now.getDay(), hr=now.getHours()+now.getMinutes()/60;
     const hasBackendAtt=(backend||[]).some(n=>String(n.type||'').toUpperCase().includes('ATTENDANCE')&&!n.read);
-    if(wd>=1&&wd<=5&&hr>9.25&&!rawData.todayAttendance&&!hasBackendAtt){
+    if(wd>=1&&wd<=6&&hr>11&&!rawData.todayAttendance&&!hasBackendAtt){
       out.push({id:'ATT|'+todayStr,type:'ATTENDANCE_PENDING',module:'attendance',recordId:'',_derived:true,severity:hr>14?'danger':'warning',
         title:'Attendance not marked today',message:'No punch-in is recorded for today yet. Open Attendance to mark it.',timestamp:todayStr});
     }
