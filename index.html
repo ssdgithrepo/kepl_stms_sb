@@ -4114,19 +4114,50 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     const ids=[head?.id,head?.email,head?.name].filter(Boolean).map(dashboardNorm);
     return refs.some(r=>ids.includes(dashboardNorm(r)));
   }
+  function dashboardProfileData(user){
+    const pd=user?.profile_data ?? user?.profileData;
+    if(!pd)return {};
+    if(typeof pd==='string'){
+      try{return JSON.parse(pd)||{};}catch(e){return {};}
+    }
+    return (pd&&typeof pd==='object')?pd:{};
+  }
+
   function dashboardReportingRefs(user){
-    const fields=['reportingManagers','reportingTo','reportingManager','manager'];
+    // Supabase profiles can store hierarchy fields either as real profile
+    // columns or inside profile_data. Read both formats so direct and indirect
+    // reporting relationships are not lost.
+    const pd=dashboardProfileData(user);
+    const fields=['reportingManagers','reportingTo','reportingManager','manager','managerId','manager_id','reporting_manager','reporting_manager_id'];
     const out=[];
-    fields.forEach(f=>{
-      const raw=user?.[f];
-      if(Array.isArray(raw)) raw.forEach(v=>{
-        if(v&&typeof v==='object') out.push(v.id,v.userId,v.email,v.name);
-        else out.push(v);
+    const pushValue=v=>{
+      if(v===undefined||v===null)return;
+      if(Array.isArray(v)){v.forEach(pushValue);return;}
+      if(v&&typeof v==='object'){
+        pushValue(v.id); pushValue(v.userId); pushValue(v.user_id);
+        pushValue(v.uuid); pushValue(v.email); pushValue(v.name);
+        pushValue(v.loginId); pushValue(v.username); pushValue(v.employeeId);
+        return;
+      }
+      String(v).split(/[,|]/).forEach(x=>{
+        const s=x.trim(); if(s)out.push(s);
       });
-      else if(raw&&typeof raw==='object') out.push(raw.id,raw.userId,raw.email,raw.name);
-      else if(raw!==undefined&&raw!==null) out.push(...String(raw).split(/[,|]/));
+    };
+    fields.forEach(f=>{
+      pushValue(user?.[f]);
+      pushValue(pd?.[f]);
     });
-    return [...new Set(out.filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm))];
+    return [...new Set(out.map(dashboardNorm).filter(Boolean))];
+  }
+
+  function dashboardUserIdentityValues(user){
+    const pd=dashboardProfileData(user);
+    return [
+      user?.id,user?.userId,user?.employeeId,user?.email,user?.name,
+      user?.loginId,user?.username,
+      pd?.id,pd?.userId,pd?.employeeId,pd?.email,pd?.name,
+      pd?.loginId,pd?.username
+    ].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm);
   }
   function dashboardHeadTeam(head,users){
     const list=(users||allUsersList||[]).filter(u=>u&&dashboardNorm(u.status||u.approvalStatus||'active')!=='rejected');
@@ -4240,6 +4271,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
         const r=await callBackendFast('getAllUsersDirectory',currentUser||{});
         if(r?.success && Array.isArray(r.users) && r.users.length){
           allUsersList=r.users.slice();
+          // Normalize hierarchy references once after the complete profile directory
+          // arrives. This makes direct/indirect team selection deterministic.
+          allUsersList=allUsersList.map(u=>Object.assign({},u,{__dashboardReportingRefs:dashboardReportingRefs(u)}));
           dashboardDirectoryLoadedAt=Date.now();
           try{renderDashboardUserFilters();}catch(e){console.warn('Dashboard user filter refresh failed',e);}
         }
@@ -4342,10 +4376,11 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       const sameUser=(a,b)=>[...idsOf(a)].some(k=>idsOf(b).has(k));
       const ordered=[],seen=new Set();
       let parents=[currentUser];
+      let level=1;
       while(parents.length){
         const next=[];
         parents.forEach(parent=>{
-          const pids=idsOf(parent);
+          const pids=new Set(dashboardUserIdentityValues(parent));
           const children=filtered.filter(u=>{
             if(sameUser(u,currentUser))return false;
             const keys=[...idsOf(u)];
@@ -4355,16 +4390,18 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
           children.sort((a,b)=>String(a.name||a.email||'').localeCompare(String(b.name||b.email||'')));
           children.forEach(u=>{
             [...idsOf(u)].forEach(k=>seen.add(k));
-            ordered.push(u);
+            ordered.push({user:u,level});
             next.push(u);
           });
         });
         parents=next;
+        level++;
       }
-      ordered.forEach(u=>{
+      ordered.forEach(({user:u,level})=>{
         const uid=String(u.id||u.userId||u.email||u.name||'');
         const uname=String(u.name||u.email||uid);
-        out.push({value:uid,text:uname+' — '+String(u.role||u.designation||'User')});
+        const relation=level===1?'Direct Report':`Indirect Report · Level ${level}`;
+        out.push({value:uid,text:uname+' — '+String(u.role||u.designation||'User')+' · '+relation});
       });
       return out;
     };
@@ -4396,8 +4433,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     const team=isHead ? dashboardHeadTeam(me,users) : dashboardTeamMembers(me,users);
     const out=[me];
     const seen=new Set();
-    const identity=u=>[u?.id,u?.userId,u?.employeeId,u?.email,u?.name,u?.loginId,u?.username]
-      .filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm);
+    const identity=u=>dashboardUserIdentityValues(u);
     identity(me).forEach(k=>seen.add(k));
     team.forEach(u=>{
       if(!u)return;
