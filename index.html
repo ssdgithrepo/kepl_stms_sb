@@ -735,6 +735,48 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   #mobileSidebar .kosol-mobile-brand img{width:44px;height:34px;object-fit:contain;flex:0 0 auto;border-radius:6px;background:#fff;padding:2px;}
   #mobileSidebar .kosol-mobile-brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 </style>
+<style id="kosol-dashboard-professional-v3">
+#tab-dashboard{background:linear-gradient(180deg,#fffdf9 0%,#f7f8fa 100%);border-radius:18px;padding:4px 2px 24px}
+#tab-dashboard .card-dashboard{border:1px solid #eadfce!important;border-radius:14px;box-shadow:0 5px 18px rgba(30,41,59,.07);background:#fff;transition:box-shadow .16s ease,border-color .16s ease}
+#tab-dashboard .card-dashboard:hover{box-shadow:0 8px 24px rgba(30,41,59,.10);border-color:#e2c99e!important}
+#tab-dashboard>.d-flex:first-child{background:#fff;border:1px solid #eadfce;border-radius:16px;padding:14px 16px!important;box-shadow:0 5px 18px rgba(30,41,59,.07);position:sticky;top:8px;z-index:20}
+#dashboardScopeHeader{display:inline-flex;align-items:center;margin-top:4px;padding:4px 9px;border-radius:999px;background:#fff4df;color:#8a5a08;font-size:.72rem}
+.dashboard-sync-state{display:inline-flex!important;align-items:center;gap:4px;padding:4px 8px;border-radius:999px;font-size:.7rem!important;background:#edf8f0;color:#237a3b}
+#dashboardUserFilterGroup{background:#fff8ec;border:1px solid #eadfce;border-radius:12px;padding:7px 9px}
+.dashboard-user-filter-label{font-size:.75rem;font-weight:800;color:#6d4b13}
+#dashboardUserFilters{gap:6px!important}
+#dashboardUserFilters .dashboard-filter-wrap{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#dashboardUserFilters .dashboard-filter-search{max-width:190px;min-width:145px;border:1px solid #d9c7a8;background:#fff;font-size:.78rem;border-radius:8px;padding:.38rem .55rem}
+#dashboardUserFilters select,#tab-dashboard #dateFilterType,#tab-dashboard #startDateFilter,#tab-dashboard #endDateFilter{min-height:36px;border-radius:8px;border:1px solid #d8c8ad!important;font-size:.78rem;font-weight:600;background-color:#fff}
+#dashboardUserFilters select{min-width:240px!important}
+#tab-dashboard .dashboard-filter-apply,#tab-dashboard .dashboard-filter-reset{min-height:36px;border-radius:8px;font-weight:800}
+#tab-dashboard .dashboard-view-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 14px}
+#tab-dashboard .dashboard-view-chip{min-width:0;background:#fff;border:1px solid #e6dccd;border-radius:11px;padding:9px 11px;box-shadow:0 3px 10px rgba(30,41,59,.045)}
+#tab-dashboard .dashboard-view-chip .label{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:#7b8490;font-weight:800}
+#tab-dashboard .dashboard-view-chip .value{font-size:.84rem;font-weight:800;color:#202a36;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tab-dashboard .selection-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fffdf8!important;border:1px solid #eadfce!important}
+#tab-dashboard .selection-toolbar .ppt-preview-note{font-size:.7rem;color:#7b8490}
+#tab-dashboard .dashboard-action-select,#tab-dashboard .dashboard-action-clear,#tab-dashboard .dashboard-action-share{border-radius:8px;font-weight:700}
+#tab-dashboard .dashboard-action-select{background:#fff3da;border:1px solid #e4c88e;color:#744d08}
+#tab-dashboard .dashboard-action-clear{background:#f5f6f7;border:1px solid #d7dbe0;color:#39424e}
+#tab-dashboard .dashboard-action-share{background:#198754;border-color:#198754;color:#fff}
+#tab-dashboard .chart-box{min-height:230px;height:230px}
+#tab-dashboard .dashboard-count-card{min-height:105px;display:flex;flex-direction:column;justify-content:center}
+#tab-dashboard .count-click-hint{font-size:.62rem;color:#89929d;margin-top:3px}
+#tab-dashboard .dashboard-data-tabs{overflow:hidden}
+#tab-dashboard .dashboard-data-tab{font-weight:800;border-radius:9px!important;color:#56606c}
+#tab-dashboard .dashboard-data-tab.active{background:#e89c2e!important;color:#fff!important;box-shadow:0 3px 9px rgba(232,156,46,.25)}
+#tab-dashboard .table-responsive{border-radius:10px}
+#tab-dashboard table{margin-bottom:0}
+#tab-dashboard table thead th{white-space:nowrap;background:#fff8ec;color:#5b4a2d;font-size:.69rem;text-transform:uppercase;letter-spacing:.025em;border-bottom:1px solid #e6d7bd}
+#tab-dashboard table tbody td{font-size:.72rem;vertical-align:middle}
+#tab-dashboard .dashboard-data-panel{background:#fff;border-radius:10px}
+#tab-dashboard .dashboard-data-panel .table-responsive{border:1px solid #e6e8eb}
+#tab-dashboard .export-toolbar{display:flex;gap:5px;flex-wrap:wrap}
+#tab-dashboard .export-toolbar .btn{border-radius:8px;min-width:34px}
+@media(max-width:991px){#tab-dashboard>.d-flex:first-child{position:relative;top:auto}#tab-dashboard .dashboard-view-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:575px){#tab-dashboard>.d-flex:first-child{padding:12px!important;border-radius:13px}#dashboardUserFilterGroup{width:100%;align-items:flex-start!important}#dashboardUserFilters{width:100%}#dashboardUserFilters .dashboard-filter-wrap{width:100%}#dashboardUserFilters .dashboard-filter-search,#dashboardUserFilters select{width:100%;max-width:none;min-width:0!important}#tab-dashboard #dateFilterType{width:100%}#tab-dashboard #customDateContainer{width:100%;flex-direction:column!important}#tab-dashboard #customDateContainer input{width:100%}#tab-dashboard .chart-box{min-height:210px;height:210px}#tab-dashboard .dashboard-view-summary{grid-template-columns:1fr 1fr}#tab-dashboard .selection-toolbar .ppt-preview-note{width:100%;margin-left:0!important}.dashboard-data-tab{font-size:.72rem;padding:.5rem .35rem}}
+</style>
 </head>
 <body>
 <div id="kosolStartupGuard" style="position:fixed;inset:0;z-index:99998;background:#fff;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif;">
@@ -1059,7 +1101,10 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
                 <small class="text-muted fw-bold" id="dashboardScopeHeader">Scope: Country-wide</small><span id="dashboardSyncState" class="dashboard-sync-state synced ms-2"><i class="bi bi-cloud-check"></i> Backend synchronized</span>
               </div>
               <div class="d-flex align-items-center gap-1 flex-wrap w-100 w-md-auto">
-                <div id="dashboardUserFilters" class="d-flex align-items-center gap-1 flex-wrap"></div>
+                <div id="dashboardUserFilterGroup" class="dashboard-user-filter-group d-flex align-items-center gap-1 flex-wrap">
+                  <label for="dashboardUserFilter" class="dashboard-user-filter-label mb-0"><i class="bi bi-person-lines-fill me-1"></i>User</label>
+                  <div id="dashboardUserFilters" class="d-flex align-items-center gap-1 flex-wrap"></div>
+                </div>
                 <select class="form-select form-select-sm" id="dateFilterType" onchange="toggleDateInputs(this.value)">
                   <option value="ALL">All Time</option>
                   <option value="DAILY">Daily (Today)</option>
@@ -1071,7 +1116,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
                   <input type="date" id="startDateFilter" class="form-control form-control-sm">
                   <input type="date" id="endDateFilter" class="form-control form-control-sm">
                 </div>
-                <button class="btn btn-sm btn-outline-secondary module-refresh" onclick="refreshModule('dashboard')" title="Refresh dashboard"><i class="bi bi-arrow-clockwise"></i></button><button class="btn btn-sm btn-primary" onclick="applyDashboardFilters()"><i class="bi bi-funnel"></i></button>
+                <button class="btn btn-sm btn-outline-secondary module-refresh" onclick="refreshModule('dashboard')" title="Refresh dashboard"><i class="bi bi-arrow-clockwise"></i></button><button class="btn btn-sm btn-primary dashboard-filter-apply" onclick="applyDashboardFilters()"><i class="bi bi-funnel me-1"></i>Apply</button><button class="btn btn-sm btn-outline-secondary dashboard-filter-reset" type="button" onclick="resetDashboardFilters()" title="Reset dashboard filters"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
                 <div class="export-toolbar ms-md-1">
                   <button class="btn btn-sm btn-outline-success" onclick="exportDashboard('excel')" title="Excel"><i class="bi bi-file-earmark-excel"></i></button>
                   <button class="btn btn-sm btn-outline-danger" onclick="exportDashboard('pdf')" title="PDF"><i class="bi bi-file-earmark-pdf"></i></button>
@@ -1087,6 +1132,13 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
               <button class="btn btn-sm dashboard-action-clear" onclick="clearDashboardSelection()">Clear</button>
               <button class="btn btn-sm dashboard-action-share" onclick="shareDashboard('selected')">Share selected via device apps</button>
               <span class="ppt-preview-note ms-auto">Exports follow the dashboard period and the current dashboard user filters.</span>
+            </div>
+
+            <div class="dashboard-view-summary" id="dashboardViewSummary" aria-live="polite">
+              <div class="dashboard-view-chip"><div class="label">User scope</div><div class="value" id="dashboardSummaryUser">All permitted users</div></div>
+              <div class="dashboard-view-chip"><div class="label">Team scope</div><div class="value" id="dashboardSummaryTeam">All</div></div>
+              <div class="dashboard-view-chip"><div class="label">Date period</div><div class="value" id="dashboardSummaryDate">All Time</div></div>
+              <div class="dashboard-view-chip"><div class="label">Records in view</div><div class="value" id="dashboardSummaryRecords">0</div></div>
             </div>
 
             <div class="row g-2 g-md-3 mb-3">
@@ -1956,7 +2008,24 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   }
 
   let reportingManagerDirectory=[];
-  async function loadPublicReportingManagers(){try{const ids=['suReportingManagers','muReportingManagers','editUserReportingManagers'];ids.forEach(id=>initSmartMultiSelect(id));const r=await callBackendFast('getReportingManagers',{});if(r?.success){reportingManagerDirectory=r.managers||[];populateReportingManagerSelect('suReportingManagers',reportingManagerDirectory);populateReportingManagerSelect('muReportingManagers');populateReportingManagerSelect('editUserReportingManagers');}}catch(err){console.warn('Reporting manager list unavailable',err);}}
+  async function loadPublicReportingManagers(){
+    try{
+      const ids=['suReportingManagers','muReportingManagers','editUserReportingManagers'];
+      ids.forEach(id=>initSmartMultiSelect(id));
+      // Reporting-manager selection must show the complete current user directory
+      // in both public Sign Up and Master Admin User Creation. Deleted accounts are
+      // intentionally excluded, but Pending/Approved/Inactive users remain selectable.
+      const r=await callBackendFast('getReportingManagers',{});
+      if(r?.success){
+        reportingManagerDirectory=Array.isArray(r.managers)?r.managers:[];
+        populateReportingManagerSelect('suReportingManagers',reportingManagerDirectory);
+        populateReportingManagerSelect('muReportingManagers',reportingManagerDirectory);
+        populateReportingManagerSelect('editUserReportingManagers',reportingManagerDirectory);
+      }else{
+        console.warn('Reporting manager list unavailable:',r?.message||'Unknown error');
+      }
+    }catch(err){console.warn('Reporting manager list unavailable',err);}
+  }
 
   document.getElementById('publicSignupForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -2663,6 +2732,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     initSmartMultiSelect('muRegions');
     setupMasterCreateUserLocation();
     st?.dispatchEvent(new Event('change',{bubbles:true}));
+    // Refresh the complete user directory before opening the selector so newly
+    // created/approved users are immediately available by name.
+    loadPublicReportingManagers();
     new bootstrap.Modal(document.getElementById('createUserModal')).show();
   }
   function masterCsv(id){return String(document.getElementById(id)?.value||'').split(',').map(x=>x.trim()).filter(Boolean);}
@@ -2680,32 +2752,53 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       if(rg.dataset.smartMulti==='1')rg.dispatchEvent(new Event('change',{bubbles:true}));
     });
   }
-  function reportingManagerCandidates(excludeId){const rank={'Master Admin':0,'Admin':1,'National Head':2,'State Head':3,'Regional Head':4,'Area Sales Officer':5,'Senior Sales Executive':6};const src=(allUsersList&&allUsersList.length?allUsersList:reportingManagerDirectory)||[];return src.filter(u=>u&&rank[u.role]!==undefined&&String(u.id||u.email)!==String(excludeId||'')).sort((a,b)=>(rank[a.role]??99)-(rank[b.role]??99)||String(a.name||a.email||'').localeCompare(String(b.name||b.email||'')));}
+  function reportingManagerCandidates(excludeId){
+    const rank={'Master Admin':0,'Admin':1,'National Head':2,'State Head':3,'Regional Head':4,'Area Sales Officer':5,'Senior Sales Executive':6,'Sales Executive':7};
+    const source=(Array.isArray(reportingManagerDirectory)&&reportingManagerDirectory.length?reportingManagerDirectory:(Array.isArray(allUsersList)?allUsersList:[]));
+    return source
+      .filter(u=>u&&rank[u.role]!==undefined)
+      .filter(u=>!['Deleted','Deleted Pending Approval'].includes(String(u.status||'')))
+      .filter(u=>String(u.id||u.email)!==String(excludeId||''))
+      .sort((a,b)=>(rank[a.role]??99)-(rank[b.role]??99)||String(a.name||a.email||'').localeCompare(String(b.name||b.email||'')));
+  }
   function populateReportingManagerSelect(id,selected){const el=document.getElementById(id);if(!el)return;const chosen=new Set(Array.isArray(selected)?selected:String(selected||'').split(/[,|]/).map(x=>x.trim()).filter(Boolean));el.innerHTML=reportingManagerCandidates(id==='editUserReportingManagers'?document.getElementById('editUserId')?.value:'').map(u=>{const key=String(u.id||u.email);return `<option value="${escapeAttr(key)}" ${chosen.has(key)||chosen.has(String(u.email))?'selected':''}>${escapeHtml(u.name||u.email)} — ${escapeHtml(u.role)}</option>`}).join('');if(el.dataset.smartMulti==='1')el.dispatchEvent(new Event('change',{bubbles:true}));}
-  function getSelectedReportingManagers(id){return [...(document.getElementById(id)?.selectedOptions||[])].map(o=>o.value).filter(Boolean);}
+  function getSelectedReportingManagers(id){const el=document.getElementById(id);if(!el)return [];return [...(el.selectedOptions||[])].map(o=>String(o.value||'').trim()).filter(Boolean);}
   function refreshReportingManagerSelectors(){populateReportingManagerSelect('muReportingManagers');populateReportingManagerSelect('editUserReportingManagers');}
   document.getElementById('masterCreateUserForm')?.addEventListener('submit',async e=>{
     e.preventDefault();
     if(currentUser?.role!=='Master Admin'){showOperationMessage('Access denied','Only Master Admin can create users.','error');return;}
     const payload={name:document.getElementById('muName').value.trim(),email:document.getElementById('muEmail').value.trim(),phone:document.getElementById('muPhone').value.trim(),password:document.getElementById('muPassword').value,role:document.getElementById('muRole').value,states:getSelectedValues('muStates'),regions:getSelectedValues('muRegions'),districts:masterCsv('muDistricts'),reportingManagers:getSelectedReportingManagers('muReportingManagers'),reportingTo:getSelectedReportingManagers('muReportingManagers'),createdBy:currentUser.email,createdByUserId:currentUser.id};
     if(!payload.states.length||!payload.regions.length){showOperationMessage('Territory required','Select State(s) and Region(s) before creating the user.','error');return;}
-    showProcessingMessage('Creating user','Creating login credentials and activating the user...');
+    showProcessingMessage('Creating user','Creating login credentials and submitting the user for Master Admin approval...');
     try{
       const res=await callBackend('selfRegister',payload);
       if(!res?.success){showOperationMessage('User creation failed',res?.message||'Unable to create user.','error');return;}
       const newId=res.user?.id||res.userId||res.id||res.data?.userId||res.data?.id;
-      if(newId)await callBackend('processUserApproval',{userId:newId,approve:true});
+      // IMPORTANT: Master Admin creation never auto-approves a new account.
+      // The profile remains Pending + inactive until Master Admin explicitly
+      // approves it from Account Approvals. Keep the pending user visible in
+      // the Master Admin directory/dashboard selector immediately.
+      // Immediately invalidate every directory/dashboard cache so the newly
+      // created user is available in Master Admin's User selector and in the
+      // hierarchy without waiting for the polling interval.
+      invalidateBackendReadCache();
+      dashboardDirectoryLoadedAt=0;
       bootstrap.Modal.getInstance(document.getElementById('createUserModal'))?.hide();
       await fetchAndRenderTree();
-      await refreshData({silent:true,reason:'master-create-user'});
-      showOperationMessage('User created successfully',`${payload.name} can log in with ${payload.email} and the password entered by Master Admin.`,'success');
+      await ensureDashboardUserDirectory();
+      await refreshData({silent:true,reason:'master-create-user',force:true});
+      invalidateDashboardFilterContext();
+      renderDashboardUserFilters();
+      showOperationMessage('User created — approval required',`${payload.name} was created successfully and is now Pending. The user is visible to Master Admin, but cannot log in or become active until Master Admin approves the account.`, 'success');
     }catch(err){showOperationMessage('User creation failed',err.message||String(err),'error');}
   });
 
   function renderMasterAdminUserDirectory(users) {
     const tbody = document.getElementById('directoryTableBody');
+    if(!tbody) return;
     tbody.innerHTML = '';
-    users.filter(u=>u && u.active!==false && String(u.status||'').toLowerCase()!=='deleted_pending_approval').forEach((u, index) => {
+    const list=(Array.isArray(users)?users:[]).filter(u=>u && String(u.status||'').toLowerCase()!=='deleted_pending_approval' && String(u.status||'').toLowerCase()!=='deleted');
+    list.forEach((u, index) => {
       const passId = `userPass_${index}`;
       const iconId = `userIcon_${index}`;
       tbody.innerHTML += `
@@ -2723,9 +2816,12 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
               <button type="button" class="password-eye-inside" aria-label="Show password" onclick="togglePasswordVisibility('${passId}', '${iconId}')"><i class="bi bi-eye-slash" id="${iconId}"></i></button>
             </div>
           </td>
-          <td>
-            <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditUserModal('${u.id}')"><i class="bi bi-pencil"></i> Edit</button>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteUserAccount('${u.id}', '${u.name}')"><i class="bi bi-trash"></i> Delete</button>
+          <td class="text-nowrap">
+            <button class="btn btn-sm btn-outline-primary me-1 mb-1" onclick="openEditUserModal('${u.id}')"><i class="bi bi-pencil"></i> Edit</button>
+            ${u.active===false
+              ? `<button class="btn btn-sm btn-outline-success me-1 mb-1" onclick="setUserActiveState('${u.id}',true)"><i class="bi bi-person-check"></i> Activate</button>`
+              : `<button class="btn btn-sm btn-outline-warning me-1 mb-1" onclick="setUserActiveState('${u.id}',false)"><i class="bi bi-person-x"></i> Deactivate</button>`}
+            <button class="btn btn-sm btn-outline-danger mb-1" onclick="deleteUserAccount('${u.id}', '${u.name}')"><i class="bi bi-trash"></i> Delete</button>
           </td>
         </tr>
       `;
@@ -2775,6 +2871,23 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       showToast(res.message, "error");
     }
   });
+
+  async function setUserActiveState(userId, active){
+    if(currentUser?.role!=='Master Admin'){showToast('Only Master Admin can activate or deactivate users.','error');return;}
+    const u=Array.isArray(allUsersList)?allUsersList.find(x=>String(x.id)===String(userId)):null;
+    if(!u)return;
+    const action=active?'activate':'deactivate';
+    if(!confirm(`Are you sure you want to ${action} [${u.name||u.email}]?`))return;
+    showProcessingMessage(active?'Activating user':'Deactivating user',`${u.name||u.email} is being ${action}d...`);
+    const payload={id:userId,active:!!active,status:active?'Active':'Inactive',approved:active};
+    const res=await callBackend('updateUser',payload);
+    closeOperationMessage();
+    if(res?.success){
+      showModuleResult(active?'User activated':'User deactivated',`${u.name||u.email} is now ${active?'active':'inactive'}.`);
+      await fetchAndRenderTree();
+      await refreshData({silent:true,reason:'user-active-state'});
+    }else showToast(res?.message||`Unable to ${action} user.`,'error');
+  }
 
   async function deleteUserAccount(userId, userName) {
     if (!confirm(`Are you sure you want to delete/deactivate user account: [${userName}]?`)) return;
@@ -4010,7 +4123,11 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   async function fetchAndRenderTree() {
     const res = await callBackendFast('getAllUsersDirectory', currentUser||{});
     if(res.success) {
-      allUsersList = (res.users||[]).filter(u=>u.active!==false);
+      allUsersList = (res.users||[]).filter(u=>u && String(u.status||'').toLowerCase()!=='deleted' && String(u.status||'').toLowerCase()!=='deleted_pending_approval');
+      allUsersList=allUsersList.map(u=>Object.assign({},u,{__dashboardReportingRefs:dashboardReportingRefs(u)}));
+      dashboardDirectoryLoadedAt=Date.now();
+      invalidateDashboardFilterContext();
+      renderDashboardUserFilters();
       renderRoleWiseTerritoryFlowchart(allUsersList, rawData.clients);
       if(currentUser.role === "Master Admin") {
         renderMasterAdminUserDirectory(allUsersList);
@@ -4342,6 +4459,50 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     return [...allowed];
   }
 
+  // Returns only the recursive downstream reporting members of the supplied
+  // user. Unlike dashboardTeamMembers(), this helper never treats Master Admin
+  // or Admin as an unrestricted team root. This is required when a Master
+  // Admin selects one specific user in the dashboard.
+  function dashboardDownstreamTeam(head,users){
+    const list=(Array.isArray(users)?users:[]).filter(u=>u &&
+      dashboardNorm(u.status||u.approvalStatus||'active')!=='rejected' &&
+      u.active!==false &&
+      dashboardNorm(u.status||'')!=='deleted' &&
+      dashboardNorm(u.status||'')!=='deleted_pending_approval');
+    if(!head)return [];
+
+    const identitySet=u=>new Set([
+      u?.id,u?.userId,u?.employeeId,u?.email,u?.name,u?.loginId,u?.username
+    ].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm));
+    const same=(a,b)=>[...identitySet(a)].some(x=>identitySet(b).has(x));
+    const result=[],seen=new Set(),queue=[];
+
+    const add=u=>{
+      if(!u||same(u,head))return;
+      const keys=[...identitySet(u)];
+      if(keys.some(k=>seen.has(k)))return;
+      keys.forEach(k=>seen.add(k));
+      result.push(u);
+      queue.push(u);
+    };
+
+    // Direct reports first.
+    list.forEach(u=>{
+      if(!same(u,head) && dashboardReportingRefs(u).some(ref=>identitySet(head).has(ref))) add(u);
+    });
+
+    // Then recursively resolve every subsequent reporting level.
+    for(let i=0;i<queue.length;i++){
+      const parent=queue[i];
+      const parentKeys=identitySet(parent);
+      list.forEach(u=>{
+        if(same(u,head))return;
+        if(dashboardReportingRefs(u).some(ref=>parentKeys.has(ref))) add(u);
+      });
+    }
+    return result;
+  }
+
   function dashboardTeamMembers(head,users){
     const list=(Array.isArray(users)?users:[]).filter(u=>u&&dashboardNorm(u.status||u.approvalStatus||'active')!=='rejected');
     if(!head)return [];
@@ -4384,7 +4545,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     if(dashboardDirectoryLoadPromise)return dashboardDirectoryLoadPromise;
     dashboardDirectoryLoadPromise=(async()=>{
       try{
-        const r=await callBackendFast('getAllUsersDirectory',currentUser||{});
+        invalidateBackendReadCache();
+        const r=await callBackendFast('getAllUsersDirectory',currentUser||{},{fresh:true});
         if(r?.success && Array.isArray(r.users) && r.users.length){
           allUsersList=r.users.slice();
           // Normalize hierarchy references once after the complete profile directory
@@ -4443,10 +4605,13 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     const users=dashboardEligibleUsers();
     box.innerHTML='';
     const add=(id,label,options)=>{
-      const sel=document.createElement('select');
-      sel.id=id; sel.className='form-select form-select-sm'; sel.style.minWidth='210px'; sel.title=label;
-      sel.innerHTML='<option value="ALL">'+label+': All</option>'+options.map(x=>'<option value="'+escapeAttr(x.value)+'">'+escapeHtml(x.text)+'</option>').join('');
-      box.appendChild(sel); return sel;
+      const wrap=document.createElement('div'); wrap.className='dashboard-filter-wrap';
+      const search=document.createElement('input'); search.type='search'; search.className='dashboard-filter-search'; search.placeholder='Search '+label+'…'; search.setAttribute('aria-label','Search '+label);
+      const sel=document.createElement('select'); sel.id=id; sel.className='form-select form-select-sm'; sel.title=label;
+      const renderOptions=(needle='')=>{const q=String(needle||'').trim().toLowerCase();const list=options.filter(x=>!q||String(x.text||'').toLowerCase().includes(q));sel.innerHTML='<option value="ALL">'+label+': All</option>'+list.map(x=>'<option value="'+escapeAttr(x.value)+'">'+escapeHtml(x.text)+'</option>').join('');};
+      renderOptions();
+      search.addEventListener('input',()=>{const prev=sel.value;renderOptions(search.value);if([...sel.options].some(o=>o.value===prev))sel.value=prev;});
+      wrap.appendChild(search);wrap.appendChild(sel);box.appendChild(wrap);return sel;
     };
 
     const states=[...new Set(users.flatMap(u=>dashboardArr(u.states)).filter(v=>!dashboardIsAll(v)))].sort((a,b)=>a.localeCompare(b));
@@ -4455,13 +4620,14 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       stateSel=add('dashboardStateFilter','State',states.map(x=>({value:x,text:x})));
     }
 
-    const isHead=(currentUser.role==='Master Admin'||currentUser.role==='Admin'||/head/i.test(String(currentUser.role||'')));
-    // Reporting managers must get the complete reporting hierarchy from the
-    // user directory, not only the users present in the current dashboard
-    // snapshot. This keeps every direct/indirect team member available for
-    // name selection.
+    const isPrivileged=(currentUser.role==='Master Admin'||currentUser.role==='Admin');
+    const isHead=(isPrivileged||/head/i.test(String(currentUser.role||'')));
+    // Use the complete active user directory for Master Admin/Admin so every
+    // user is visible by name in the dashboard selector. Reporting managers
+    // continue to see their own direct/indirect reporting hierarchy.
     const directory=(Array.isArray(allUsersList)&&allUsersList.length)?allUsersList:users;
-    const team=dashboardTeamMembers(currentUser,directory);
+    const activeDirectory=directory.filter(u=>u && u.active!==false && String(u.status||'').toLowerCase()!=='deleted' && String(u.status||'').toLowerCase()!=='deleted_pending_approval');
+    const team=isPrivileged ? activeDirectory.filter(u=>!dashboardOwnerMatches(u,currentUser)) : dashboardTeamMembers(currentUser,activeDirectory);
     // The signed-in user must also be selectable. Keep the existing team
     // membership rules unchanged; this only adds the current user as an
     // explicit dashboard selection so every user can inspect their own data.
@@ -4482,12 +4648,26 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       const selfId=String(currentUser?.id||currentUser?.userId||currentUser?.email||currentUser?.name||'');
       const selfUser=filtered.find(u=>String(u?.id||u?.userId||u?.email||u?.name||'')===selfId);
       if(selfUser) out.push({value:selfId,text:String(selfUser.name||selfUser.email||selfId)+' — My Data'});
-      // Preserve reporting hierarchy order instead of alphabetical order:
-      // Head -> direct reports -> indirect reports -> subsequent levels.
+      // Use one identity comparison for both privileged and reporting-manager paths.
+      // It must be declared before the Master Admin/Admin branch; otherwise the
+      // branch can hit the temporal-dead-zone and stop the entire selector render.
       const idsOf=u=>new Set([
         u?.id,u?.userId,u?.employeeId,u?.email,u?.name,u?.loginId,u?.username
       ].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm));
       const sameUser=(a,b)=>[...idsOf(a)].some(k=>idsOf(b).has(k));
+
+      // Master Admin/Admin: expose every active user directly by name.
+      // Reporting managers: preserve hierarchy order Head -> direct -> indirect.
+      if(isPrivileged){
+        filtered.filter(u=>!sameUser(u,currentUser)).sort((a,b)=>String(a.name||a.email||'').localeCompare(String(b.name||b.email||''))).forEach(u=>{
+          const uid=String(u.id||u.userId||u.email||u.name||'');
+          const uname=String(u.name||u.email||uid);
+          out.push({value:uid,text:uname+' — '+String(u.role||u.designation||'User')});
+        });
+        return out;
+      }
+      // Preserve reporting hierarchy order instead of alphabetical order:
+      // Head -> direct reports -> indirect reports -> subsequent levels.
       const ordered=[],seen=new Set();
       let parents=[currentUser];
       let level=1;
@@ -4525,12 +4705,14 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     nameSel.innerHTML='<option value="ALL">User: All</option>'+buildOptions(stateSel?.value||'ALL').map(x=>'<option value="'+escapeAttr(x.value)+'">'+escapeHtml(x.text)+'</option>').join('');
 
     const hasTeam=team.length>0;
-    const wanted=((hasTeam||isHead) && (previousUser==='ALL'||previousUser==='TEAM:ALL'))?'TEAM:ALL':previousUser;
+    const wanted=(isPrivileged ? (previousUser||'ALL') : (((hasTeam||isHead) && (previousUser==='ALL'||previousUser==='TEAM:ALL'))?'TEAM:ALL':previousUser));
     nameSel.value=[...nameSel.options].some(o=>o.value===wanted)?wanted:'ALL';
 
     stateSel?.addEventListener('change',()=>{
       nameSel.innerHTML='<option value="ALL">User: All</option>'+buildOptions(stateSel.value||'ALL').map(x=>'<option value="'+escapeAttr(x.value)+'">'+escapeHtml(x.text)+'</option>').join('');
-      const wantedAfterState=((hasTeam||isHead)&&previousUser!=='ALL'&&previousUser!=='TEAM:ALL'&&[...nameSel.options].some(o=>o.value===previousUser))?previousUser:((hasTeam||isHead)&&buildOptions(stateSel.value||'ALL').some(o=>o.value==='TEAM:ALL')?'TEAM:ALL':'ALL');
+      const wantedAfterState=isPrivileged
+        ? ([...nameSel.options].some(o=>o.value===previousUser)?previousUser:'ALL')
+        : (((hasTeam||isHead)&&previousUser!=='ALL'&&previousUser!=='TEAM:ALL'&&[...nameSel.options].some(o=>o.value===previousUser))?previousUser:((hasTeam||isHead)&&buildOptions(stateSel.value||'ALL').some(o=>o.value==='TEAM:ALL')?'TEAM:ALL':'ALL'));
       nameSel.value=wantedAfterState;
       scheduleDashboardFilterRender();
     });
@@ -4581,8 +4763,15 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       if(c.selected){
         const directory=(Array.isArray(allUsersList)&&allUsersList.length)
           ? allUsersList : (c.users||[]);
-        const selectedTeam=dashboardTeamMembers(c.selected,directory);
-        return dashboardOwnerMatches(item,c.selected) || selectedTeam.some(u=>dashboardOwnerMatches(item,u));
+
+        // IMPORTANT: dashboardTeamMembers() intentionally returns the complete
+        // directory for Master Admin/Admin. That is correct for unrestricted
+        // team views, but it must NOT be used here because selecting one user
+        // must never expose every user's records. Build the selected user's
+        // downstream reporting tree explicitly from reportingTo/reportingManagers.
+        const selectedTeam=dashboardDownstreamTeam(c.selected,directory);
+        return dashboardOwnerMatches(item,c.selected) ||
+          selectedTeam.some(u=>dashboardOwnerMatches(item,u));
       }
     }
     const scope=dashboardSelectableUsersForCurrentUser();
@@ -4670,7 +4859,7 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
   function applyDashboardFilters() {
     const filterType=document.getElementById('dateFilterType').value, now=new Date();
     const startCustom=document.getElementById('startDateFilter').value, endCustom=document.getElementById('endDateFilter').value;
-    const datePass=d=>{if(!d)return true;const key=appDateOnly(d),today=appToday();if(!key)return false;if(filterType==='DAILY')return key===today;const n=appDateNumber(key),nowN=appDateNumber(today);if(filterType==='WEEKLY'){const day=new Date(nowN).getUTCDay(),st=nowN-day*86400000;return n>=st&&n<=nowN;}if(filterType==='MONTHLY')return key.slice(0,7)===today.slice(0,7);if(filterType==='CUSTOM'){if(!startCustom||!endCustom)return true;return n>=appDateNumber(startCustom)&&n<=appDateNumber(endCustom);}return true;};
+    const datePass=d=>{if(!d)return true;const key=appDateOnly(d),today=appToday();if(!key)return false;if(filterType==='DAILY')return key===today;const n=appDateNumber(key),nowN=appDateNumber(today);if(filterType==='WEEKLY'){const day=new Date(nowN).getUTCDay()||7,st=nowN-(day-1)*86400000;return n>=st&&n<=nowN;}if(filterType==='MONTHLY')return key.slice(0,7)===today.slice(0,7);if(filterType==='CUSTOM'){if(!startCustom||!endCustom)return true;return n>=appDateNumber(startCustom)&&n<=appDateNumber(endCustom);}return true;};
     filteredClients=(rawData.clients||[]).filter(item=>datePass(item.activityDate||item.entryDate)&&dashboardUserPasses(item));
     rawData.coldCalls=(rawData.coldCalls||[]);
     try{renderDashboardUserFilters();}catch(e){console.error('Dashboard user filter render failed:',e);}
@@ -4678,7 +4867,7 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
     try{renderDashboardTable();}catch(e){console.error('Dashboard table render failed:',e);}
     try{renderDashboardColdCalls();}catch(e){console.error('Dashboard cold-call render failed:',e);}
   }
-  function dashboardDatePasses(v){const type=document.getElementById('dateFilterType')?.value||'ALL',now=new Date(),d=new Date(v);if(!v)return true;if(type==='DAILY')return d.toDateString()===now.toDateString();if(type==='WEEKLY'){const s=new Date(now);s.setHours(0,0,0,0);s.setDate(s.getDate()-s.getDay());const e=new Date(s);e.setDate(e.getDate()+7);return d>=s&&d<e;}if(type==='MONTHLY')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(type==='CUSTOM'){const a=document.getElementById('startDateFilter')?.value,b=document.getElementById('endDateFilter')?.value;return !a||!b|| (d>=new Date(a+'T00:00:00')&&d<=new Date(b+'T23:59:59'));}return true;}
+  function dashboardDatePasses(v){const type=document.getElementById('dateFilterType')?.value||'ALL',now=new Date(),d=new Date(v);if(!v)return true;if(type==='DAILY')return d.toDateString()===now.toDateString();if(type==='WEEKLY'){const s=new Date(now);s.setHours(0,0,0,0);const day=s.getDay()||7;s.setDate(s.getDate()-(day-1));const e=new Date(s);e.setDate(e.getDate()+7);return d>=s&&d<e;}if(type==='MONTHLY')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();if(type==='CUSTOM'){const a=document.getElementById('startDateFilter')?.value,b=document.getElementById('endDateFilter')?.value;return !a||!b|| (d>=new Date(a+'T00:00:00')&&d<=new Date(b+'T23:59:59'));}return true;}
   function renderDashboardColdCalls(){
     const count=document.getElementById('dashboardColdTabCount');if(count)count.textContent=String(currentDashboardColdCalls().length);
     const tbody=document.getElementById('dashboardColdCallTable');if(!tbody)return;tbody.innerHTML='';const list=(rawData.coldCalls||[]).filter(c=>dashboardDatePasses(c.activityDate||c.entryDate||c.timestamp)&&dashboardUserPasses(c));
@@ -5264,7 +5453,7 @@ const count=document.getElementById('dashboardSalesTabCount');if(count)count.tex
     const observer=new MutationObserver(refresh); observer.observe(select,{childList:true,subtree:true});
     refresh();
   }
-  function initAllSmartMultiSelects(){['cState','cRegion','ccState','ccRegion','suStates','suRegions','muStates','muRegions'].forEach(initSmartMultiSelect);}
+  function initAllSmartMultiSelects(){['cState','cRegion','ccState','ccRegion','suStates','suRegions','muStates','muRegions','suReportingManagers','muReportingManagers','editUserReportingManagers'].forEach(initSmartMultiSelect);}
 
   function normalizeSupabaseLocationMaster(rows){
     // Supabase returns location_master as flat rows:
@@ -6689,7 +6878,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       ${table('Cold Calling Lead Data — Exact Backend Structure',coldCols,calls.map(r=>backendRows([r],coldCols)[0]))}
       
 
-</body></html>`;
+\n\n</body></html>`;
   }
   async function captureDashboardImage(){
     if(typeof html2canvas!=='function')throw new Error('Dashboard image library could not be loaded.');
@@ -7541,13 +7730,18 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         }}});
         if(error) return {success:false,message:error.message};
         if(data.user?.id){
-          const profile={id:data.user.id,email,name:payload.name,phone:payload.phone,role:payload.role||'Sales Executive',designation:payload.designation||payload.role,status:'Pending',approved:false,active:true,states:payload.states||[],regions:payload.regions||[],districts:payload.districts||[],cities:[],profile_data:{reportingManagers:payload.reportingManagers||[],reportingTo:payload.reportingTo||[]}};
-          const {error:pe}=await signupClient.from('profiles').upsert(profile,{onConflict:'id'});
-          // The database trigger already creates the pending profile. If email confirmation
-          // is enabled, the isolated client may not have an authenticated session, so an
-          // RLS rejection here is not fatal as long as Auth created the account.
-          if(pe && !/row-level security|permission denied|not authenticated|jwt/i.test(String(pe.message||''))){
-            return {success:false,message:pe.message};
+          const profile={id:data.user.id,email,name:payload.name,phone:payload.phone,role:payload.role||'Sales Executive',designation:payload.designation||payload.role||'Sales Executive',status:'Pending',approved:false,active:false,states:payload.states||[],regions:payload.regions||[],districts:payload.districts||[],cities:[],profile_data:{reportingManagers:payload.reportingManagers||[],reportingTo:payload.reportingTo||[]}};
+          // Persist reporting-manager selection through a SECURITY DEFINER RPC so it
+          // survives the isolated Supabase signup client and RLS. Fall back to the
+          // existing trigger-created profile when the RPC is unavailable.
+          let pe=null;
+          try{
+            const {error:rpe}=await signupClient.rpc('register_pending_profile',{p_user_id:data.user.id,p_email:profile.email,p_name:profile.name,p_phone:profile.phone,p_role:profile.role,p_designation:profile.designation,p_states:profile.states,p_regions:profile.regions,p_districts:profile.districts,p_reporting_managers:profile.profile_data.reportingManagers,p_reporting_to:profile.profile_data.reportingTo});
+            pe=rpe||null;
+          }catch(rpcErr){pe=rpcErr;}
+          if(pe && !/function .*register_pending_profile.*does not exist|could not find the function/i.test(String(pe.message||''))){
+            const {error:ue}=await signupClient.from('profiles').upsert(profile,{onConflict:'id'});
+            if(ue && !/row-level security|permission denied|not authenticated|jwt/i.test(String(ue.message||''))) return {success:false,message:ue.message};
           }
           // Never leave a newly registered user authenticated. Only Master Admin
           // approval changes the profile gate that permits application login.
@@ -7631,7 +7825,16 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       if(action==='getAllUsersDirectory' || action==='getReportingManagers' || action==='getPendingUsers'){
         const {data,error}=await supabaseClient.from('profiles').select('*').order('name');
         if(error) return {success:false,message:error.message};
-        if(action==='getReportingManagers') return {success:true,managers:(data||[]).filter(x=>x.active!==false&&x.approved===true)};
+        if(action==='getReportingManagers'){
+          // Return the complete non-deleted user directory for Reporting Manager
+          // selection. Pending/inactive users are intentionally visible here too,
+          // because the application requirement is to show all users by name.
+          const managers=(data||[]).filter(x=>!['Deleted','Deleted Pending Approval'].includes(String(x.status||''))).map(x=>{
+            const pd=x?.profile_data&&typeof x.profile_data==='object'?x.profile_data:{};
+            return Object.assign({},x,{reportingManagers:x.reportingManagers||pd.reportingManagers||[],reportingTo:x.reportingTo||pd.reportingTo||[]});
+          });
+          return {success:true,managers};
+        }
         if(action==='getPendingUsers') return {success:true,users:(data||[]).filter(x=>x.approved!==true||['Pending','Deleted Pending Approval','Deleted'].includes(String(x.status||'')))};
         return {success:true,users:data||[],data:data||[]};
       }
@@ -7735,7 +7938,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
           const {data,error}=await updateQuery.select().maybeSingle();
           if(error) return {success:false,message:error.message};
           if(!data) return {success:false,message:'Update was blocked by database permissions (check Row Level Security policies on app_records).'};
-          return {success:true,message:'Record saved successfully.',data:sbRow(data),record:data};
+          return {success:true,message:'Record updated successfully.',data:sbRow(data),record:data};
         }
         if(crudOperation==='update'){
           return {success:false,message:'Record not found in your individual account, or you do not have permission to edit it.'};
@@ -7745,7 +7948,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         const row={module,record_id:newId,...meta,data:Object.assign({},clean,{id:newId}),updated_at:nowIso};
         const {data,error}=await supabaseClient.from('app_records').insert(row).select().single();
         if(error) return {success:false,message:error.message};
-        return {success:true,message:'Record saved successfully.',data:sbRow(data),record:data,id:newId};
+        return {success:true,message:'Record created successfully.',data:sbRow(data),record:data,id:newId};
       }
 
       // Generic module readers used by individual screens.
@@ -7807,8 +8010,15 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         if(!uid)return {success:false,message:'User ID is required.'};
         let patch={};
         if(action==='processUserApproval'){
-          const approve=payload.approve!==undefined?payload.approve!==false:payload.approved!==false;
-          patch={approved:approve,status:approve?'Approved':'Rejected',active:approve?(payload.active!==false):false};
+          // User approval is a real state transition, not a generic profile edit.
+          // Pending users remain blocked until Master Admin explicitly approves them.
+          const approve=payload.approve!==undefined ? payload.approve===true : payload.approved===true;
+          patch={
+            approved:approve,
+            active:approve,
+            status:approve?'Approved':'Rejected',
+            updated_at:new Date().toISOString()
+          };
         }else{
           // Only columns that exist on profiles; the edit form also sends fields that are not columns.
           ['name','email','phone','role','designation','states','regions','districts','cities','status','approved','active'].forEach(k=>{ if(payload[k]!==undefined) patch[k]=payload[k]; });
@@ -7821,7 +8031,11 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         const {data,error}=await supabaseClient.from('profiles').update(patch).eq('id',uid).select().maybeSingle();
         if(error) return {success:false,message:error.message};
         if(!data) return {success:false,message:'User update was blocked by database permissions (check Row Level Security policies on profiles).'};
-        return {success:true,message:'User updated successfully.',user:data};
+        // A user update must immediately invalidate dashboard/user-directory reads.
+        // callBackend() performs the shared cache invalidation and refresh cycle;
+        // return the complete updated profile so the caller can render it without
+        // waiting for the polling interval.
+        return {success:true,message:action==='processUserApproval'?(patch.approved?'User approved and activated successfully.':'User rejected successfully.'):'User updated successfully.',user:data};
       }
 
       return {success:false,message:`Supabase adapter does not yet implement action: ${action}`};
@@ -8577,6 +8791,10 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
 .smart-multi{position:relative!important;z-index:20!important;min-width:0;}
 .smart-multi-menu{position:absolute!important;left:0!important;right:0!important;top:calc(100% + 3px)!important;z-index:12050!important;width:auto!important;max-width:100%!important;}
 .smart-multi-options{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
+#dashboardUserFilterGroup{position:relative;z-index:31;min-width:210px;}
+.dashboard-user-filter-label{font-size:.76rem;font-weight:800;color:#334155;white-space:nowrap;}
+#dashboardUserFilterGroup #dashboardUserFilter{min-width:230px;}
+@media(max-width:767.98px){#dashboardUserFilterGroup{width:100%;display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:center;}#dashboardUserFilterGroup #dashboardUserFilters{min-width:0;width:100%;}#dashboardUserFilterGroup #dashboardUserFilter{width:100%;min-width:0;}}
 #dashboardUserFilters{position:relative;z-index:30;}
 #dashboardUserFilters>select{min-width:210px;max-width:100%;}
 @media(max-width:767.98px){
@@ -8631,9 +8849,18 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     const selected=(uf==='ALL'||uf==='TEAM:ALL')
       ? null
       : selectable.find(u=>dashUserValue(u)===String(uf))||null;
+    // When Master Admin/Admin explicitly selects a user, that selection means
+    // the selected user PLUS the user's complete recursive reporting team.
+    // Do not use the privileged user's unrestricted team as the selected scope.
+    const selectedTeam=selected
+      ? dashboardDownstreamTeam(selected,users)
+      : [];
+    const selectedScope=selected
+      ? [selected,...selectedTeam.filter(u=>!dashSame(u,selected))]
+      : [];
 
     _dashFilterContextKey=key;
-    _dashFilterContext={uf,sf,users,team,selectable,selected,isHead,hasTeam:team.length>0};
+    _dashFilterContext={uf,sf,users,team,selectable,selected,selectedTeam,selectedScope,isHead,hasTeam:team.length>0};
     return _dashFilterContext;
   }
 
@@ -8668,8 +8895,11 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
       return dashboardOwnerMatches(item,currentUser);
     }
 
-    // A selected name is always an exact owner selection.
-    return !!c.selected && dashboardOwnerMatches(item,c.selected);
+    // A selected name represents that user and the complete downstream
+    // reporting hierarchy. This is especially important for Master Admin,
+    // who can select any user from the global directory.
+    if(!c.selected)return false;
+    return c.selectedScope.some(u=>dashboardOwnerMatches(item,u));
   };
 
 
@@ -8701,7 +8931,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
       }
       return dashboardTargetOwnerMatches(target,currentUser);
     }
-    return !!c.selected && dashboardTargetOwnerMatches(target,c.selected);
+    if(!c.selected)return false; const scope=Array.isArray(c.selectedScope)&&c.selectedScope.length?c.selectedScope:[c.selected]; return scope.some(u=>dashboardTargetOwnerMatches(target,u));
   }
 
   function dashboardTargetOrders(target,orders){
@@ -8773,6 +9003,8 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
 
   /* Fast filter application: never rebuild the dropdowns when only a filter
      value changed. The already-loaded backend snapshot is filtered in memory. */
+  window.resetDashboardFilters=function(){const u=document.getElementById('dashboardUserFilter');if(u)u.value='ALL';const st=document.getElementById('dashboardStateFilter');if(st)st.value='ALL';const d=document.getElementById('dateFilterType');if(d)d.value='ALL';const a=document.getElementById('startDateFilter');if(a)a.value='';const b=document.getElementById('endDateFilter');if(b)b.value='';const c=document.getElementById('customDateContainer');if(c)c.classList.add('d-none');applyDashboardFilters();};
+  function updateDashboardViewSummary(){const c=(typeof getDashboardFilterContext==='function')?getDashboardFilterContext():null;const uf=document.getElementById('dashboardUserFilter')?.value||'ALL';const df=document.getElementById('dateFilterType')?.value||'ALL';let u='All permitted users',t='All';if(c){if(uf==='TEAM:ALL'){u='Team view';t='All team members ('+(c.team?.length||0)+')';}else if(uf!=='ALL'&&c.selected){u=c.selected.name||c.selected.email||'Selected user';t=(c.selectedTeam?.length||0)+' downstream team member(s)';}else if(c.hasTeam){u='My data + team';t=(c.team?.length||0)+' team member(s)';}else if(currentUser){u=currentUser.name||currentUser.email||'My data';t='No downstream team';}}const labels={ALL:'All Time',DAILY:'Today',WEEKLY:'This Week',MONTHLY:'This Month',CUSTOM:'Custom Range'};let date=labels[df]||df;if(df==='CUSTOM'){const a=document.getElementById('startDateFilter')?.value||'',b=document.getElementById('endDateFilter')?.value||'';date=a&&b?a+' → '+b:'Choose start and end date';}const ue=document.getElementById('dashboardSummaryUser'),te=document.getElementById('dashboardSummaryTeam'),de=document.getElementById('dashboardSummaryDate'),re=document.getElementById('dashboardSummaryRecords');if(ue)ue.textContent=u;if(te)te.textContent=t;if(de)de.textContent=date;if(re&&typeof dashboardStats==='function'){const x=dashboardStats();re.textContent=((x?.clients?.length||0)+(x?.calls?.length||0)+(x?.salesOrders?.length||0)).toLocaleString('en-IN');}}
   window.applyDashboardFilters=function(){
     const filterType=document.getElementById('dateFilterType')?.value||'ALL';
     const startCustom=document.getElementById('startDateFilter')?.value||'';
@@ -8808,6 +9040,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     try{renderDashboardColdCalls();}catch(e){console.error('Dashboard cold-call render failed:',e);}
     try{renderDashboardSalesOrderTable(dashboardStats());}catch(e){console.error('Dashboard sales-order render failed:',e);}
     try{renderDashboardTargetSummary();}catch(e){console.error('Dashboard target summary render failed:',e);}
+    try{updateDashboardViewSummary();}catch(e){}
   };
 
   /* The light path is now the same fast in-memory path. */
@@ -8993,6 +9226,91 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   function status(){var t=document.getElementById('kosolStartupText');if(!t)return;t.textContent=window.supabase?'Application ready. Checking your session…':'Application interface loaded. You can sign in when the connection is available.';}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',status,{once:true});else status();
   setTimeout(release,2500);
+})();
+</script>
+<script id="kosol-dashboard-selected-user-team-scope-final">
+(function(){
+  'use strict';
+  /* Final dashboard rule:
+     - dropdown names come from the authenticated user's reporting tree;
+     - selecting a person scopes the dashboard to that person + every
+       direct/indirect/subsequent report below that person;
+     - Master Admin/Admin may select any active user by name.
+  */
+  function activeDirectory(){
+    const liveDirectory=(Array.isArray(allUsersList)&&allUsersList.length)?allUsersList:(Array.isArray(window.allUsersList)?window.allUsersList:[]);
+    const base=liveDirectory;
+    return base.filter(u=>u&&u.active!==false&&String(u.status||'').toLowerCase()!=='deleted'&&String(u.status||'').toLowerCase()!=='deleted_pending_approval');
+  }
+  function identity(u){
+    return new Set([u?.id,u?.userId,u?.employeeId,u?.email,u?.name,u?.loginId,u?.username]
+      .filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(v=>dashboardNorm(v)));
+  }
+  function same(a,b){const aa=identity(a),bb=identity(b);for(const x of aa)if(bb.has(x))return true;return false;}
+  function reportsOf(head,users){
+    if(!head)return [];
+    const list=Array.isArray(users)?users:[];
+    const result=[],seen=new Set(),queue=[head];
+    identity(head).forEach(k=>seen.add(k));
+    for(let i=0;i<queue.length;i++){
+      const parent=queue[i], parentIds=identity(parent);
+      list.forEach(u=>{
+        if(!u||same(u,head))return;
+        const keys=identity(u);
+        if([...keys].some(k=>seen.has(k)))return;
+        const refs=dashboardReportingRefs(u);
+        if(refs.some(ref=>parentIds.has(ref))){
+          [...keys].forEach(k=>seen.add(k));
+          result.push(u);
+          queue.push(u);
+        }
+      });
+    }
+    return result;
+  }
+  function owner(item,user){
+    if(!item||!user)return false;
+    const owners=[item.userId,item.userID,item.userEmail,item.email,item.createdBy,item.createdByEmail,item.createdByUserId,item.ownerId,item.ownerEmail,item.employeeId,item.employeeEmail,item.userName,item.createdByName,item.ownerName,item.username,item.userName,item.salesExecutive,item.salesExecutiveId,item.executive,item.executiveId,item.assignedTo,item.assignedUser,item.submittedBy,item.submittedById]
+      .filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm);
+    const ids=[user.id,user.userId,user.employeeId,user.email,user.name,user.loginId,user.username]
+      .filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm);
+    return ids.some(v=>owners.includes(v));
+  }
+  function selectedScope(selected){
+    const dir=activeDirectory();
+    return selected?[selected,...reportsOf(selected,dir)]:[];
+  }
+  function scopePass(item,c){
+    if(!c)return false;
+    const uf=String(c.uf||'ALL');
+    if(uf==='ALL'||uf==='TEAM:ALL'){
+      if(currentUser?.role==='Master Admin'||currentUser?.role==='Admin')return true;
+      return owner(item,currentUser)||(c.team||[]).some(u=>owner(item,u));
+    }
+    if(!c.selected)return false;
+    return selectedScope(c.selected).some(u=>owner(item,u));
+  }
+  window.dashboardUserPasses=function(item){
+    const c=(typeof getDashboardFilterContext==='function')?getDashboardFilterContext():null;
+    const sf=c?.sf||document.getElementById('dashboardStateFilter')?.value||'ALL';
+    if(sf!=='ALL'){
+      if(!dashboardFieldAllows(currentUser,'states',sf))return false;
+      const itemState=item?.state??item?.State;
+      if(itemState!==undefined&&!dashboardFieldAllows({states:[sf]},itemState))return false;
+    }
+    return scopePass(item,c);
+  };
+  window.dashboardTargetMatchesScope=function(target,c){
+    if(!target||!c)return false;
+    const uf=String(c.uf||'ALL');
+    if(uf==='ALL'||uf==='TEAM:ALL'){
+      if(currentUser?.role==='Master Admin'||currentUser?.role==='Admin')return true;
+      const members=[currentUser,...(c.team||[])];
+      return members.some(u=>dashboardTargetOwnerMatches(target,u));
+    }
+    if(!c.selected)return false;
+    return selectedScope(c.selected).some(u=>dashboardTargetOwnerMatches(target,u));
+  };
 })();
 </script>
 </body>
