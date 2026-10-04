@@ -857,8 +857,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     <div class="modal-header bg-dark text-white"><div><h6 class="modal-title"><i class="bi bi-share me-1"></i> Export / Share Dashboard</h6><small>Only dashboard data uses export/share.</small></div><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <label class="form-label small fw-bold">Choose format</label>
-      <div class="small mb-2"><b>Working user:</b> <span id="shareUserName"></span></div><select id="shareFormat" class="form-select form-select-sm mb-3"><option value="excel" selected>Excel — share file</option><option value="pdf">PDF — tabulated</option><option value="word">Word — tabulated + images</option>
-      <option value="png">Dashboard image — exact visual</option><option value="pptx">PowerPoint — current dashboard/charts</option></select>
+      <div class="small mb-2"><b>Working user:</b> <span id="shareUserName"></span></div><select id="shareFormat" class="form-select form-select-sm mb-3"><option value="excel" selected>Excel — share file</option><option value="pdf">PDF — tabulated</option><option value="word">Word — tabulated</option><option value="csv">CSV — tabulated</option><option value="gsheet">Google Sheet — copy &amp; open new sheet</option>
+      <option value="png">Dashboard image — exact visual</option><option value="pptx">PowerPoint — tabulated</option></select>
       <div class="small text-muted mb-2">Share the dashboard records currently selected by the dashboard filters/checkboxes. You can also attach images from the device gallery or camera before opening the device app chooser.</div>
 
       <div class="dashboard-share-images mb-3">
@@ -1119,6 +1119,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
                 <button class="btn btn-sm btn-outline-secondary module-refresh" onclick="refreshModule('dashboard')" title="Refresh dashboard"><i class="bi bi-arrow-clockwise"></i></button><button class="btn btn-sm btn-primary dashboard-filter-apply" onclick="applyDashboardFilters()"><i class="bi bi-funnel me-1"></i>Apply</button><button class="btn btn-sm btn-outline-secondary dashboard-filter-reset" type="button" onclick="resetDashboardFilters()" title="Reset dashboard filters"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
                 <div class="export-toolbar ms-md-1">
                   <button class="btn btn-sm btn-outline-success" onclick="exportDashboard('excel')" title="Excel"><i class="bi bi-file-earmark-excel"></i></button>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="exportDashboard('csv')" title="CSV"><i class="bi bi-filetype-csv"></i></button>
+                  <button class="btn btn-sm btn-outline-success" onclick="exportDashboard('gsheet')" title="Google Sheet"><i class="bi bi-table"></i></button>
                   <button class="btn btn-sm btn-outline-danger" onclick="exportDashboard('pdf')" title="PDF"><i class="bi bi-file-earmark-pdf"></i></button>
                   <button class="btn btn-sm btn-outline-primary" onclick="exportDashboard('word')" title="Word form"><i class="bi bi-file-earmark-word"></i></button>
                   <button class="btn btn-sm btn-outline-warning" onclick="exportDashboard('pptx')" title="PowerPoint"><i class="bi bi-file-earmark-slides"></i></button>
@@ -6886,7 +6888,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     // Each page contains the complete record structure; records continue vertically
     // onto as many pages as required instead of splitting columns across pages.
     const ch=backendColumns(s.clients), cd=backendRows(s.clients,ch);
-    const prepared=s.clients.map(c=>({row:exportClientRow(c)}));
+    const prepared=cd.map(row=>({row}));
     const clientColumnWidth=(h)=>{
       const x=String(h||'').toLowerCase();
       if(x==='requirements')return 112;
@@ -7158,16 +7160,56 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     if(!clicked){try{window.open(url,'_blank','noopener,noreferrer');}catch(_){} }
     return url;
   }
+
+  // ---- Unified backend-format tables (selected records only) ----
+  function backendTables(){
+    return [['Client Backend Data',currentDashboardClients()],['Cold Call Backend Data',currentDashboardColdCalls()]].map(([name,recs])=>{const cols=backendColumns(recs);return {name,cols,rows:backendRows(recs,cols)};});
+  }
+  function backendDelimited(sep){
+    const cell=v=>{v=String(v==null?'':v);return (v.includes(sep)||/["\r\n]/.test(v))?'"'+v.replace(/"/g,'""')+'"':v;};
+    const out=[];
+    backendTables().forEach(t=>{if(!t.rows.length)return;out.push(cell(t.name));out.push(t.cols.map(cell).join(sep));t.rows.forEach(r=>out.push(r.map(cell).join(sep)));out.push('');});
+    if(!out.length)throw new Error('No records to export for the current selection.');
+    return out.join('\r\n');
+  }
+  async function buildBackendPptxFile(){
+    await loadScriptOnce('pptx',LAZY_LIBS.pptx);
+    const p=new PptxGenJS();p.layout='LAYOUT_WIDE';p.author='Kosol Energie Pvt Ltd';p.title=dashboardTitle();
+    const R=10,C=7;let n=0;
+    backendTables().forEach(t=>{if(!t.rows.length)return;
+      for(let c0=0;c0<t.cols.length;c0+=C){const cols=t.cols.slice(c0,c0+C);
+        for(let r0=0;r0<t.rows.length;r0+=R){const sl=p.addSlide();n++;
+          sl.addText(`${t.name} | records ${r0+1}-${Math.min(r0+R,t.rows.length)} of ${t.rows.length} | fields ${c0+1}-${c0+cols.length} of ${t.cols.length}`,{x:.3,y:.15,w:12.7,h:.4,fontSize:12,bold:true});
+          const body=[cols.map(h=>({text:h,options:{bold:true,fill:{color:'E9ECEF'}}})),...t.rows.slice(r0,r0+R).map(r=>r.slice(c0,c0+cols.length).map(v=>({text:String(v)})))];
+          sl.addTable(body,{x:.3,y:.7,w:12.7,fontSize:7,border:{type:'solid',color:'999999',pt:.5},valign:'top'});
+        }}});
+    if(!n)throw new Error('No records to export for the current selection.');
+    const blob=await p.write({outputType:'blob'});
+    return new File([blob],exportFileStem()+'.pptx',{type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
+  }
+  async function buildBackendShareFile(fmt){
+    await ensureExportLibraries(fmt);
+    if(fmt==='excel')return buildExcelFile();
+    if(fmt==='pdf')return buildDashboardPdfFile();
+    if(fmt==='word')return new File([await buildWordFormHtml()],exportFileStem()+'.doc',{type:'application/msword'});
+    if(fmt==='csv')return new File(['\ufeff'+backendDelimited(',')],exportFileStem()+'.csv',{type:'text/csv'});
+    if(fmt==='pptx')return buildBackendPptxFile();
+    if(fmt==='png'){const shot=await captureDashboardImage();return buildDashboardPngFile(shot);}
+    throw new Error('Unsupported format.');
+  }
+  async function openInGoogleSheets(){
+    const tsv=backendDelimited('\t');
+    window.open('https://sheets.new','_blank','noopener');
+    try{await navigator.clipboard.writeText(tsv);showOperationMessage('Google Sheet opened','Data copied (backend format, selected records only). In the new sheet tap cell A1 and paste.','success');}
+    catch(_){const f=new File(['\ufeff'+backendDelimited(',')],exportFileStem()+'.csv',{type:'text/csv'});downloadBlob(f,f.name);showOperationMessage('CSV saved','Clipboard was blocked. In the new Google Sheet use File > Import > Upload and choose the saved CSV.','warning');}
+  }
   async function exportDashboard(type){
     let file=null;
     await ensureExportLibraries(type==='excel'?'excel':type);
     try{
-      if(type==='excel')file=await buildExcelFile();
-      else if(type==='pdf')file=await buildDashboardPdfFile();
-      else if(type==='word')file=new File([await buildWordFormHtml()],exportFileStem()+'.doc',{type:'application/msword'});
-      else if(type==='png'){const shot=await captureDashboardImage();file=buildDashboardPngFile(shot);}
-      else if(type==='pptx'){await buildDashboardPptx();return;}
-      else throw new Error('Unsupported export format.');
+      if(type==='gsheet'){await openInGoogleSheets();return;}
+      if(type==='pptx'){await buildDashboardPptx();return;}
+      file=await buildBackendShareFile(type);
       downloadBlob(file,file.name);showOperationMessage('Export ready',`${type.toUpperCase()} export created from the current dashboard scope. When records are selected, only those selected records are included; no related or additional records are added.`,'success');
     }catch(e){console.error('Export error',e);showOperationMessage('Export needs attention',e?.message||String(e),'error');}
   }
@@ -7599,8 +7641,9 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       // exactly the requested fields and separators. The operating system decides
       // which installed WhatsApp app (regular/Business/other compatible target) to use.
       if(app==='device'){
-        await ensureExportLibraries('device');
-        file=await buildShareExcelFile();
+        const fmt=document.getElementById('shareFormat')?.value||'excel';
+        if(fmt==='gsheet'){bootstrap.Modal.getInstance(modal)?.hide();await openInGoogleSheets();return;}
+        file=await buildBackendShareFile(fmt);
       }
       const shareText=dashboardSharePlainText();
       bootstrap.Modal.getInstance(modal)?.hide();
@@ -7622,7 +7665,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
           if(canFileShare){
             try{
               await navigator.share(shareData);
-              showOperationMessage('Choose a sharing application','The device sharing chooser is open. Select WhatsApp, WhatsApp Business, Email, Drive or another installed application, then choose the recipient. The Excel share file is attached.','success');
+              showOperationMessage('Choose a sharing application','The device sharing chooser is open. Select WhatsApp, WhatsApp Business, Email, Drive or another installed application, then choose the recipient. The selected-format file is attached.','success');
               return;
             }catch(shareError){
               if(shareError?.name==='AbortError')return;
@@ -7643,11 +7686,11 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
 
       if(file){
         downloadBlob(file,file.name);
-        showOperationMessage('Excel file saved','The requested Excel share file was generated and saved because this browser does not expose the device file-share chooser.','warning');
+        showOperationMessage('File saved','The requested share file was generated and saved because this browser does not expose the device file-share chooser.','warning');
       }
     }catch(e){
       console.error('Export/share error',e);
-      if(file){try{downloadBlob(file,file.name);showOperationMessage('File recovered','Sharing was blocked, but the Excel share file was saved successfully.','success');return;}catch(_){} }
+      if(file){try{downloadBlob(file,file.name);showOperationMessage('File recovered','Sharing was blocked, but the share file was saved successfully.','success');return;}catch(_){} }
       showOperationMessage('Export / share needs attention',e?.message||String(e),'error');
     }
   }
