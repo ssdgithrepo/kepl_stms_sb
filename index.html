@@ -976,8 +976,8 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       <div id="forgotPasswordView" class="d-none">
         <div class="text-center mb-3"><i class="bi bi-shield-lock-fill" style="font-size:2.4rem;color:#fc9403"></i><h5 class="fw-bold mt-2 mb-1">Reset Password</h5><small class="text-muted">Verify your registered email or phone with a one-time password.</small></div>
         <form id="forgotPasswordForm">
-          <div class="mb-2"><label class="form-label small fw-bold">Verification method</label><select id="fpMethod" class="form-select form-select-sm"><option value="email">Email OTP</option><option value="phone">Phone OTP</option></select></div>
-          <div class="mb-2"><label class="form-label small fw-bold">Registered Email / Phone *</label><input id="fpIdentifier" class="form-control form-control-sm" required placeholder="Enter registered email or phone number"></div>
+          <div class="mb-2"><label class="form-label small fw-bold">Verification method</label><select id="fpMethod" class="form-select form-select-sm"><option value="email">Email code</option></select></div>
+          <div class="mb-2"><label class="form-label small fw-bold">Registered Email / Phone *</label><input id="fpIdentifier" class="form-control form-control-sm" required placeholder="Enter registered email address" type="email" autocapitalize="none"></div>
           <button type="submit" class="btn btn-warning text-dark fw-bold w-100 py-2"><i class="bi bi-send me-1"></i>Send OTP</button>
         </form>
         <form id="resetPasswordForm" class="d-none mt-3">
@@ -2979,7 +2979,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       .filter(u=>String(u.id||u.email)!==String(excludeId||''))
       .sort((a,b)=>(rank[a.role]??99)-(rank[b.role]??99)||String(a.name||a.email||'').localeCompare(String(b.name||b.email||'')));
   }
-  function populateReportingManagerSelect(id,selected){const el=document.getElementById(id);if(!el)return;const chosen=new Set(Array.isArray(selected)?selected:String(selected||'').split(/[,|]/).map(x=>x.trim()).filter(Boolean));el.innerHTML=reportingManagerCandidates(id==='editUserReportingManagers'?document.getElementById('editUserId')?.value:'').map(u=>{const key=String(u.id||u.email);return `<option value="${escapeAttr(key)}" ${chosen.has(key)||chosen.has(String(u.email))?'selected':''}>${escapeHtml(u.name||u.email)} — ${escapeHtml(u.role)}</option>`}).join('');if(el.dataset.smartMulti==='1')el.dispatchEvent(new Event('change',{bubbles:true}));}
+  function populateReportingManagerSelect(id,selected){const el=document.getElementById(id);if(!el)return;const keepCurrent=selected==null||(Array.isArray(selected)&&selected.some(x=>x&&typeof x==='object'));const current=keepCurrent?[...(el.selectedOptions||[])].map(o=>o.value):null;const chosen=new Set(keepCurrent?current:Array.isArray(selected)?selected:String(selected||'').split(/[,|]/).map(x=>x.trim()).filter(Boolean));el.innerHTML=reportingManagerCandidates(id==='editUserReportingManagers'?document.getElementById('editUserId')?.value:'').map(u=>{const key=String(u.id||u.email);return `<option value="${escapeAttr(key)}" ${chosen.has(key)||chosen.has(String(u.email))?'selected':''}>${escapeHtml(u.name||u.email)} — ${escapeHtml(u.role)}</option>`}).join('');if(el.dataset.smartMulti==='1')el.dispatchEvent(new Event('change',{bubbles:true}));}
   function getSelectedReportingManagers(id){const el=document.getElementById(id);if(!el)return [];return [...(el.selectedOptions||[])].map(o=>String(o.value||'').trim()).filter(Boolean);}
   function refreshReportingManagerSelectors(){populateReportingManagerSelect('muReportingManagers');populateReportingManagerSelect('editUserReportingManagers');}
   document.getElementById('masterCreateUserForm')?.addEventListener('submit',async e=>{
@@ -3054,12 +3054,14 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
     document.getElementById('editUserName').value = user.name;
     document.getElementById('editUserEmail').value = user.email;
     document.getElementById('editUserPhone').value = user.phone;
-    document.getElementById('editUserPassword').value = user.password;
+    document.getElementById('editUserPassword').value = '';
     document.getElementById('editUserRole').value = user.role;
     document.getElementById('editUserStates').value = user.states.join(', ');
     document.getElementById('editUserRegions').value = user.regions.join(', ');
     document.getElementById('editUserDistricts').value = user.districts.join(', ');
-    populateReportingManagerSelect('editUserReportingManagers', user.reportingManagers||user.reportingTo||[]);
+    const pdx=(user.profile_data&&typeof user.profile_data==='object')?user.profile_data:((user.profileData&&typeof user.profileData==='object')?user.profileData:{});
+    const savedRms=[user.reportingManagers,user.reportingTo,pdx.reportingManagers,pdx.reportingTo,user.__dashboardReportingRefs].map(v=>Array.isArray(v)?v:(typeof v==='string'?v.split(/[,|]/):[])).map(a=>a.map(x=>String(x&&typeof x==='object'?(x.id||x.email||''):x).trim()).filter(Boolean)).find(a=>a.length)||[];
+    populateReportingManagerSelect('editUserReportingManagers', savedRms);
 
     new bootstrap.Modal(document.getElementById('editUserModal')).show();
   }
@@ -8109,14 +8111,22 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       }
       if(action==='requestPasswordResetOtp'){
         if(payload.method==='email'){
-          const {error}=await supabaseClient.auth.resetPasswordForEmail(String(payload.identifier||'').trim(),{redirectTo:location.href});
-          return error?{success:false,message:error.message}:{success:true,masked:'your registered email',message:'Password reset link sent to your email.'};
+          const em=String(payload.identifier||'').trim().toLowerCase();
+          if(!em.includes('@'))return {success:false,message:'Enter your registered email address.'};
+          const {error}=await supabaseClient.auth.resetPasswordForEmail(em);
+          return error?{success:false,message:error.message}:{success:true,masked:'your registered email',message:'Reset code sent to your email.'};
         }
         return {success:false,message:'Phone OTP reset requires Supabase phone authentication to be configured.'};
       }
       if(action==='resetPasswordWithOtp'){
-        const {error}=await supabaseClient.auth.updateUser({password:payload.newPassword});
-        return error?{success:false,message:error.message}:{success:true,message:'Password updated successfully.'};
+        const em=String(payload.identifier||'').trim().toLowerCase(), code=String(payload.otp||'').trim();
+        if(String(payload.newPassword||'').length<6)return {success:false,message:'Password must be at least 6 characters.'};
+        const rc=window.supabase.createClient(SUPABASE_CONFIG.url,SUPABASE_CONFIG.anonKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+        const {error:vErr}=await rc.auth.verifyOtp({email:em,token:code,type:'recovery'});
+        if(vErr)return {success:false,message:/expired|invalid/i.test(String(vErr.message||''))?'The code is wrong or has expired. Request a new code.':vErr.message};
+        const {error:uErr}=await rc.auth.updateUser({password:payload.newPassword});
+        try{await rc.auth.signOut();}catch(_){}
+        return uErr?{success:false,message:uErr.message}:{success:true,message:'Password updated successfully. You can now sign in.'};
       }
 
       // ---------- User directory ----------
