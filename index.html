@@ -1244,7 +1244,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
               <div class="d-flex gap-1"><button class="btn btn-sm btn-outline-secondary" onclick="refreshTargetModule()"><i class="bi bi-arrow-clockwise"></i></button><button class="btn btn-warning text-dark fw-bold" onclick="showTargetForm()"><i class="bi bi-plus-circle me-1"></i> Add Target</button></div>
             </div>
             <div id="targetKpis" class="row g-2 mb-3"></div>
-            <div class="card card-dashboard p-2 p-md-3"><div class="table-responsive"><table class="table table-hover align-middle small mb-0"><thead><tr><th>Target</th><th>Period</th><th>Product</th><th>Sales Type</th><th>PV Type</th><th>Metric</th><th>Target</th><th>Achieved</th><th>First-Time Lead Sales</th><th>Existing Lead Sales</th><th>%</th><th>Actions</th></tr></thead><tbody id="targetTableBody"><tr><td colspan="12" class="text-center text-muted py-4">Loading targets…</td></tr></tbody></table></div></div>
+            <div class="card card-dashboard p-2 p-md-3"><div class="table-responsive"><table class="table table-hover align-middle small mb-0"><thead><tr><th>Target Name</th><th>Period</th><th>Product</th><th>Sales Type</th><th>PV Type</th><th>Metric</th><th>Target</th><th>Achieved</th><th>First-Time Lead Sales</th><th>Existing Lead Sales</th><th>%</th><th>Actions</th></tr></thead><tbody id="targetTableBody"><tr><td colspan="12" class="text-center text-muted py-4">Loading targets…</td></tr></tbody></table></div></div>
           </div>
           <div id="tab-projects" class="tab-content d-none">
             <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom flex-wrap gap-2">
@@ -2428,7 +2428,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       raw:n.data||n.source_data||{}
     });
     if(module==='targets') return Object.assign(base,{
-      targetName:n.target_name||'',periodType:n.target_period||'',startDate:date,endDate:date,
+      targetName:n.target_name||n.name||n.title||(n.data&&(n.data.targetName||n.data.target_name))||(n.source_data&&(n.source_data.targetName||n.source_data.target_name))||'',periodType:n.target_period||'',startDate:date,endDate:date,
       product:n.target_product||'',salesType:n.sales_type||'All',pvType:n.pv_type||'Both',
       metric:n.target_metric||'Amount',targetValue:Number(n.target_value||0),raw:n.data||n.source_data||{}
     });
@@ -6098,7 +6098,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     return b.first+b.existing;
   }
 
-  function renderDashboardTargetSummary(){const box=document.getElementById('dashboardTargetSummary');if(!box)return;const ts=rawData.targets||[];if(!ts.length){box.innerHTML='<div class="text-muted small">No targets created yet. Use My Target to create one.</div>';return;}box.innerHTML=ts.slice(0,8).map(t=>{const ach=targetAchievementLocal(t,rawData.salesOrders||[]),br=targetSalesClassification(t,rawData.salesOrders||[]),tar=salesOrderNum(t.targetValue||t.target||0),pct=tar?Math.min(100,ach/tar*100):0;return `<div class="mb-3"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><b>${escapeHtml(t.targetName||'Target')}</b><small class="d-block text-muted">${escapeHtml(t.product||'')} · ${escapeHtml(t.metric||'Amount')} · ${escapeHtml(t.pvType||'')} · ${escapeHtml(t.salesType||'All')} · ${escapeHtml(targetPeriodLabel(t))}</small></div><div class="fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})} / ${tar.toLocaleString('en-IN',{maximumFractionDigits:2})} (${pct.toFixed(1)}%)</div></div><div class="progress mt-1" style="height:9px"><div class="progress-bar bg-warning" style="width:${pct}%"></div></div><div class="d-flex gap-3 flex-wrap small mt-2"><span class="text-success fw-semibold">First-time leads: ${br.first.toLocaleString('en-IN',{maximumFractionDigits:2})} (${br.firstLeads})</span><span class="text-primary fw-semibold">Existing leads: ${br.existing.toLocaleString('en-IN',{maximumFractionDigits:2})} (${br.existingLeads})</span></div></div>`;}).join('');}
+  function renderDashboardTargetSummary(){const box=document.getElementById('dashboardTargetSummary');if(!box)return;const ts=rawData.targets||[];if(!ts.length){box.innerHTML='<div class="text-muted small">No targets created yet. Use My Target to create one.</div>';return;}box.innerHTML=ts.slice(0,8).map(t=>{const ach=targetAchievementLocal(t,rawData.salesOrders||[]),br=targetSalesClassification(t,rawData.salesOrders||[]),tar=salesOrderNum(t.targetValue||t.target||0),pct=tar?Math.min(100,ach/tar*100):0;return `<div class="mb-3"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><b>${escapeHtml(t.targetName||'Target')}</b><small class="d-block text-muted">${escapeHtml(t.product||'')} · ${escapeHtml(t.metric||'Amount')} · ${escapeHtml(t.pvType||'')} · ${escapeHtml(t.salesType||'All')} · ${escapeHtml(targetPeriodLabel(t))}</small></div><div class="fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})} / ${tar.toLocaleString('en-IN',{maximumFractionDigits:2})} ${escapeHtml(t.metric||'Amount')} (${pct.toFixed(1)}%)</div></div><div class="progress mt-1" style="height:9px"><div class="progress-bar bg-warning" style="width:${pct}%"></div></div><div class="d-flex gap-3 flex-wrap small mt-2"><span class="text-success fw-semibold">First-time leads: ${br.first.toLocaleString('en-IN',{maximumFractionDigits:2})} (${br.firstLeads})</span><span class="text-primary fw-semibold">Existing leads: ${br.existing.toLocaleString('en-IN',{maximumFractionDigits:2})} (${br.existingLeads})</span></div></div>`;}).join('');}
   function targetEndLocal(period,start,end){const x=appDateOnly(start||appToday());if(!x)return appToday();const [y,m,d]=x.split('-').map(Number);if(period==='CUSTOM')return appDateOnly(end)||x;if(period==='DAILY')return x;if(period==='WEEKLY'){const e=new Date(y,m-1,d);e.setDate(e.getDate()+6);return [e.getFullYear(),String(e.getMonth()+1).padStart(2,'0'),String(e.getDate()).padStart(2,'0')].join('-');}if(period==='MONTHLY'){const e=new Date(y,m,0);return [e.getFullYear(),String(e.getMonth()+1).padStart(2,'0'),String(e.getDate()).padStart(2,'0')].join('-');}if(period==='YEARLY')return `${y}-12-31`;return x;}
   async function showTargetForm(r={}){
     const manualAch=targetManualAchievement(r);
@@ -6189,6 +6189,12 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     }catch(e){showOperationMessage('Achievement not cleared',e.message||String(e),'error');}
   }
 
+  function targetTakenByMetricHtml(ts){
+    const m={};(ts||[]).forEach(t=>{const k=t.metric||'Amount';m[k]=(m[k]||0)+salesOrderNum(t.targetValue||0);});
+    const e=Object.entries(m);
+    if(!e.length)return '<div class="fs-4 fw-bold">0</div>';
+    return e.map(([k,v])=>`<div class="fw-bold ${e.length>1?'fs-6':'fs-4'}">${v.toLocaleString('en-IN',{maximumFractionDigits:2})} <small class="text-muted fw-normal">${escapeHtml(k)}</small></div>`).join('');
+  }
   function renderTargetModule(){
     const tb=document.getElementById('targetTableBody'); if(!tb)return;
     const ts=Array.isArray(rawData.targets)?rawData.targets:[], orders=Array.isArray(rawData.salesOrders)?rawData.salesOrders:[];
@@ -6198,13 +6204,13 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
       const manual=targetManualAchievement(t)!==null;
       const id=t.id||t.recordId||t.targetId||'';
       return `<tr>
-        <td><b>${escapeHtml(t.targetName||'')}</b><small class="d-block text-muted">${escapeHtml(t.userEmail||t.ownerEmail||'')}</small></td>
+        <td><b>${escapeHtml(t.targetName||'(Unnamed target)')}</b><small class="d-block text-muted">${escapeHtml(t.userEmail||t.ownerEmail||'')}</small></td>
         <td>${escapeHtml(targetPeriodLabel(t))}</td>
         <td>${escapeHtml(t.product||'')}</td>
         <td>${escapeHtml(t.salesType||'All')}</td>
         <td>${escapeHtml(t.pvType||'-')}</td>
         <td>${escapeHtml(t.metric||'Amount')}</td>
-        <td>${tar.toLocaleString('en-IN',{maximumFractionDigits:2})}</td>
+        <td><b>${tar.toLocaleString('en-IN',{maximumFractionDigits:2})}</b><small class="d-block text-muted">${escapeHtml(t.metric||'Amount')}</small></td>
         <td><b>${ach.toLocaleString('en-IN',{maximumFractionDigits:2})}</b><small class="d-block ${manual?'text-warning':'text-muted'}">${manual?'Manual':'Automatic'}</small></td>
         <td><b>${br.first.toLocaleString('en-IN',{maximumFractionDigits:2})}</b><small class="d-block text-success">${br.firstLeads} lead(s) · First Time</small></td>
         <td><b>${br.existing.toLocaleString('en-IN',{maximumFractionDigits:2})}</b><small class="d-block text-primary">${br.existingLeads} lead(s) · Existing</small></td>
@@ -6220,7 +6226,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     if(k){
       const total=ts.reduce((a,t)=>a+salesOrderNum(t.targetValue),0), ach=ts.reduce((a,t)=>a+targetAchievementLocal(t,orders),0), pct=total?Math.min(100,ach/total*100):0;
       k.innerHTML=`<div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Targets</small><div class="fs-4 fw-bold">${ts.length}</div></div></div>
-      <div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Target Taken</small><div class="fs-4 fw-bold">${total.toLocaleString('en-IN')}</div></div></div>
+      <div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Target Taken</small>${targetTakenByMetricHtml(ts)}</div></div>
       <div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Achievement</small><div class="fs-4 fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})}</div></div></div>
       <div class="col-6 col-md-3"><div class="card card-dashboard p-3"><small class="text-muted">Overall Achievement</small><div class="fs-4 fw-bold">${pct.toFixed(1)}%</div></div></div>`;
     }
@@ -7958,7 +7964,10 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
             email:String(payload.email||'').trim(),
             password:String(payload.password||'')
           });
-          if(error) return {success:false,message:error.message||'Invalid credentials.'};
+          if(error){
+            if(/email not confirmed/i.test(String(error.message||'')))return {success:false,message:'Account setup is incomplete on the server (email confirmation is still enabled). Ask the Master Admin to run supabase_fix_approval_and_email.sql.'};
+            return {success:false,message:error.message||'Invalid credentials.'};
+          }
         const uid=data.user.id;
         const {data:profile,error:pe}=await supabaseClient.from('profiles').select('*').eq('id',uid).maybeSingle();
         if(pe) return {success:false,message:pe.message};
@@ -8386,8 +8395,23 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
             patch.profile_data=Object.assign({},cur?.profile_data||{},{reportingManagers:rm,reportingTo:payload.reportingTo||rm});
           }
         }
+        if(action==='processUserApproval'){
+          const approve=patch.approved===true;
+          const {data:rdata,error:rerr}=await supabaseClient.rpc('process_user_approval',{p_user_id:uid,p_approve:approve});
+          if(!rerr){
+            const prof=Array.isArray(rdata)?rdata[0]:rdata;
+            return {success:true,message:approve?'User approved and activated successfully.':'User rejected successfully.',user:prof||null};
+          }
+          if(!/could not find the function|does not exist|schema cache/i.test(String(rerr.message||''))){
+            return {success:false,message:rerr.message};
+          }
+          // RPC not installed yet: fall back to a direct table update below.
+        }
         const {data,error}=await supabaseClient.from('profiles').update(patch).eq('id',uid).select().maybeSingle();
-        if(error) return {success:false,message:error.message};
+        if(error){
+          if(/permission denied for table profiles/i.test(String(error.message||'')))return {success:false,message:'Database permission missing on profiles. Run the supplied supabase_fix_approval_and_email.sql once in the Supabase SQL Editor.'};
+          return {success:false,message:error.message};
+        }
         if(!data) return {success:false,message:'User update was blocked by database permissions (check Row Level Security policies on profiles).'};
         // A user update must immediately invalidate dashboard/user-directory reads.
         // callBackend() performs the shared cache invalidation and refresh cycle;
@@ -9352,7 +9376,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
             ${owner?`<small class="d-block text-primary fw-semibold"><i class="bi bi-person"></i> ${escapeHtml(owner)}</small>`:''}
             <small class="d-block text-muted">${escapeHtml(t.product||'')} · ${escapeHtml(t.metric||'Amount')} · ${escapeHtml(t.pvType||'')} · ${escapeHtml(t.salesType||'All')} · ${escapeHtml(targetPeriodLabel(t))}</small>
           </div>
-          <div class="fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})} / ${tar.toLocaleString('en-IN',{maximumFractionDigits:2})} (${pct.toFixed(1)}%)</div>
+          <div class="fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})} / ${tar.toLocaleString('en-IN',{maximumFractionDigits:2})} ${escapeHtml(t.metric||'Amount')} (${pct.toFixed(1)}%)</div>
         </div>
         <div class="progress mt-1" style="height:9px"><div class="progress-bar bg-warning" style="width:${pct}%"></div></div>
       </div>`;
