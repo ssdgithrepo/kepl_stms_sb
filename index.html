@@ -1555,7 +1555,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
           <div class="mb-2"><label class="form-label small fw-bold">Full Name *</label><input type="text" id="editUserName" class="form-control form-control-sm" required></div>
           <div class="mb-2"><label class="form-label small fw-bold">Email Address *</label><input type="email" id="editUserEmail" class="form-control form-control-sm" required></div>
           <div class="mb-2"><label class="form-label small fw-bold">Phone Number</label><input type="text" id="editUserPhone" class="form-control form-control-sm"></div>
-          <div class="mb-2"><label class="form-label small fw-bold">Password *</label><div class="password-field-wrap w-100"><input type="password" id="editUserPassword" class="form-control form-control-sm" required autocomplete="new-password"><button type="button" class="password-eye-inside" aria-label="Show password" onclick="togglePasswordVisibility('editUserPassword','editUserPasswordIcon')"><i class="bi bi-eye-slash" id="editUserPasswordIcon"></i></button></div></div>
+          <div class="mb-2"><label class="form-label small fw-bold">New Password <span class="text-muted fw-normal">(leave blank to keep current)</span></label><div class="password-field-wrap w-100"><input type="password" id="editUserPassword" class="form-control form-control-sm" minlength="6" autocomplete="new-password"><button type="button" class="password-eye-inside" aria-label="Show password" onclick="togglePasswordVisibility('editUserPassword','editUserPasswordIcon')"><i class="bi bi-eye-slash" id="editUserPasswordIcon"></i></button></div></div>
           <div class="mb-2">
             <label class="form-label small fw-bold">Role *</label>
             <select class="form-select form-select-sm" id="editUserRole" required>
@@ -2985,7 +2985,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
   document.getElementById('masterCreateUserForm')?.addEventListener('submit',async e=>{
     e.preventDefault();
     if(currentUser?.role!=='Master Admin'){showOperationMessage('Access denied','Only Master Admin can create users.','error');return;}
-    const payload={name:document.getElementById('muName').value.trim(),email:document.getElementById('muEmail').value.trim(),phone:document.getElementById('muPhone').value.trim(),password:document.getElementById('muPassword').value,role:document.getElementById('muRole').value,states:getSelectedValues('muStates'),regions:getSelectedValues('muRegions'),districts:masterCsv('muDistricts'),reportingManagers:getSelectedReportingManagers('muReportingManagers'),reportingTo:getSelectedReportingManagers('muReportingManagers'),createdBy:currentUser.email,createdByUserId:currentUser.id};
+    const payload={createdByMaster:true,name:document.getElementById('muName').value.trim(),email:document.getElementById('muEmail').value.trim(),phone:document.getElementById('muPhone').value.trim(),password:document.getElementById('muPassword').value,role:document.getElementById('muRole').value,states:getSelectedValues('muStates'),regions:getSelectedValues('muRegions'),districts:masterCsv('muDistricts'),reportingManagers:getSelectedReportingManagers('muReportingManagers'),reportingTo:getSelectedReportingManagers('muReportingManagers'),createdBy:currentUser.email,createdByUserId:currentUser.id};
     if(!payload.states.length||!payload.regions.length){showOperationMessage('Territory required','Select State(s) and Region(s) before creating the user.','error');return;}
     showProcessingMessage('Creating user','Creating login credentials and submitting the user for Master Admin approval...');
     try{
@@ -7961,11 +7961,12 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         }
         try{
           const {data,error}=await supabaseClient.auth.signInWithPassword({
-            email:String(payload.email||'').trim(),
+            email:String(payload.email||'').trim().toLowerCase(),
             password:String(payload.password||'')
           });
           if(error){
             if(/email not confirmed/i.test(String(error.message||'')))return {success:false,message:'Account setup is incomplete on the server (email confirmation is still enabled). Ask the Master Admin to run supabase_fix_approval_and_email.sql.'};
+            if(/invalid login credentials/i.test(String(error.message||'')))return {success:false,message:'Invalid email or password. Check for spaces or capital letters in the password. If this account was registered earlier and still fails, the Master Admin should reset its password.'};
             return {success:false,message:error.message||'Invalid credentials.'};
           }
         const uid=data.user.id;
@@ -7997,7 +7998,14 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         // Supabase Auth is used only as the application's credential/session store.
         // Email confirmation is NOT part of the application workflow. A new account
         // is immediately signed out and remains blocked until Master Admin approval.
-        const {data,error}=await signupClient.auth.signUp({email,password,options:{data:{
+        const isMasterCreate=payload.createdByMaster===true && String(currentUser?.role||'')==='Master Admin';
+        let masterUid=null;
+        if(isMasterCreate){
+          const rr=await supabaseClient.rpc('admin_upsert_login',{p_email:email,p_password:password,p_name:payload.name||''});
+          if(rr.error)return {success:false,message:/could not find the function|schema cache|does not exist/i.test(String(rr.error.message||''))?'Run supabase_permanent_login_fix.sql once in the Supabase SQL Editor, then try again.':rr.error.message};
+          masterUid=rr.data;
+        }
+        let {data,error}=isMasterCreate?{data:{user:{id:masterUid,identities:[1]}},error:null}:await signupClient.auth.signUp({email,password,options:{data:{
           name:payload.name||'',
           role:payload.role||'Sales Executive',
           phone:payload.phone||'',
@@ -8010,6 +8018,8 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
           reportingTo:payload.reportingTo||payload.reportingManagers||[]
         }}});
         if(error) return {success:false,message:error.message};
+        // Supabase returns a fake user (no identities) when the email already exists; the password is NOT set in that case.
+        if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0) return {success:false,message:'This email is already registered. Use Forgot Password, or ask the Master Admin to reset your password.'};
         if(data.user?.id){
           const profile={id:data.user.id,email,name:payload.name,phone:payload.phone,role:payload.role||'Sales Executive',designation:payload.designation||payload.role||'Sales Executive',status:'Pending',approved:false,active:false,states:payload.states||[],regions:payload.regions||[],districts:payload.districts||[],cities:[],profile_data:{reportingManagers:payload.reportingManagers||[],reportingTo:payload.reportingTo||[]}};
           // Persist reporting-manager selection through a SECURITY DEFINER RPC so it
@@ -8026,7 +8036,14 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
           }
           // Never leave a newly registered user authenticated. Only Master Admin
           // approval changes the profile gate that permits application login.
+          // Verify the password stored in Auth really matches what was entered.
+          let verifyMsg='';
+          try{
+            const vc=await signupClient.auth.signInWithPassword({email,password});
+            if(vc.error && !/email not confirmed/i.test(String(vc.error.message||'')))verifyMsg=vc.error.message||'verification failed';
+          }catch(ve){verifyMsg=String(ve?.message||ve);}
           try{ await signupClient.auth.signOut(); }catch(_){ }
+          if(verifyMsg)return {success:false,message:'The account record was saved but its login password could not be verified ('+verifyMsg+'). Master Admin: open Edit User and set a new password for '+email+'.'};
         }
         return {success:true,userId:data.user?.id||null,user:{id:data.user?.id||null},message:'Registration submitted successfully. Your account is pending Master Admin approval. No email verification is required.'};
       }
@@ -8406,6 +8423,12 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
             return {success:false,message:rerr.message};
           }
           // RPC not installed yet: fall back to a direct table update below.
+        }
+        if(action==='updateUser' && payload.password){
+          const pw=String(payload.password);
+          if(pw.length<6)return {success:false,message:'Password must be at least 6 characters.'};
+          const {error:pwErr}=await supabaseClient.rpc('admin_set_user_password',{p_user_id:uid,p_password:pw});
+          if(pwErr)return {success:false,message:/could not find the function|schema cache|does not exist/i.test(String(pwErr.message||''))?'Password reset function is not installed. Run supabase_admin_password_reset.sql once in the Supabase SQL Editor.':pwErr.message};
         }
         const {data,error}=await supabaseClient.from('profiles').update(patch).eq('id',uid).select().maybeSingle();
         if(error){
