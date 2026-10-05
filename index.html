@@ -1149,16 +1149,19 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
               <div class="col-12 col-md-4"><div class="card card-dashboard p-2 p-md-3"><h6 class="fw-bold text-center small mb-2">Operations Activity</h6><div class="chart-box"><canvas id="chartOperations"></canvas></div></div></div>
             </div>
             <div class="row g-2 g-md-3 mb-3">
-              <div class="col-4"><div class="card card-dashboard p-2 p-md-3 border-start border-danger border-4 dashboard-count-card" role="button" tabindex="0" title="Open Hot Leads" onclick="openDashboardCountPopup('hotLeads')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('hotLeads')}"><div class="text-muted extra-small">Hot Leads</div><div class="fs-4 fw-bold text-danger" id="statHotLeads">0</div><div class="count-click-hint">Open lead details</div></div></div>
-              <div class="col-4"><div class="card card-dashboard p-2 p-md-3 border-start border-warning border-4 dashboard-count-card" role="button" tabindex="0" title="Open Warm Leads" onclick="openDashboardCountPopup('warmLeads')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('warmLeads')}"><div class="text-muted extra-small">Warm Leads</div><div class="fs-4 fw-bold text-warning" id="statWarmLeads">0</div><div class="count-click-hint">Open lead details</div></div></div>
-              <div class="col-4"><div class="card card-dashboard p-2 p-md-3 border-start border-info border-4 dashboard-count-card" role="button" tabindex="0" title="Open Cold Leads" onclick="openDashboardCountPopup('coldLeads')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('coldLeads')}"><div class="text-muted extra-small">Cold Leads</div><div class="fs-4 fw-bold text-info" id="statColdLeads">0</div><div class="count-click-hint">Open lead details</div></div></div>
-            </div>
-
-            <div class="row g-2 g-md-3 mb-3">
-              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-primary border-4 dashboard-count-card" role="button" tabindex="0" title="Open clients with visits done" onclick="openDashboardCountPopup('visits')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('visits')}"><div class="text-muted extra-small">Visits Done</div><div class="fs-5 fw-bold" id="statVisits">0</div><div class="count-click-hint">Tap for client data</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-warning border-4 dashboard-count-card" role="button" tabindex="0" title="Open new lead client data" onclick="openDashboardCountPopup('newLeads')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('newLeads')}"><div class="text-muted extra-small">New Leads</div><div class="fs-5 fw-bold" id="statNewLeads">0</div><div class="count-click-hint">Tap for client data</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-primary border-4 dashboard-count-card" role="button" tabindex="0" title="Open existing client data" onclick="openDashboardCountPopup('existingClients')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('existingClients')}"><div class="text-muted extra-small">Existing Clients</div><div class="fs-5 fw-bold" id="statExistingClients">0</div><small class="text-muted">Unique existing client identities</small><div class="count-click-hint">Tap for client data</div></div></div>
-              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-info border-4 dashboard-count-card" role="button" tabindex="0" title="Open clients with meetings done" onclick="openDashboardCountPopup('meetings')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('meetings')}"><div class="text-muted extra-small">Meetings Done</div><div class="fs-5 fw-bold" id="statMeetings">0</div><div class="count-click-hint">Tap for client data</div></div></div>
-              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-success border-4 dashboard-count-card" role="button" tabindex="0" title="Open clients linked to closed sales orders" onclick="openDashboardCountPopup('closedOrders')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('closedOrders')}"><div class="text-muted extra-small">Closed Orders</div><div class="fs-5 fw-bold" id="statOrdersDone">0</div><div class="count-click-hint">Tap for client data</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-info border-4 dashboard-count-card" role="button" tabindex="0" title="Open clients with repeat visits or meetings" onclick="openDashboardCountPopup('repeatVisits')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('repeatVisits')}"><div class="text-muted extra-small">Repeat Visits / Meetings</div><div class="fs-5 fw-bold" id="statRepeatVisits">0</div><small class="text-muted">Client activity count</small><div class="count-click-hint">Tap for client data</div></div></div><div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-secondary border-4 dashboard-count-card" role="button" tabindex="0" title="Open clients and leads with repeat cold calls" onclick="openDashboardCountPopup('repeatColdCalls')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('repeatColdCalls')}"><div class="text-muted extra-small">Repeat Cold Calls</div><div class="fs-5 fw-bold" id="statRepeatColdCalls">0</div><small class="text-muted">Repeat call entries</small><div class="count-click-hint">Tap for client data</div></div></div>
-              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-warning border-4 dashboard-count-card" role="button" tabindex="0" title="Open clients linked to pipeline orders" onclick="openDashboardCountPopup('pipeline')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('pipeline')}"><div class="text-muted extra-small">In Pipeline</div><div class="fs-5 fw-bold" id="statOrdersPipeline">0</div><div class="count-click-hint">Tap for client data</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-danger border-4 dashboard-count-card" role="button" tabindex="0" title="Open Hot Leads" onclick="openDashboardCountPopup('hotLeads')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('hotLeads')}"><div class="text-muted extra-small">Hot Leads</div><div class="fs-5 fw-bold" id="statHotLeads">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-warning border-4 dashboard-count-card" role="button" tabindex="0" title="Open Warm Leads" onclick="openDashboardCountPopup('warmLeads')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('warmLeads')}"><div class="text-muted extra-small">Warm Leads</div><div class="fs-5 fw-bold" id="statWarmLeads">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-info border-4 dashboard-count-card" role="button" tabindex="0" title="Open Cold Leads" onclick="openDashboardCountPopup('coldLeads')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('coldLeads')}"><div class="text-muted extra-small">Cold Leads</div><div class="fs-5 fw-bold" id="statColdLeads">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-primary border-4 dashboard-count-card" role="button" tabindex="0" title="Open Visits Done" onclick="openDashboardCountPopup('visits')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('visits')}"><div class="text-muted extra-small">Visits Done</div><div class="fs-5 fw-bold" id="statVisits">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-info border-4 dashboard-count-card" role="button" tabindex="0" title="Open Meetings Done" onclick="openDashboardCountPopup('meetings')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('meetings')}"><div class="text-muted extra-small">Meetings Done</div><div class="fs-5 fw-bold" id="statMeetings">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-warning border-4 dashboard-count-card" role="button" tabindex="0" title="Open New Leads" onclick="openDashboardCountPopup('newLeads')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('newLeads')}"><div class="text-muted extra-small">New Leads</div><div class="fs-5 fw-bold" id="statNewLeads">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-success border-4 dashboard-count-card" role="button" tabindex="0" title="Open Existing Clients" onclick="openDashboardCountPopup('existingClients')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('existingClients')}"><div class="text-muted extra-small">Existing Clients</div><div class="fs-5 fw-bold" id="statExistingClients">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-primary border-4 dashboard-count-card" role="button" tabindex="0" title="Open Repeat Visits" onclick="openDashboardCountPopup('repeatVisits')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('repeatVisits')}"><div class="text-muted extra-small">Repeat Visits</div><div class="fs-5 fw-bold" id="statRepeatVisits">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-info border-4 dashboard-count-card" role="button" tabindex="0" title="Open Repeat Meetings" onclick="openDashboardCountPopup('repeatMeetings')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('repeatMeetings')}"><div class="text-muted extra-small">Repeat Meetings</div><div class="fs-5 fw-bold" id="statRepeatMeetings">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-dark border-4 dashboard-count-card" role="button" tabindex="0" title="Open Cold Calls" onclick="openDashboardCountPopup('coldCalls')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('coldCalls')}"><div class="text-muted extra-small">Cold Calls</div><div class="fs-5 fw-bold" id="statColdCalls">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-secondary border-4 dashboard-count-card" role="button" tabindex="0" title="Open Repeat Cold Calls" onclick="openDashboardCountPopup('repeatColdCalls')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('repeatColdCalls')}"><div class="text-muted extra-small">Repeat Cold Calls</div><div class="fs-5 fw-bold" id="statRepeatColdCalls">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-warning border-4 dashboard-count-card" role="button" tabindex="0" title="Open In Pipeline" onclick="openDashboardCountPopup('pipeline')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('pipeline')}"><div class="text-muted extra-small">In Pipeline</div><div class="fs-5 fw-bold" id="statOrdersPipeline">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
+              <div class="col-6 col-md-3"><div class="card card-dashboard p-2 p-md-3 border-start border-success border-4 dashboard-count-card" role="button" tabindex="0" title="Open Closed Orders" onclick="openDashboardCountPopup('closedOrders')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('closedOrders')}"><div class="text-muted extra-small">Closed Orders</div><div class="fs-5 fw-bold" id="statOrdersDone">0</div><div class="count-click-hint">Tap to view / share</div></div></div>
               <div class="col-12"><div class="card card-dashboard p-2 p-md-3 border-start border-dark border-4"><div class="text-muted extra-small mb-2">Total Sales Done</div><div class="row g-2 text-center"><div class="col-12 col-md-4"><div class="border rounded p-2 h-100"><div class="small text-muted">PV Modules</div><div class="fw-bold fs-5" id="statTotalSalesKw">0 kW</div><div class="fw-bold" id="statTotalSalesPvAmount">₹0</div><small class="text-muted">KW + Amount</small><div class="table-responsive mt-2"><table class="table table-sm table-bordered mb-0 align-middle"><thead><tr><th>Sales Type</th><th>kW</th><th>Amount</th></tr></thead><tbody id="statPvSalesTypeRows"><tr><td colspan="3" class="text-muted">No PV sales</td></tr></tbody></table></div></div></div><div class="col-12 col-md-4"><div class="border rounded p-2 h-100"><div class="small text-muted">Solar Water Heater</div><div class="fw-bold fs-5" id="statTotalSalesLpd">0 LPD</div><div class="fw-bold" id="statTotalSalesWaterAmount">₹0</div><small class="text-muted">LPD + Amount</small></div></div><div class="col-12 col-md-4"><div class="border rounded p-2 h-100"><div class="small text-muted">Solar EPC Projects - Utility/C &amp; I/Residentials</div><div class="fw-bold fs-5" id="statTotalSalesEpc">0</div><div class="fw-bold" id="statTotalSalesEpcAmount">₹0</div><small class="text-muted">Projects + Amount</small></div></div></div><div class="mt-3 border-top pt-2"><div class="small fw-bold text-center mb-2">Repeat Sales Orders — Leads &amp; Order Count</div><div class="row g-2 text-center"><div class="col-12 col-md-3"><div class="border rounded p-2 h-100"><div class="small text-muted">Total Repeat Orders</div><div class="fw-bold fs-5" id="statRepeatSalesOrders">0</div><small class="text-muted">Repeat order placements</small></div></div><div class="col-12 col-md-3"><div class="border rounded p-2 h-100"><div class="small text-muted">Leads with Repeat Sales</div><div class="fw-bold fs-5" id="statRepeatSalesLeads">0</div><small class="text-muted">Unique clients / leads</small></div></div><div class="col-12 col-md-2"><div class="border rounded p-2 h-100"><div class="small text-muted">PV Modules</div><div class="fw-bold fs-6" id="statRepeatSalesPv">0 Orders</div><small class="text-muted" id="statRepeatSalesPvLeads">0 Leads</small></div></div><div class="col-12 col-md-2"><div class="border rounded p-2 h-100"><div class="small text-muted">Solar Water Heater</div><div class="fw-bold fs-6" id="statRepeatSalesWater">0 Orders</div><small class="text-muted" id="statRepeatSalesWaterLeads">0 Leads</small></div></div><div class="col-12 col-md-2"><div class="border rounded p-2 h-100"><div class="small text-muted">Solar EPC Projects - Utility/C &amp; I/Residentials</div><div class="fw-bold fs-6" id="statRepeatSalesEpc">0 Orders</div><small class="text-muted" id="statRepeatSalesEpcLeads">0 Leads</small></div></div></div><div class="text-center mt-2"><small class="text-muted">A repeat sale is counted when the client has a repeat count greater than 1.</small></div></div></div></div>
             </div>
 
@@ -1166,7 +1169,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
               <div class="col-12 col-md-6"><div class="card card-dashboard p-3 border-start border-success border-4 dashboard-count-card" role="button" tabindex="0" title="Open clients linked to DCR sales" onclick="openDashboardCountPopup('dcrSales')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('dcrSales')}"><div class="small text-muted">Solar PV Modules — DCR Sales</div><div class="row text-center mt-1"><div class="col-3"><div class="fw-bold fs-5" id="statDcrOrders">0</div><small class="text-muted">Sales Orders</small></div><div class="col-3"><div class="fw-bold fs-5" id="statDcrKw">0 kW</div><small class="text-muted">kW</small></div><div class="col-3"><div class="fw-bold fs-5" id="statDcrQty">0</div><small class="text-muted">Panels</small></div><div class="col-3"><div class="fw-bold fs-5" id="statDcrAmount">₹0</div><small class="text-muted">Amount</small></div></div></div></div>
               <div class="col-12 col-md-6"><div class="card card-dashboard p-3 border-start border-primary border-4 dashboard-count-card" role="button" tabindex="0" title="Open clients linked to N-DCR sales" onclick="openDashboardCountPopup('ndcrSales')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDashboardCountPopup('ndcrSales')}"><div class="small text-muted">Solar PV Modules — N-DCR Sales</div><div class="row text-center mt-1"><div class="col-3"><div class="fw-bold fs-5" id="statNdcrOrders">0</div><small class="text-muted">Sales Orders</small></div><div class="col-3"><div class="fw-bold fs-5" id="statNdcrKw">0 kW</div><small class="text-muted">kW</small></div><div class="col-3"><div class="fw-bold fs-5" id="statNdcrQty">0</div><small class="text-muted">Panels</small></div><div class="col-3"><div class="fw-bold fs-5" id="statNdcrAmount">₹0</div><small class="text-muted">Amount</small></div></div></div></div>
             </div>
-            <div class="card card-dashboard p-3 mb-3"><div class="d-flex justify-content-between align-items-center mb-2"><div><div class="fw-bold">Target Taken vs Target Achievement</div><small class="text-muted">Achievement is calculated automatically from matching Sales Orders.</small></div><button class="btn btn-sm btn-outline-warning" onclick="switchTab('targets',event)">Manage My Target</button></div><div id="dashboardTargetSummary"></div></div>
+            <div class="card card-dashboard p-3 mb-3"><div class="d-flex justify-content-between align-items-center mb-2"><div><div class="fw-bold">Target Taken vs Target Achievement</div><small class="text-muted">Achievement is calculated automatically from matching Sales Orders.</small></div><button class="btn btn-sm btn-outline-warning" onclick="switchTab('targets',event)">Manage My Target</button></div><div id="dashboardTargetSummary"></div><div id="kdTargetBar" class="mt-3"></div></div>
 
 <div class="dashboard-data-tabs card card-dashboard p-2 p-md-3">
               <div class="nav nav-pills nav-fill gap-1 mb-3" role="tablist">
@@ -1796,7 +1799,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
         <div class="col-6 col-md-2"><label class="form-label small">PIN Code</label><input type="text" class="form-control form-control-sm" id="ccPinCode" inputmode="numeric" maxlength="6" list="ccPinCodeList" placeholder="Type or select 6 digit PIN"><datalist id="ccPinCodeList"></datalist></div>
       </div>
       <div class="form-section-title">Cold-call activity</div><div class="row g-2">
-        <div class="col-6 col-md-3"><label class="form-label small fw-bold">Call Type *</label><select class="form-select form-select-sm" id="ccVisitType"><option>Follow Up</option><option>Regular</option><option>Specific If Any</option><option>Other</option></select></div><div class="col-6 col-md-3"><label class="form-label small">Repeat Count</label><input type="number" min="1" class="form-control form-control-sm" id="ccVisitCount" value="1"></div>
+        <div class="col-6 col-md-3"><label class="form-label small fw-bold">Call Type *</label><select class="form-select form-select-sm" id="ccVisitType"><option>Follow Up</option><option>New Lead</option><option>Regular</option><option>Specific If Any</option><option>Other</option></select></div><div class="col-6 col-md-3"><label class="form-label small">Repeat Count</label><input type="number" min="1" class="form-control form-control-sm" id="ccVisitCount" value="1"></div>
         <div class="col-6 col-md-3"><label class="form-label small">Call Status</label><select class="form-select form-select-sm" id="ccCallStatus"><option value="">-- Not specified --</option><option>Call Done</option><option>Call Not Done</option><option>Call Failed</option></select></div><div class="col-6 col-md-3"><label class="form-label small">Call Outcome</label><select class="form-select form-select-sm" id="ccOutcome"><option>Connected</option><option>Interested</option><option>Follow Up Required</option><option>Not Interested</option><option>Wrong Number</option><option>Not Reachable</option><option>Not Connected</option><option>Not Answered</option><option>Busy</option><option>Call Back Later</option></select></div><div class="col-6 col-md-3"><label class="form-label small fw-bold">Lead Temperature</label><select class="form-select form-select-sm" id="ccLeadTemp"><option>Cold</option><option>Warm</option><option>Hot</option><option>Other</option></select></div><div class="col-6 col-md-3"><label class="form-label small">Entry Date *</label><input type="date" class="form-control form-control-sm" id="ccEntryDate" required></div>
         <div class="col-12 col-md-6"><label class="form-label small">Requirements</label><textarea class="form-control form-control-sm" id="ccRequirements" rows="2"></textarea></div><div class="col-12 col-md-6"><label class="form-label small">Remarks</label><textarea class="form-control form-control-sm" id="ccRemarks" rows="2"></textarea></div><div class="col-12"><label class="form-label small">Reason / Notes</label><textarea class="form-control form-control-sm" id="ccReason" rows="2"></textarea></div><div class="col-12"><label class="form-label small">Address (Optional)</label><textarea class="form-control form-control-sm" id="ccAddress" rows="2" placeholder="Selected State, Region, District, Tehsil/Taluka, City/Village and PIN will appear here automatically. You can edit or type manually."></textarea></div>
       </div><div class="mt-3 d-flex justify-content-end"><button type="submit" class="btn btn-primary px-4"><i class="bi bi-check2-circle me-1"></i> Save Cold Call</button></div>
@@ -4862,7 +4865,7 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
       // This applies to Reporting Manager/Manager roles even when their role
       // name does not contain the word "Head".
       const visibleTeam=team.filter(u=>st==='ALL'||dashboardFieldAllows(u,'states',st));
-      if(visibleTeam.length) out.push({value:'TEAM:ALL',text:'All Team User Data ('+visibleTeam.length+' Users)'});
+      if(visibleTeam.length) out.push({value:'TEAM:ALL',text:String(currentUser?.name||currentUser?.email||'My')+' — All Team Data ('+visibleTeam.length+' Users)'});
       // The current user is deliberately placed first after the team-all
       // option, so "My Data" is immediately available by name.
       const selfId=String(currentUser?.id||currentUser?.userId||currentUser?.email||currentUser?.name||'');
@@ -9274,7 +9277,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     // When Master Admin/Admin explicitly selects a user, that selection means
     // the selected user PLUS the user's complete recursive reporting team.
     // Do not use the privileged user's unrestricted team as the selected scope.
-    const selectedTeam=selected
+    const selectedTeam=(selected&&!dashSame(selected,currentUser))
       ? dashboardDownstreamTeam(selected,users)
       : [];
     const selectedScope=selected
@@ -9399,7 +9402,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
 
     const orders=Array.isArray(rawData.salesOrders)?rawData.salesOrders:[];
     const shown=targets.slice(0,20);
-    const scopeLabel=c.uf==='TEAM:ALL'?'All Team User Data':(c.uf==='ALL'?(c.hasTeam?'My Data + My Team':'My Data'):(c.selected?.name||c.selected?.email||'Selected User'));
+    const scopeLabel=c.uf==='TEAM:ALL'?(String(currentUser?.name||currentUser?.email||'My')+' — All Team Data'):(c.uf==='ALL'?(c.hasTeam?'My Data + My Team':'My Data'):(c.selected?.name||c.selected?.email||'Selected User'));
     box.innerHTML=shown.map(t=>{
       const scopedOrders=dashboardTargetOrders(t,orders);
       const ach=(t.achieved!==undefined&&t.achieved!==null)
@@ -9703,6 +9706,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   }
   function selectedScope(selected){
     const dir=activeDirectory();
+    if(selected&&same(selected,currentUser))return [selected]; /* My Data = own records only */
     return selected?[selected,...reportsOf(selected,dir)]:[];
   }
   function scopePass(item,c){
@@ -9737,6 +9741,311 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     return selectedScope(c.selected).some(u=>dashboardTargetOwnerMatches(target,u));
   };
 })();
+</script>
+<script id="kosol-dashboard-cards-share-v1">
+(function(){
+  'use strict';
+  const low=v=>String(v??'').trim().toLowerCase();
+  const num=v=>Number(v)||0;
+  const CLOSED=['accepted','sales done','done','completed'];
+  const isNew=r=>low(r.visitType)==='new lead';
+  const isClosed=o=>CLOSED.includes(low(o.piStatus??o.status));
+  const opKey=(org,ph)=>normalizeIdentityText(org||'')+'|'+normalizeIdentityPhone(ph||'');
+  const cKey=c=>{const k=opKey(c.orgName||c.organization||c.organizationName,c.mobile||c.phone);return k!=='|'?'k:'+k:'id:'+low(c.id);};
+  const kKey=c=>{const k=opKey(c.orgName||c.organization||c.organizationName,c.phone||c.mobile||c.contactNumber);return k!=='|'?'k:'+k:'id:'+low(c.clientId||c.id);};
+  const TITLES={hotLeads:'Hot Leads',warmLeads:'Warm Leads',coldLeads:'Cold Leads',visits:'Visits Done',meetings:'Meetings Done',newLeads:'New Leads',existingClients:'Existing Clients',repeatVisits:'Repeat Visits',repeatMeetings:'Repeat Meetings',coldCalls:'Cold Calls',repeatColdCalls:'Repeat Cold Calls',pipeline:'In Pipeline',closedOrders:'Closed Orders'};
+  const IDS={hotLeads:'statHotLeads',warmLeads:'statWarmLeads',coldLeads:'statColdLeads',visits:'statVisits',meetings:'statMeetings',newLeads:'statNewLeads',existingClients:'statExistingClients',repeatVisits:'statRepeatVisits',repeatMeetings:'statRepeatMeetings',coldCalls:'statColdCalls',repeatColdCalls:'statRepeatColdCalls',pipeline:'statOrdersPipeline',closedOrders:'statOrdersDone'};
+  const PFX={clients:'CL:',coldcalls:'CC:',salesorders:'SO:'};
+  const idOf=(src,r)=>src==='Sales Order'?String(r.id||r.orderId||r.ID||''):String(r.id);
+  const keyOf=x=>(x.src==='Client'?'CL:':x.src==='Cold Call'?'CC:':'SO:')+idOf(x.src,x.r);
+
+  /* Counts must not shrink just because rows are ticked elsewhere: compute without selection. */
+  const origStats=window.dashboardStats;
+  function statsNoSel(){
+    const keep=new Set(selectedDashboardIds);
+    selectedDashboardIds.clear();
+    try{return window.dashboardStats();}finally{keep.forEach(k=>selectedDashboardIds.add(k));}
+  }
+  window.dashboardStats=function(){
+    const s=origStats.apply(this,arguments);
+    if(s&&!s.__kd){s.__kd=1;try{s.newLeads=records('newLeads',s).length;s.existingClients=records('existingClients',s).length;s.repeatVisits=records('repeatVisits',s).length;s.repeatMeetings=records('repeatMeetings',s).length;s.repeatColdCalls=records('repeatColdCalls',s).length;}catch(e){console.warn(e);}}
+    return s;
+  };
+
+  /* ================= Card records ================= */
+  function records(kind,s){
+    const C=s.clients||[],K=s.calls||[],O=s.salesOrders||[];
+    const cl=r=>({src:'Client',r}),ca=r=>({src:'Cold Call',r}),od=r=>({src:'Sales Order',r});
+    const clientKeys=new Set(C.map(cKey)),clientIds=new Set(C.map(c=>low(c.id)));
+    const matched=k=>!!String(k.clientId||k.clientID||'').trim()||clientKeys.has(kKey(k))||clientIds.has(low(k.clientId));
+    switch(kind){
+      case 'hotLeads':case 'warmLeads':case 'coldLeads':{const t=kind.replace('Leads','').toLowerCase();return C.filter(c=>low(c.leadTemp||c.leadTemperature)===t).map(cl);}
+      case 'visits':return C.filter(c=>low(c.visitStatus)==='done').map(cl);
+      case 'meetings':return C.filter(c=>low(c.meetingStatus)==='done').map(cl);
+      case 'newLeads':{const seen=new Set(),out=[];C.forEach(c=>{if(isNew(c)){seen.add(cKey(c));out.push(cl(c));}});K.forEach(k=>{const key=kKey(k);if((isNew(k)||!matched(k))&&!seen.has(key)){seen.add(key);out.push(ca(k));}});return out;}
+      case 'existingClients':{const m=new Map();C.forEach(c=>{if(!isNew(c))m.set(cKey(c),c);});K.forEach(k=>{const hit=C.find(c=>cKey(c)===kKey(k)||(String(k.clientId||'').trim()&&low(c.id)===low(k.clientId)));if(hit)m.set(cKey(hit),hit);});return [...m.values()].map(cl);}
+      case 'repeatVisits':return C.filter(c=>low(c.visitStatus)==='done'&&num(c.visitCount)>1).map(cl);
+      case 'repeatMeetings':return C.filter(c=>low(c.meetingStatus)==='done'&&num(c.visitCount)>1).map(cl);
+      case 'coldCalls':return K.map(ca);
+      case 'repeatColdCalls':{const g=new Map();K.slice().sort((a,b)=>String(a.entryDate||a.timestamp||'').localeCompare(String(b.entryDate||b.timestamp||''))).forEach(k=>{const key=kKey(k);g.set(key,(g.get(key)||[]).concat([k]));});const out=[];g.forEach(a=>a.forEach((k,i)=>{if(i>0||num(k.visitCount)>1)out.push(ca(k));}));return out;}
+      case 'pipeline':return O.filter(o=>!isClosed(o)).map(od);
+      case 'closedOrders':return O.filter(isClosed).map(od);
+    }
+    return [];
+  }
+  function view(x){
+    const r=x.r,j=a=>a.filter(Boolean).join(' · ');
+    if(x.src==='Sales Order')return {src:x.src,date:dashboardDateKey(r.date||r.entryDate),org:r.orgName||r.organization||'',contact:r.clientName||'',mobile:r.contactNumber||r.mobile||r.phone||'',loc:j([r.state,r.district,r.city]),temp:'',detail:j([r.orderFor,r.piStatus,salesOrderMoney(r.amount)]),rep:r.repeatCount||'',remarks:r.remarks||''};
+    if(x.src==='Cold Call')return {src:x.src,date:dashboardDateKey(r.entryDate||r.timestamp),org:r.orgName||r.organization||r.organizationName||'',contact:r.contactName||r.clientName||'',mobile:r.phone||r.mobile||'',loc:j([r.state,r.district,r.city||r.cityVillage]),temp:r.leadTemp||'',detail:j([r.visitType,r.outcome,r.callStatus]),rep:r.visitCount||'',remarks:r.remarks||''};
+    return {src:x.src,date:dashboardDateKey(r.activityDate||r.entryDate),org:r.orgName||r.organization||'',contact:r.contactName||r.clientName||'',mobile:r.mobile||'',loc:j([r.state,r.district,r.city]),temp:r.leadTemp||'',detail:j([r.visitType,r.visitStatus&&'Visit: '+r.visitStatus,r.meetingStatus&&'Meeting: '+r.meetingStatus,r.salesOrderStatus&&'Sales: '+r.salesOrderStatus]),rep:r.visitCount||'',remarks:r.remarks||''};
+  }
+  function updateCards(){const s=statsNoSel();Object.keys(IDS).forEach(k=>{const e=document.getElementById(IDS[k]);if(e)e.textContent=String(records(k,s).length);});}
+  function leadColors(){
+    let cols=[];
+    try{const ch=dashboardCharts&&dashboardCharts.chartLeadTemperature;const bg=ch&&ch.data&&ch.data.datasets&&ch.data.datasets[0]&&ch.data.datasets[0].backgroundColor;
+      if(Array.isArray(bg))cols=bg.slice();else if(ch&&ch.getDatasetMeta)cols=ch.getDatasetMeta(0).data.map(a=>a&&a.options&&a.options.backgroundColor);}catch(e){}
+    const fb=['#36A2EB','#FF6384','#FF9F40'];
+    [['statHotLeads',0],['statWarmLeads',1],['statColdLeads',2]].forEach(([id,i])=>{const e=document.getElementById(id);if(e)e.style.setProperty('color',cols[i]||fb[i],'important');});
+  }
+
+  /* ================= Module share = the existing "Export / Share Dashboard" window ================= */
+  let saved=null,TM=null; /* TM = target-share mode {items} */
+  function restoreSelection(){
+    if(!saved)return;
+    selectedDashboardIds.clear();saved.forEach(k=>selectedDashboardIds.add(k));saved=null;TM=null;
+    try{updateSelectionCount();renderDashboardTable();renderDashboardColdCalls();renderDashboardSalesOrderTable(dashboardStats());}catch(e){}
+  }
+  function openExportWindow(moduleName,keys,tm){
+    if(!keys.length&&!(tm&&tm.count)){showOperationMessage('Nothing to share','No records in '+moduleName+'. Select records first, or use "Share all".','error');return;}
+    if(!saved)saved=new Set(selectedDashboardIds);
+    selectedDashboardIds.clear();
+    keys.forEach(k=>selectedDashboardIds.add(k));
+    if(tm&&!keys.length)selectedDashboardIds.add('TG:targets');
+    TM=tm||null;
+    openShareDashboard('selected');
+    const lbl=document.getElementById('shareUserName');if(lbl)lbl.replaceChildren(document.createTextNode('Selected '+moduleName+' records only'));
+    const m=document.getElementById('shareDashboardModal');if(!m)return;
+    /* Stay above any record popup that is open behind it. */
+    m.style.zIndex='1075';
+    setTimeout(()=>{const bd=document.querySelectorAll('.modal-backdrop');if(bd.length)bd[bd.length-1].style.zIndex='1070';},60);
+    const onHide=()=>{m.removeEventListener('hidden.bs.modal',onHide);m.style.zIndex='';setTimeout(restoreSelection,350);};
+    m.addEventListener('hidden.bs.modal',onHide);
+  }
+  /* Heading / sub-heading / tabulated contents for a module share. */
+  function buildTM(name,sections,count,isAll,total){
+    let scope='';try{scope=String(document.getElementById('dashboardScopeHeader')?.innerText||'').replace(/^Scope:\s*/i,'').trim();}catch(e){}
+    let user='',period='';try{user=dashboardSubject();}catch(e){}try{period=dashboardPeriod();}catch(e){}
+    const subtitle=[['Working User',user],['Dashboard Period',period],['Scope',scope],['Records Shared',count+(isAll?' (all '+total+' in this module)':' (selected, of '+total+')')],['Generated On',appToday()]].filter(x=>x[1]!==''&&x[1]!==undefined);
+    return {name,sections,subtitle,count};
+  }
+  function sectionsFor(items){
+    const cl=items.filter(x=>x.src==='Client').map(x=>x.r),ca=items.filter(x=>x.src==='Cold Call').map(x=>x.r),so=items.filter(x=>x.src==='Sales Order').map(x=>x.r),out=[];
+    if(cl.length)out.push({heading:'CLIENT LEAD / VISIT DATA',rec:'Client Lead - VISIT / MEETING',cols:[...shareClientColumns(),'Lead Temperature','Visit Status','Meeting Status'],rows:cl.map(c=>{const r=shareClientRow(c);r[0]=dashboardDateKey(c.activityDate||c.entryDate);return [...r,c.leadTemp||c.leadTemperature||'',c.visitStatus||'',c.meetingStatus||''];})});
+    if(ca.length)out.push({heading:'COLD CALL DATA',rec:'COLD CALL',cols:[...shareColdColumns(),'Lead Temperature','Call Type','Call Outcome','Call Status'],rows:ca.map(c=>[...shareColdRow(c),c.leadTemp||'',c.visitType||'',c.outcome||'',c.callStatus||''])});
+    if(so.length)out.push({heading:'SALES ORDER DATA',rec:'SALES ORDER',cols:shareSalesOrderColumns(),rows:so.map(shareSalesOrderRow)});
+    return out;
+  }
+
+  /* Toolbar: "Share Data" button opens the "Selected <module> records" panel (same pattern as the dashboard top bar). */
+  const bars=[];
+  function bar(host,cfg){
+    const wasOpen=host.querySelector('[data-k="panel"]:not(.d-none)')!==null;
+    host.innerHTML=`<div class="mb-2"><button type="button" class="btn btn-sm btn-dark" data-k="toggle"><i class="bi bi-share me-1"></i>Share Data</button></div>
+      <div data-k="panel" class="${wasOpen?'':'d-none'}"><div class="selection-actions card card-dashboard p-2 mb-2 selection-toolbar d-flex flex-row flex-wrap align-items-center gap-2">
+      <span class="small fw-bold">Selected ${escapeHtml(cfg.name)} records: <span data-k="cnt">0</span> <span class="text-muted fw-normal">of <span data-k="tot">0</span></span></span>
+      <button type="button" class="btn btn-sm dashboard-action-select" data-k="all">Select all current</button>
+      <button type="button" class="btn btn-sm dashboard-action-clear" data-k="clr">Clear</button>
+      <button type="button" class="btn btn-sm dashboard-action-share" data-k="ss">Share selected via device apps</button>
+      <button type="button" class="btn btn-sm btn-outline-dark" data-k="sa">Share all via device apps</button></div></div>`;
+    const q=k=>host.querySelector('[data-k="'+k+'"]');
+    const b={host,update(){try{q('cnt').textContent=String(cfg.sel().length);q('tot').textContent=String(cfg.all().length);}catch(e){}}};
+    q('toggle').onclick=()=>{q('panel').classList.toggle('d-none');b.update();};
+    q('all').onclick=()=>{cfg.selectAll();b.update();};
+    q('clr').onclick=()=>{cfg.clear();b.update();};
+    q('ss').onclick=()=>{const s=cfg.sel();if(!s.length){showOperationMessage('No records selected','Select one or more '+cfg.name+' records first, or use "Share all via device apps".','error');return;}cfg.share(s,false);};
+    q('sa').onclick=()=>cfg.share(cfg.all(),true);
+    for(let i=bars.length-1;i>=0;i--)if(!document.body.contains(bars[i].host)||bars[i].host===host)bars.splice(i,1);
+    bars.push(b);b.update();return b;
+  }
+
+  /* ================= Card popup ================= */
+  let cur=null;
+  const origPopup=window.openDashboardCountPopup;
+  window.openDashboardCountPopup=function(kind){
+    if(!TITLES[kind])return origPopup(kind);
+    try{
+      const items=records(kind,statsNoSel()),rows=items.map(view);
+      cur={title:TITLES[kind],items,rows,sel:new Set()};
+      const th='<th><input type="checkbox" class="form-check-input" id="kdAll" onchange="kdAllSel(this.checked)" title="Select all"></th><th>Source</th><th>Date</th><th>Organization</th><th>Contact</th><th>Mobile</th><th>Location</th><th>Lead Temp</th><th>Details</th><th>Repeat</th><th>Remarks</th>';
+      const tr=rows.map((v,i)=>`<tr id="kdRow${i}"><td><input type="checkbox" class="form-check-input kd-chk" onchange="kdTog(${i},this.checked)"></td><td>${escapeHtml(v.src)}</td><td>${escapeHtml(v.date)}</td><td class="fw-semibold">${escapeHtml(v.org)}</td><td>${escapeHtml(v.contact)}</td><td>${escapeHtml(v.mobile)}</td><td>${escapeHtml(v.loc)}</td><td>${escapeHtml(v.temp)}</td><td>${escapeHtml(v.detail)}</td><td>${escapeHtml(v.rep)}</td><td>${escapeHtml(v.remarks)}</td></tr>`).join('');
+      modal(`<div class="dashboard-popup-title"><h5 class="mb-0">${escapeHtml(cur.title)} <span class="badge bg-dark">${rows.length}</span></h5><small class="text-muted">Same count as the dashboard card. Current user / date filters apply.</small></div>
+      <div id="kdPopBar"></div>
+      <div class="table-responsive"><table class="table table-sm table-bordered align-middle small"><thead><tr>${th}</tr></thead><tbody>${tr||'<tr><td colspan="11" class="text-center text-muted py-4">No records for this count.</td></tr>'}</tbody></table></div>`);
+      const host=document.getElementById('kdPopBar');
+      if(host)cur.bar=bar(host,{name:cur.title,all:()=>cur.items,sel:()=>[...cur.sel].sort((a,b)=>a-b).map(i=>cur.items[i]),selectAll:()=>window.kdAllSel(true),clear:()=>window.kdAllSel(false),share:(list,isAll)=>openExportWindow(cur.title,list.map(keyOf),buildTM(cur.title,sectionsFor(list),list.length,isAll,cur.items.length))});
+    }catch(e){showOperationMessage('Dashboard count failed',e.message||String(e),'error');}
+  };
+  function popSync(){if(!cur)return;const n=cur.sel.size,a=document.getElementById('kdAll');if(a){a.checked=n>0&&n===cur.rows.length;a.indeterminate=n>0&&n<cur.rows.length;}if(cur.bar)cur.bar.update();}
+  window.kdTog=function(i,on){if(!cur)return;on?cur.sel.add(i):cur.sel.delete(i);const r=document.getElementById('kdRow'+i);if(r)r.classList.toggle('table-warning',on);popSync();};
+  window.kdAllSel=function(on){if(!cur)return;cur.sel=new Set(on?cur.rows.map((_,i)=>i):[]);document.querySelectorAll('.kd-chk').forEach((b,i)=>{b.checked=on;const r=document.getElementById('kdRow'+i);if(r)r.classList.toggle('table-warning',on);});popSync();};
+
+  /* ================= Client / Cold Call / Sales Order tabs ================= */
+  function tabAll(tab){
+    if(tab==='clients')return (filteredClients||[]).map(r=>({src:'Client',r}));
+    if(tab==='coldcalls')return (rawData.coldCalls||[]).filter(c=>dashboardDatePasses(c.activityDate||c.entryDate||c.timestamp)&&dashboardUserPasses(c)).map(r=>({src:'Cold Call',r}));
+    return (rawData.salesOrders||[]).filter(o=>dashboardDatePasses(o.date||o.entryDate||o.timestamp)&&dashboardUserPasses(o)).map(r=>({src:'Sales Order',r}));
+  }
+  const tabSel=tab=>tabAll(tab).filter(x=>selectedDashboardIds.has(keyOf(x)));
+  function updateTabCounts(){
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=String(v);};
+    const c=tabAll('clients').length,k=tabAll('coldcalls').length,s=tabAll('salesorders').length;
+    set('dashboardClientTabCount',c);set('dashboardClientPanelCount',c);set('dashboardColdTabCount',k);set('dashboardColdPanelCount',k);set('dashboardSalesTabCount',s);set('dashboardSalesPanelCount',s);
+    for(let i=bars.length-1;i>=0;i--){if(!document.body.contains(bars[i].host))bars.splice(i,1);else bars[i].update();}
+  }
+  function mountTabBars(){
+    [['clients','dashboardClientPanel','Client Data'],['coldcalls','dashboardColdPanel','Cold Call Data'],['salesorders','dashboardSalesOrderPanel','Sales Order Data']].forEach(([tab,pid,name])=>{
+      const p=document.getElementById(pid);if(!p||document.getElementById('kdTabBar_'+tab))return;
+      const host=document.createElement('div');host.id='kdTabBar_'+tab;p.insertBefore(host,p.querySelector('.table-responsive'));
+      bar(host,{name,all:()=>tabAll(tab),sel:()=>tabSel(tab),selectAll:()=>toggleDashboardSelectAllTab(tab,true),clear:()=>toggleDashboardSelectAllTab(tab,false),share:list=>openExportWindow(name,list.map(keyOf),null)});
+    });
+  }
+
+  /* ================= Targets (uses the same Export / Share window) ================= */
+  const tSel=new Set();
+  function targetsMatching(){const all=Array.isArray(rawData.targets)?rawData.targets:[];const c=getDashboardFilterContext();return all.filter(t=>window.dashboardTargetMatchesScope(t,c));}
+  const tKey=t=>String(t.id||t.targetId||t.ID||'')||[t.targetName,t.startDate,t.userEmail||t.userName||t.email].join('|');
+  function tOrders(t,orders){
+    if(t.achieved!==undefined&&t.achieved!==null)return [];
+    const st=appDateNumber(t.startDate),en=appDateNumber(t.endDate||t.startDate);
+    const base=orders.filter(o=>{const d=appDateNumber(o.date||o.entryDate);return Number.isFinite(d)&&d>=st&&d<=en;});
+    const ok=[t.userId,t.userID,t.userEmail,t.email,t.employeeId,t.employeeID,t.username,t.userName].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm);
+    if(!ok.length)return base;
+    const owned=base.filter(o=>[o.userId,o.userID,o.userEmail,o.email,o.employeeId,o.employeeID,o.username,o.userName,o.createdBy,o.createdByEmail,o.ownerId,o.ownerEmail].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm).some(v=>ok.includes(v)));
+    return owned.length?owned:base;
+  }
+  const T_COLS=['Target Name','User','Product','Metric','PV Type','Sales Type','Period','Target','Achieved','Achievement %'];
+  function targetItem(t){
+    const orders=Array.isArray(rawData.salesOrders)?rawData.salesOrders:[];
+    const ach=(t.achieved!==undefined&&t.achieved!==null)?salesOrderNum(t.achieved):targetAchievementLocal(t,tOrders(t,orders));
+    const tar=salesOrderNum(t.targetValue||t.target||0),pct=tar?Math.min(100,ach/tar*100):0;
+    const f=n=>Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});
+    const owner=t.userName||t.username||t.userEmail||t.email||t.ownerName||'';
+    const cells=[t.targetName||'Target',owner,t.product||'',t.metric||'Amount',t.pvType||'',t.salesType||'All',targetPeriodLabel(t),f(tar),f(ach),pct.toFixed(1)+'%'];
+    return {key:tKey(t),cells,line:[cells[0],owner&&'User: '+owner,[t.product,cells[3],t.pvType,cells[5],cells[6]].filter(Boolean).join(' · '),`Achieved ${f(ach)} / Target ${f(tar)} ${cells[3]} (${cells[9]})`].filter(Boolean).join(' | ')};
+  }
+  let tBar=null;
+  function decorateTargets(){
+    const box=document.getElementById('dashboardTargetSummary');if(!box)return;
+    const list=targetsMatching();
+    [...box.children].filter(el=>el.classList&&el.classList.contains('mb-3')).forEach((b,i)=>{
+      const t=list[i];if(!t||b.querySelector('.kd-tgt'))return;const key=tKey(t);
+      b.insertAdjacentHTML('afterbegin',`<label class="d-flex align-items-center gap-2 mb-1 small text-muted"><input type="checkbox" class="form-check-input kd-tgt" data-key="${escapeAttr(key)}" ${tSel.has(key)?'checked':''}> Select this target</label>`);
+    });
+    if(!box.dataset.kdBound){box.dataset.kdBound='1';box.addEventListener('change',e=>{const c=e.target.closest&&e.target.closest('.kd-tgt');if(!c)return;const k=c.getAttribute('data-key');c.checked?tSel.add(k):tSel.delete(k);if(tBar)tBar.update();});}
+    const host=document.getElementById('kdTargetBar');
+    if(host&&(!tBar||tBar.host!==host||!host.firstChild)){
+      tBar=bar(host,{name:'Targets',all:()=>targetsMatching().map(targetItem),sel:()=>targetsMatching().filter(t=>tSel.has(tKey(t))).map(targetItem),
+        selectAll:()=>{targetsMatching().forEach(t=>tSel.add(tKey(t)));document.querySelectorAll('#dashboardTargetSummary .kd-tgt').forEach(c=>c.checked=true);},
+        clear:()=>{tSel.clear();document.querySelectorAll('#dashboardTargetSummary .kd-tgt').forEach(c=>c.checked=false);},
+        share:(items,isAll)=>openExportWindow('Targets',[],buildTM('Targets',[{heading:'TARGET DATA',rec:'TARGET',cols:T_COLS,rows:items.map(i=>i.cells)}],items.length,isAll,targetsMatching().length))});
+    }else if(tBar)tBar.update();
+  }
+
+  /* ---- Module-share output builders: heading, sub-heading, tabulated contents ---- */
+  const tStem=()=>'Kosol_Energie_'+String(TM.name).replace(/[^a-z0-9]+/gi,'_')+'_'+appToday();
+  const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const clean=v=>String(v??'').replace(/\s+/g,' ').trim();
+  function tDelimited(sep){
+    const cell=v=>{v=String(v==null?'':v);return (v.includes(sep)||/["\r\n]/.test(v))?'"'+v.replace(/"/g,'""')+'"':v;};
+    const out=[cell(dashboardTitle()),cell(TM.name),...TM.subtitle.map(x=>[x[0],x[1]].map(cell).join(sep)),''];
+    TM.sections.forEach(s=>{out.push(cell(s.heading+' ('+s.rows.length+')'));out.push(s.cols.map(cell).join(sep));s.rows.forEach(r=>out.push(r.map(cell).join(sep)));out.push('');});
+    return out.join('\r\n');
+  }
+  function tText(){
+    const box=t=>{t=clean(t);const w=t.length+4,line='-'.repeat(w+2);return line+'\n| '+'  *'+t+'*  '+' |\n'+line;};
+    const field=(k,v)=>'*'+clean(k)+':* '+clean(v||'—');
+    const blocks=[box(TM.name+': By - '+(currentUser?.name||dashboardSubject()||'User')),TM.subtitle.map(x=>field(x[0],x[1])).join('\n')];
+    TM.sections.forEach(s=>s.rows.forEach((r,i)=>blocks.push(box(s.rec+' #'+(i+1))+'\n\n'+s.cols.map((c,j)=>field(c,r[j])).join('\n\n'))));
+    return blocks.join('\n\n');
+  }
+  function tHtml(){
+    let h='<!doctype html><html><head><meta charset="utf-8"></head><body style="font-family:Arial,sans-serif">';
+    h+='<div style="text-align:center;border-bottom:2px solid #111827;padding-bottom:8px"><h2 style="margin:0">KOSOL ENERGIE PVT LTD</h2><h3 style="margin:4px 0">'+esc(TM.name.toUpperCase())+'</h3></div>';
+    h+='<table style="margin:10px 0;font-size:13px">'+TM.subtitle.map(x=>'<tr><td><b>'+esc(x[0])+':</b></td><td>'+esc(x[1])+'</td></tr>').join('')+'</table>';
+    TM.sections.forEach(s=>{
+      h+='<h3 style="border-bottom:2px solid #111827;padding-bottom:4px;margin-top:18px">'+esc(s.heading)+' <span style="font-weight:normal;font-size:12px">('+s.rows.length+' record'+(s.rows.length===1?'':'s')+')</span></h3>';
+      h+='<table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;font-size:12px;width:100%"><tr>'+s.cols.map(c=>'<th style="background:#e9ecef;text-align:left">'+esc(c)+'</th>').join('')+'</tr>'+s.rows.map(r=>'<tr>'+r.map(c=>'<td style="vertical-align:top">'+esc(c)+'</td>').join('')+'</tr>').join('')+'</table>';
+    });
+    return h+'</body></html>';
+  }
+  async function tFile(fmt){
+    const XL='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    if(fmt==='csv')return new File(['\ufeff'+tDelimited(',')],tStem()+'.csv',{type:'text/csv'});
+    if(fmt==='word')return new File([tHtml()],tStem()+'.doc',{type:'application/msword'});
+    if(fmt==='excel'){
+      await ensureExportLibraries('excel');
+      if(window.ExcelJS){
+        const wb=new ExcelJS.Workbook();wb.creator='Kosol Energie Pvt Ltd';
+        const ws=wb.addWorksheet(String(TM.name).replace(/[\\\/\?\*\[\]:]/g,' ').slice(0,31)||'Data');
+        const bd={top:{style:'thin'},left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}};
+        ws.addRow([dashboardTitle()]).font={bold:true,size:13};ws.addRow([TM.name]).font={bold:true,size:14};
+        TM.subtitle.forEach(x=>{const r=ws.addRow([x[0],x[1]]);r.getCell(1).font={bold:true};});
+        TM.sections.forEach(s=>{
+          ws.addRow([]);const h=ws.addRow([s.heading+' ('+s.rows.length+')']);h.font={bold:true,size:12};
+          const hr=ws.addRow(s.cols);hr.eachCell(c=>{c.font={bold:true};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE9ECEF'}};c.border=bd;c.alignment={vertical:'top',wrapText:true};});
+          s.rows.forEach(r=>{const dr=ws.addRow(r.map(v=>v==null?'':v));dr.eachCell({includeEmpty:true},(c,i)=>{if(i<=s.cols.length){c.border=bd;c.alignment={vertical:'top',wrapText:true};}});});
+        });
+        const n=Math.max(...TM.sections.map(s=>s.cols.length),2);for(let i=1;i<=n;i++)ws.getColumn(i).width=24;
+        return new File([await wb.xlsx.writeBuffer()],tStem()+'.xlsx',{type:XL});
+      }
+      const aoa=[[dashboardTitle()],[TM.name],...TM.subtitle.map(x=>[x[0],x[1]])];
+      TM.sections.forEach(s=>{aoa.push([],[s.heading+' ('+s.rows.length+')'],s.cols,...s.rows);});
+      const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(aoa),'Data');
+      return new File([XLSX.write(wb,{type:'array',bookType:'xlsx'})],tStem()+'.xlsx',{type:XL});
+    }
+    if(fmt==='pptx'){
+      await ensureExportLibraries('pptx');const p=new PptxGenJS();p.layout='LAYOUT_WIDE';p.title=TM.name;
+      const t=p.addSlide();t.addText(dashboardTitle(),{x:.5,y:.5,w:12.3,h:.5,fontSize:16,bold:true});t.addText(TM.name,{x:.5,y:1.1,w:12.3,h:.7,fontSize:28,bold:true,color:'1F2937'});
+      t.addText(TM.subtitle.map(x=>x[0]+': '+x[1]).join('\n'),{x:.5,y:2.1,w:12.3,h:3,fontSize:14,valign:'top'});
+      TM.sections.forEach(s=>{for(let r0=0;r0<s.rows.length;r0+=8){const sl=p.addSlide();
+        sl.addText(`${TM.name} — ${s.heading} | records ${r0+1}-${Math.min(r0+8,s.rows.length)} of ${s.rows.length}`,{x:.3,y:.15,w:12.7,h:.4,fontSize:12,bold:true});
+        sl.addTable([s.cols.map(h=>({text:h,options:{bold:true,fill:{color:'E9ECEF'}}})),...s.rows.slice(r0,r0+8).map(r=>r.map(v=>({text:String(v??'')})))],{x:.3,y:.7,w:12.7,fontSize:7,border:{type:'solid',color:'999999',pt:.5},valign:'top'});}});
+      return new File([await p.write({outputType:'blob'})],tStem()+'.pptx',{type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
+    }
+    /* pdf (also used for the "image" option, which only exists for the visual dashboard) */
+    await ensureExportLibraries('pdf');const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a3'});const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),M=28;
+    doc.setFont(undefined,'bold');doc.setFontSize(12);doc.text(dashboardTitle(),M,30);doc.setFontSize(20);doc.text(TM.name,M,56);
+    doc.setFont(undefined,'normal');doc.setFontSize(10);let y=74;TM.subtitle.forEach(x=>{doc.text(x[0]+': '+x[1],M,y);y+=14;});y+=8;
+    TM.sections.forEach(s=>{
+      if(y>H-90){doc.addPage();y=40;}
+      doc.setFont(undefined,'bold');doc.setFontSize(12);doc.text(s.heading+' ('+s.rows.length+' record'+(s.rows.length===1?'':'s')+')',M,y);
+      doc.autoTable({head:[s.cols],body:s.rows.map(r=>r.map(v=>String(v??''))),startY:y+6,margin:{left:M,right:M},styles:{fontSize:8,cellPadding:3,overflow:'linebreak',valign:'top'},headStyles:{fillColor:[233,236,239],textColor:20},didDrawPage:()=>{doc.setFontSize(8);doc.setFont(undefined,'normal');doc.text(TM.name+'  •  Page '+doc.getNumberOfPages(),M,H-12);}});
+      y=doc.lastAutoTable.finalY+26;
+    });
+    return new File([doc.output('blob')],tStem()+'.pdf',{type:'application/pdf'});
+  }
+  const wrapFn=(name,make)=>{const o=window[name];if(typeof o!=='function')return;window[name]=make(o);};
+  wrapFn('backendDelimited',o=>function(sep){return TM?tDelimited(sep):o.apply(this,arguments);});
+  wrapFn('dashboardSharePlainText',o=>function(){return TM?tText():o.apply(this,arguments);});
+  wrapFn('dashboardShareHtml',o=>function(){return TM?tHtml():o.apply(this,arguments);});
+  wrapFn('dashboardShareSelectionLabel',o=>function(){return TM?TM.count+' selected '+TM.name+' record'+(TM.count===1?'':'s'):o.apply(this,arguments);});
+  wrapFn('buildBackendShareFile',o=>async function(fmt){return TM?tFile(fmt):o.apply(this,arguments);});
+  /* In module-share mode the CSV / Google Sheet / PowerPoint tables also carry the module's Sales Orders. */
+  wrapFn('backendTables',o=>function(){
+    const t=o.apply(this,arguments);
+    if(saved&&!TM){try{const so=currentDashboardSalesOrders();if(so&&so.length){t.push({name:'Sales Order Data',cols:shareSalesOrderColumns(),rows:so.map(shareSalesOrderRow)});}}catch(e){}}
+    return t;
+  });
+
+  /* ================= Wiring ================= */
+  const wrap=(name,after)=>{const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{after();}catch(e){console.warn(name+' hook failed',e);}return r;};};
+  wrap('renderDashboardCharts',()=>{updateCards();leadColors();});
+  wrap('renderDashboardTargetSummary',decorateTargets);
+  ['renderDashboardTable','renderDashboardColdCalls','renderDashboardSalesOrderTable','switchDashboardDataTab','updateSelectionCount'].forEach(n=>wrap(n,updateTabCounts));
+  try{mountTabBars();updateCards();leadColors();updateTabCounts();decorateTargets();}catch(e){console.warn(e);}
+})();
+
 </script>
 </body>
 </html>
