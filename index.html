@@ -6062,7 +6062,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     if(form&&!force&&!el.dataset.closeApproved){const ok=window.confirm('This form is still open. Choose OK to close/cancel the form, or Cancel to continue editing.');if(!ok)return;el.dataset.closeApproved='1';}
     try{bootstrap.Modal.getOrCreateInstance(el).hide();}catch(_){el.classList.remove('show');el.style.display='none';cleanupBootstrapModalArtifacts();}
   }
-  function targetPeriodLabel(t){return `${t.periodType||''} · ${appDateOnly(t.startDate)||''}${t.endDate&&appDateOnly(t.endDate)!==appDateOnly(t.startDate)?' → '+appDateOnly(t.endDate):''}`;}
+  function targetPeriodLabel(t){return `${t.periodType||''} · ${appDateOnly(t.startDate)||''}${targetEffectiveEnd(t)&&targetEffectiveEnd(t)!==appDateOnly(t.startDate)?' → '+targetEffectiveEnd(t):''}`;}
   function targetMetricValueForOrder(t,o){const product=String(t.product||'').toLowerCase(),metric=String(t.metric||'Amount').toLowerCase(),pv=String(t.pvType||'Both').toLowerCase(),st=salesTypeLabel(t.salesType||'All').toLowerCase(),ost=salesTypeLabel(o.salesType||'Primary Sale').toLowerCase();if(st&&st!=='all'&&st!==ost)return 0;if(String(o.orderFor||'').toLowerCase()!==product)return 0;if(metric==='orders')return 1;if(product==='solar pv modules'){let kw=0,amt=0,qty=0;if(pv==='dcr'||pv==='both'){const q=salesOrderNum(o.dcrPanelQuantity||((String(o.pvType||'').toLowerCase()==='dcr')?o.panelQuantity:0)),wp=salesOrderNum(o.dcrPanelWp||((String(o.pvType||'').toLowerCase()==='dcr')?o.panelWp:0)),rt=salesOrderNum(o.dcrRatePerWp||((String(o.pvType||'').toLowerCase()==='dcr')?o.ratePerWp:0));kw+=salesOrderNum(o.dcrKw||q*wp/1000);amt+=salesOrderNum(o.dcrAmount||q*wp*rt);qty+=q;}if(pv==='n-dcr'||pv==='ndcr'||pv==='both'){const q=salesOrderNum(o.ndcrPanelQuantity||((String(o.pvType||'').toLowerCase()==='n-dcr')?o.panelQuantity:0)),wp=salesOrderNum(o.ndcrPanelWp||((String(o.pvType||'').toLowerCase()==='n-dcr')?o.panelWp:0)),rt=salesOrderNum(o.ndcrRatePerWp||((String(o.pvType||'').toLowerCase()==='n-dcr')?o.ratePerWp:0));kw+=salesOrderNum(o.ndcrKw||q*wp/1000);amt+=salesOrderNum(o.ndcrAmount||q*wp*rt);qty+=q;}if(metric==='kw')return kw;if(metric==='quantity')return qty;return amt;}if(metric==='kw')return salesOrderNum(o.kw||o.projectKw);if(metric==='lpd')return salesOrderNum(o.lpd||o.salesLpd);if(metric==='quantity')return salesOrderNum(o.panelQuantity);return salesOrderNum(o.amount);}
   function targetManualAchievement(t){
     if(!t) return null;
@@ -6072,7 +6072,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
     return Number.isFinite(n) ? n : null;
   }
   function targetSalesClassification(t,orders){
-    const start=appDateNumber(t?.startDate), end=appDateNumber(t?.endDate||t?.startDate);
+    const start=appDateNumber(t?.startDate), end=appDateNumber(targetEffectiveEnd(t));
     const all=(Array.isArray(orders)?orders:[]).filter(o=>{
       const d=appDateNumber(o?.date||o?.entryDate||o?.timestamp);
       return Number.isFinite(d)&&d>=start&&d<=end&&targetMetricValueForOrder(t,o)>0;
@@ -6162,7 +6162,7 @@ function dashboardIdentityKey(o){const id=String(o?.clientId||o?.clientID||o?.id
         targetName:document.getElementById('tgName').value.trim(),
         periodType:period,
         startDate:document.getElementById('tgStart').value,
-        endDate:document.getElementById('tgEnd').value,
+        endDate:targetEndLocal(period,document.getElementById('tgStart').value,document.getElementById('tgEnd').value),
         product,
         salesType:document.getElementById('tgSalesType').value,
         pvType:product==='Solar PV Modules'?document.getElementById('tgPvType').value:'',
@@ -9369,10 +9369,10 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   }
 
   function dashboardTargetOrders(target,orders){
-    if(target?.achieved!==undefined&&target?.achieved!==null) return [];
-    const start=appDateNumber(target?.startDate), end=appDateNumber(target?.endDate||target?.startDate);
+    if(targetManualAchievement(target)!==null) return [];
+    const start=appDateNumber(target?.startDate), end=appDateNumber(targetEffectiveEnd(target));
     const base=(orders||[]).filter(o=>{
-      const d=appDateNumber(o?.date||o?.entryDate);
+      const d=appDateNumber(o?.date||o?.entryDate||o?.timestamp||o?.createdAt);
       return Number.isFinite(d)&&d>=start&&d<=end;
     });
     const ownerKeys=[
@@ -9411,8 +9411,9 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     const scopeLabel=c.uf==='TEAM:ALL'?(String(currentUser?.name||currentUser?.email||'My')+' — All Team Data'):(c.uf==='ALL'?(c.hasTeam?'My Data + My Team':'My Data'):((c.selected?.name||c.selected?.email||'Selected User')+(c.includeTeam?' — All Team Data':' — Individual Data')));
     box.innerHTML=shown.map(t=>{
       const scopedOrders=dashboardTargetOrders(t,orders);
-      const ach=(t.achieved!==undefined&&t.achieved!==null)
-        ? salesOrderNum(t.achieved)
+      const manualA=targetManualAchievement(t);
+      const ach=(manualA!==null)
+        ? manualA
         : targetAchievementLocal(t,scopedOrders);
       const tar=salesOrderNum(t.targetValue||t.target||0);
       const pct=tar?Math.min(100,ach/tar*100):0;
@@ -9921,9 +9922,9 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   function targetsMatching(){const all=Array.isArray(rawData.targets)?rawData.targets:[];const c=getDashboardFilterContext();return all.filter(t=>window.dashboardTargetMatchesScope(t,c));}
   const tKey=t=>String(t.id||t.targetId||t.ID||'')||[t.targetName,t.startDate,t.userEmail||t.userName||t.email].join('|');
   function tOrders(t,orders){
-    if(t.achieved!==undefined&&t.achieved!==null)return [];
-    const st=appDateNumber(t.startDate),en=appDateNumber(t.endDate||t.startDate);
-    const base=orders.filter(o=>{const d=appDateNumber(o.date||o.entryDate);return Number.isFinite(d)&&d>=st&&d<=en;});
+    if(targetManualAchievement(t)!==null)return [];
+    const st=appDateNumber(t.startDate),en=appDateNumber(targetEffectiveEnd(t));
+    const base=orders.filter(o=>{const d=appDateNumber(o.date||o.entryDate||o.timestamp||o.createdAt);return Number.isFinite(d)&&d>=st&&d<=en;});
     const ok=[t.userId,t.userID,t.userEmail,t.email,t.employeeId,t.employeeID,t.username,t.userName].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm);
     if(!ok.length)return base;
     const owned=base.filter(o=>[o.userId,o.userID,o.userEmail,o.email,o.employeeId,o.employeeID,o.username,o.userName,o.createdBy,o.createdByEmail,o.ownerId,o.ownerEmail].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm).some(v=>ok.includes(v)));
@@ -9932,7 +9933,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   const T_COLS=['Target Name','User','Product','Metric','PV Type','Sales Type','Period','Target','Achieved','Achievement %'];
   function targetItem(t){
     const orders=Array.isArray(rawData.salesOrders)?rawData.salesOrders:[];
-    const ach=(t.achieved!==undefined&&t.achieved!==null)?salesOrderNum(t.achieved):targetAchievementLocal(t,tOrders(t,orders));
+    const man=targetManualAchievement(t),ach=(man!==null)?man:targetAchievementLocal(t,tOrders(t,orders));
     const tar=salesOrderNum(t.targetValue||t.target||0),pct=tar?Math.min(100,ach/tar*100):0;
     const f=n=>Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});
     const owner=t.userName||t.username||t.userEmail||t.email||t.ownerName||'';
@@ -10032,6 +10033,8 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     return new File([doc.output('blob')],tStem()+'.pdf',{type:'application/pdf'});
   }
   const wrapFn=(name,make)=>{const o=window[name];if(typeof o!=='function')return;window[name]=make(o);};
+  const normP=v=>String(v==null?'':v).replace(/\s+/g,' ').trim().toLowerCase();
+  wrapFn('targetMetricValueForOrder',o=>function(t,ord){return o.call(this,Object.assign({},t,{product:normP(t&&t.product)}),Object.assign({},ord,{orderFor:normP(ord&&(ord.orderFor||ord.type))}));});
   wrapFn('backendDelimited',o=>function(sep){return TM?tDelimited(sep):o.apply(this,arguments);});
   wrapFn('dashboardSharePlainText',o=>function(){return TM?tText():o.apply(this,arguments);});
   wrapFn('dashboardShareHtml',o=>function(){return TM?tHtml():o.apply(this,arguments);});
@@ -10118,6 +10121,14 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     chip.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openTeamScopePopup();}});
   }
 
+  /* ================= Sales target fixes ================= */
+  /* A target saved with a Weekly / Monthly / Yearly period had a blank end date (the field is disabled unless CUSTOM),
+     so only orders dated on the start day were counted. Use the effective end date of the period instead. */
+  window.targetEffectiveEnd=function(t){
+    const s=appDateOnly(t&&t.startDate),e=appDateOnly(t&&t.endDate),p=String(t&&(t.periodType||t.period)||'').toUpperCase();
+    if(!p||p==='CUSTOM')return e||s;
+    try{return targetEndLocal(p,s,e)||e||s;}catch(x){return e||s;}
+  };
   /* ================= Wiring ================= */
   const wrap=(name,after)=>{const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{after();}catch(e){console.warn(name+' hook failed',e);}return r;};};
   wrap('renderDashboardCharts',()=>{updateCards();leadColors();});
