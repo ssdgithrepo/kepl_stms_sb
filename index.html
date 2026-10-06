@@ -4885,7 +4885,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
         filtered.filter(u=>!sameUser(u,currentUser)).sort((a,b)=>String(a.name||a.email||'').localeCompare(String(b.name||b.email||''))).forEach(u=>{
           const uid=String(u.id||u.userId||u.email||u.name||'');
           const uname=String(u.name||u.email||uid);
-          out.push({value:uid,text:uname+' — '+String(u.role||u.designation||'User')});
+          const dn=dashboardDownstreamTeam(u,directory).length;
+          out.push({value:uid,text:uname+' — '+String(u.role||u.designation||'User')+(dn?' · Own Data':'')});
+          if(dn)out.push({value:'TEAM:'+uid,text:uname+' — All Team Data ('+dn+' Users)'});
         });
         return out;
       }
@@ -4918,7 +4920,9 @@ select.form-select,select.form-control{padding-right:2.35rem!important;backgroun
         const uid=String(u.id||u.userId||u.email||u.name||'');
         const uname=String(u.name||u.email||uid);
         const relation=level===1?'Direct Report':`Indirect Report · Level ${level}`;
-        out.push({value:uid,text:uname+' — '+String(u.role||u.designation||'User')+' · '+relation});
+        const dn=dashboardDownstreamTeam(u,directory).length;
+        out.push({value:uid,text:uname+' — '+String(u.role||u.designation||'User')+' · '+relation+(dn?' · Own Data':'')});
+        if(dn)out.push({value:'TEAM:'+uid,text:uname+' — All Team Data ('+dn+' Users)'});
       });
       return out;
     };
@@ -9271,13 +9275,15 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     const isHead=dashIsHead();
     const team=dashboardTeamMembers(currentUser,users);
     const selectable=[currentUser,...team.filter(u=>!dashSame(u,currentUser))];
+    const wantsTeam=/^TEAM:/.test(String(uf))&&uf!=='TEAM:ALL';
+    const ufId=wantsTeam?String(uf).slice(5):String(uf);
     const selected=(uf==='ALL'||uf==='TEAM:ALL')
       ? null
-      : selectable.find(u=>dashUserValue(u)===String(uf))||null;
+      : selectable.find(u=>dashUserValue(u)===ufId)||null;
     // When Master Admin/Admin explicitly selects a user, that selection means
     // the selected user PLUS the user's complete recursive reporting team.
     // Do not use the privileged user's unrestricted team as the selected scope.
-    const selectedTeam=(selected&&!dashSame(selected,currentUser))
+    const selectedTeam=(selected&&wantsTeam)
       ? dashboardDownstreamTeam(selected,users)
       : [];
     const selectedScope=selected
@@ -9285,7 +9291,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
       : [];
 
     _dashFilterContextKey=key;
-    _dashFilterContext={uf,sf,users,team,selectable,selected,selectedTeam,selectedScope,isHead,hasTeam:team.length>0};
+    _dashFilterContext={uf,sf,users,team,selectable,selected,selectedTeam,selectedScope,isHead,hasTeam:team.length>0,includeTeam:wantsTeam};
     return _dashFilterContext;
   }
 
@@ -9402,7 +9408,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
 
     const orders=Array.isArray(rawData.salesOrders)?rawData.salesOrders:[];
     const shown=targets.slice(0,20);
-    const scopeLabel=c.uf==='TEAM:ALL'?(String(currentUser?.name||currentUser?.email||'My')+' — All Team Data'):(c.uf==='ALL'?(c.hasTeam?'My Data + My Team':'My Data'):(c.selected?.name||c.selected?.email||'Selected User'));
+    const scopeLabel=c.uf==='TEAM:ALL'?(String(currentUser?.name||currentUser?.email||'My')+' — All Team Data'):(c.uf==='ALL'?(c.hasTeam?'My Data + My Team':'My Data'):((c.selected?.name||c.selected?.email||'Selected User')+(c.includeTeam?' — All Team Data':' — Individual Data')));
     box.innerHTML=shown.map(t=>{
       const scopedOrders=dashboardTargetOrders(t,orders);
       const ach=(t.achieved!==undefined&&t.achieved!==null)
@@ -9432,7 +9438,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   /* Fast filter application: never rebuild the dropdowns when only a filter
      value changed. The already-loaded backend snapshot is filtered in memory. */
   window.resetDashboardFilters=function(){const u=document.getElementById('dashboardUserFilter');if(u)u.value='ALL';const st=document.getElementById('dashboardStateFilter');if(st)st.value='ALL';const d=document.getElementById('dateFilterType');if(d)d.value='ALL';const a=document.getElementById('startDateFilter');if(a)a.value='';const b=document.getElementById('endDateFilter');if(b)b.value='';const c=document.getElementById('customDateContainer');if(c)c.classList.add('d-none');applyDashboardFilters();};
-  function updateDashboardViewSummary(){const c=(typeof getDashboardFilterContext==='function')?getDashboardFilterContext():null;const uf=document.getElementById('dashboardUserFilter')?.value||'ALL';const df=document.getElementById('dateFilterType')?.value||'ALL';let u='All permitted users',t='All';if(c){if(uf==='TEAM:ALL'){u='Team view';t='All team members ('+(c.team?.length||0)+')';}else if(uf!=='ALL'&&c.selected){u=c.selected.name||c.selected.email||'Selected user';t=(c.selectedTeam?.length||0)+' downstream team member(s)';}else if(c.hasTeam){u='My data + team';t=(c.team?.length||0)+' team member(s)';}else if(currentUser){u=currentUser.name||currentUser.email||'My data';t='No downstream team';}}const labels={ALL:'All Time',DAILY:'Today',WEEKLY:'This Week',MONTHLY:'This Month',CUSTOM:'Custom Range'};let date=labels[df]||df;if(df==='CUSTOM'){const a=document.getElementById('startDateFilter')?.value||'',b=document.getElementById('endDateFilter')?.value||'';date=a&&b?a+' → '+b:'Choose start and end date';}const ue=document.getElementById('dashboardSummaryUser'),te=document.getElementById('dashboardSummaryTeam'),de=document.getElementById('dashboardSummaryDate'),re=document.getElementById('dashboardSummaryRecords');if(ue)ue.textContent=u;if(te)te.textContent=t;if(de)de.textContent=date;if(re&&typeof dashboardStats==='function'){const x=dashboardStats();re.textContent=((x?.clients?.length||0)+(x?.calls?.length||0)+(x?.salesOrders?.length||0)).toLocaleString('en-IN');}}
+  function updateDashboardViewSummary(){const c=(typeof getDashboardFilterContext==='function')?getDashboardFilterContext():null;const uf=document.getElementById('dashboardUserFilter')?.value||'ALL';const df=document.getElementById('dateFilterType')?.value||'ALL';let u='All permitted users',t='All';if(c){if(uf==='TEAM:ALL'){u='Team view';t='All team members ('+(c.team?.length||0)+')';}else if(uf!=='ALL'&&c.selected){u=c.selected.name||c.selected.email||'Selected user';t=c.includeTeam?((c.selectedTeam?.length||0)+' downstream team member(s)'):'Individual data only';}else if(c.hasTeam){u='My data + team';t=(c.team?.length||0)+' team member(s)';}else if(currentUser){u=currentUser.name||currentUser.email||'My data';t='No downstream team';}}const labels={ALL:'All Time',DAILY:'Today',WEEKLY:'This Week',MONTHLY:'This Month',CUSTOM:'Custom Range'};let date=labels[df]||df;if(df==='CUSTOM'){const a=document.getElementById('startDateFilter')?.value||'',b=document.getElementById('endDateFilter')?.value||'';date=a&&b?a+' → '+b:'Choose start and end date';}const ue=document.getElementById('dashboardSummaryUser'),te=document.getElementById('dashboardSummaryTeam'),de=document.getElementById('dashboardSummaryDate'),re=document.getElementById('dashboardSummaryRecords');if(ue)ue.textContent=u;if(te)te.textContent=t;if(de)de.textContent=date;if(re&&typeof dashboardStats==='function'){const x=dashboardStats();re.textContent=((x?.clients?.length||0)+(x?.calls?.length||0)+(x?.salesOrders?.length||0)).toLocaleString('en-IN');}}
   window.applyDashboardFilters=function(){
     const filterType=document.getElementById('dateFilterType')?.value||'ALL';
     const startCustom=document.getElementById('startDateFilter')?.value||'';
@@ -9704,10 +9710,10 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
       .filter(v=>v!==undefined&&v!==null&&String(v).trim()!=='').map(dashboardNorm);
     return ids.some(v=>owners.includes(v));
   }
-  function selectedScope(selected){
-    const dir=activeDirectory();
-    if(selected&&same(selected,currentUser))return [selected]; /* My Data = own records only */
-    return selected?[selected,...reportsOf(selected,dir)]:[];
+  function selectedScope(selected,c){
+    if(!selected)return [];
+    if(!(c&&c.includeTeam))return [selected]; /* individual selection = that user's own records only */
+    return [selected,...reportsOf(selected,activeDirectory())];
   }
   function scopePass(item,c){
     if(!c)return false;
@@ -9717,7 +9723,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
       return owner(item,currentUser)||(c.team||[]).some(u=>owner(item,u));
     }
     if(!c.selected)return false;
-    return selectedScope(c.selected).some(u=>owner(item,u));
+    return selectedScope(c.selected,c).some(u=>owner(item,u));
   }
   window.dashboardUserPasses=function(item){
     const c=(typeof getDashboardFilterContext==='function')?getDashboardFilterContext():null;
@@ -9738,7 +9744,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
       return members.some(u=>dashboardTargetOwnerMatches(target,u));
     }
     if(!c.selected)return false;
-    return selectedScope(c.selected).some(u=>dashboardTargetOwnerMatches(target,u));
+    return selectedScope(c.selected,c).some(u=>dashboardTargetOwnerMatches(target,u));
   };
 })();
 </script>
@@ -10038,12 +10044,86 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     return t;
   });
 
+  /* ================= Team / user scope: refresh everything per selection ================= */
+  function viewingLabel(){
+    try{
+      const c=getDashboardFilterContext(),me=(currentUser&&(currentUser.name||currentUser.email))||'My';
+      if(c.uf==='TEAM:ALL')return me+' — All Team Data ('+(c.team||[]).length+' Users)';
+      if(c.uf==='ALL')return (currentUser&&(currentUser.role==='Master Admin'||currentUser.role==='Admin'))?'All Users':(c.hasTeam?'My Data + My Team':'My Data');
+      if(c.selected){const n=c.selected.name||c.selected.email||'Selected User';return n+(c.includeTeam?' — All Team Data ('+(c.selectedTeam||[]).length+' Users)':' — Individual Data');}
+    }catch(e){}
+    return '';
+  }
+  function updateScopeHeader(){
+    const el=document.getElementById('dashboardScopeHeader');if(!el)return;
+    const base=String(el.innerText||'').split(' · Viewing:')[0].trim(),v=viewingLabel();
+    el.textContent=v?base+' · Viewing: '+v:base;
+  }
+  let lastScopeSig=null;
+  const scopeSig=()=>(document.getElementById('dashboardUserFilter')?.value||'ALL')+'|'+(document.getElementById('dashboardStateFilter')?.value||'ALL');
+  const origApply=window.applyDashboardFilters;
+  if(typeof origApply==='function'){
+    window.applyDashboardFilters=function(){
+      const sig=scopeSig();
+      /* Rows ticked under a previous scope must not narrow the newly selected scope. */
+      if(lastScopeSig!==null&&sig!==lastScopeSig&&!saved){selectedDashboardIds.clear();try{updateSelectionCount();}catch(e){}}
+      lastScopeSig=sig;
+      const r=origApply.apply(this,arguments);
+      try{updateScopeHeader();}catch(e){}
+      return r;
+    };
+  }
+
+  /* ================= Team scope popup (click the "Team scope" chip) ================= */
+  const TS_COLS=['Member','Role','Total Clients','Hot','Warm','Cold','Visits Done','Meetings Done','Cold Calls','Sales Orders','Sales Amount'];
+  function teamScopeMembers(){
+    const c=getDashboardFilterContext();let list=[];
+    if(c.uf==='ALL'||c.uf==='TEAM:ALL')list=[currentUser,...(c.team||[])];
+    else if(c.selected)list=c.includeTeam?[c.selected,...(c.selectedTeam||[])]:[c.selected];
+    const seen=new Set(),out=[];
+    list.forEach(u=>{if(!u)return;const k=String(u.id||u.userId||u.email||u.name||'');if(!k||seen.has(k))return;seen.add(k);out.push(u);});
+    return out;
+  }
+  function teamScopeItems(){
+    const cl=tabAll('clients').map(x=>x.r),ca=tabAll('coldcalls').map(x=>x.r),so=tabAll('salesorders').map(x=>x.r);
+    return teamScopeMembers().map(u=>{
+      const mc=cl.filter(r=>dashboardOwnerMatches(r,u)),mk=ca.filter(r=>dashboardOwnerMatches(r,u)),ms=so.filter(r=>dashboardOwnerMatches(r,u));
+      const t=n=>mc.filter(r=>low(r.leadTemp||r.leadTemperature)===n).length;
+      const amt=ms.reduce((a,o)=>a+salesOrderNum(o.amount),0);
+      return {amt,cells:[String(u.name||u.email||u.id||''),String(u.role||u.designation||''),mc.length,t('hot'),t('warm'),t('cold'),mc.filter(r=>low(r.visitStatus)==='done').length,mc.filter(r=>low(r.meetingStatus)==='done').length,mk.length,ms.length,salesOrderMoney(amt)]};
+    });
+  }
+  function openTeamScopePopup(){
+    try{
+      const items=teamScopeItems();
+      const g=id=>document.getElementById(id)?.textContent||'';
+      cur={title:'Team Scope',items,rows:items,sel:new Set()};
+      const tot=TS_COLS.map((_,j)=>j>=2&&j<=9?items.reduce((a,i)=>a+num(i.cells[j]),0):'');
+      tot[0]='Total';tot[10]=salesOrderMoney(items.reduce((a,i)=>a+i.amt,0));
+      const th='<th><input type="checkbox" class="form-check-input" id="kdAll" onchange="kdAllSel(this.checked)" title="Select all"></th>'+TS_COLS.map(c=>'<th>'+escapeHtml(c)+'</th>').join('');
+      const tr=items.map((m,i)=>`<tr id="kdRow${i}"><td><input type="checkbox" class="form-check-input kd-chk" onchange="kdTog(${i},this.checked)"></td>${m.cells.map((v,j)=>'<td'+(j===0?' class="fw-semibold"':'')+'>'+escapeHtml(v)+'</td>').join('')}</tr>`).join('');
+      modal(`<div class="dashboard-popup-title"><h5 class="mb-0">Team Scope <span class="badge bg-dark">${items.length}</span></h5><small class="text-muted">User scope: <b>${escapeHtml(g('dashboardSummaryUser'))}</b> · ${escapeHtml(g('dashboardSummaryTeam'))} · Period: ${escapeHtml(g('dashboardSummaryDate'))}</small></div>
+      <div id="kdPopBar"></div>
+      <div class="table-responsive"><table class="table table-sm table-bordered align-middle small"><thead><tr>${th}</tr></thead><tbody>${tr||'<tr><td colspan="12" class="text-center text-muted py-4">No team members in this selection.</td></tr>'}${items.length?'<tr class="table-light fw-bold"><td></td>'+tot.map(v=>'<td>'+escapeHtml(v)+'</td>').join('')+'</tr>':''}</tbody></table></div>`);
+      const host=document.getElementById('kdPopBar');
+      if(host)cur.bar=bar(host,{name:'Team Scope',all:()=>cur.items,sel:()=>[...cur.sel].sort((a,b)=>a-b).map(i=>cur.items[i]),selectAll:()=>window.kdAllSel(true),clear:()=>window.kdAllSel(false),
+        share:(list,isAll)=>openExportWindow('Team Scope',[],buildTM('Team Scope',[{heading:'TEAM SCOPE DATA',rec:'TEAM MEMBER',cols:TS_COLS,rows:list.map(m=>m.cells)}],list.length,isAll,cur.items.length))});
+    }catch(e){showOperationMessage('Team scope failed',e.message||String(e),'error');}
+  }
+  function mountTeamScope(){
+    const chip=document.getElementById('dashboardSummaryTeam')?.closest('.dashboard-view-chip');
+    if(!chip||chip.dataset.kdTs)return;chip.dataset.kdTs='1';
+    chip.style.cursor='pointer';chip.setAttribute('role','button');chip.tabIndex=0;chip.title='Tap to view team scope data';
+    chip.addEventListener('click',openTeamScopePopup);
+    chip.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openTeamScopePopup();}});
+  }
+
   /* ================= Wiring ================= */
   const wrap=(name,after)=>{const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{after();}catch(e){console.warn(name+' hook failed',e);}return r;};};
   wrap('renderDashboardCharts',()=>{updateCards();leadColors();});
   wrap('renderDashboardTargetSummary',decorateTargets);
   ['renderDashboardTable','renderDashboardColdCalls','renderDashboardSalesOrderTable','switchDashboardDataTab','updateSelectionCount'].forEach(n=>wrap(n,updateTabCounts));
-  try{mountTabBars();updateCards();leadColors();updateTabCounts();decorateTargets();}catch(e){console.warn(e);}
+  try{lastScopeSig=scopeSig();updateScopeHeader();mountTabBars();mountTeamScope();updateCards();leadColors();updateTabCounts();decorateTargets();}catch(e){console.warn(e);}
 })();
 
 </script>
