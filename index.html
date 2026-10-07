@@ -10154,6 +10154,11 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   const locOfOrder=o=>locOfClient(Object.assign({},o,{cityVillage:o.cityVillage||o.city}));
   const locText=l=>[l.address,l.city,l.district,l.state,l.pin].filter(Boolean).join(', ');
 
+  const mapSale=new WeakMap();
+  const saleTextOf=(src,r,sale)=>{
+    if(src==='Sales Order')return ['Sales Done',r.orderFor,r.piStatus,salesOrderMoney(r.amount)].filter(Boolean).join(' · ');
+    return sale?['Sales Done',sale.n+' order'+(sale.n>1?'s':''),salesOrderMoney(sale.amt),sale.orderFor,'Last: '+sale.last,sale.pi&&'PI: '+sale.pi].filter(Boolean).join(' · '):'Sales Not Done';
+  };
   function mapBuild(){
     const pass=r=>{try{return window.dashboardUserPasses(r);}catch(e){return true;}};
     const allClients=rawData.clients||[],allOrders=rawData.salesOrders||[];
@@ -10161,13 +10166,23 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     const okey=r=>opKey(r.orgName||r.organization||r.organizationName,r.contactNumber||r.mobile||r.phone);
     allOrders.forEach(o=>{const cid=String(o.clientId||o.clientID||'').trim();if(cid)sold.add('id:'+low(cid));const k=okey(o);if(k!=='|')sold.add('k:'+k);});
     allClients.forEach(c=>{byId.set(low(c.id),c);const k=okey(c);if(k!=='|'&&!byKey.has(k))byKey.set(k,c);});
-    const isSold=c=>{const k=okey(c);return sold.has('id:'+low(c.id))||(k!=='|'&&sold.has('k:'+k));};
+    const oById=new Map(),oByKey=new Map(),push=(m,k,o)=>{if(!m.has(k))m.set(k,[]);m.get(k).push(o);};
+    allOrders.forEach(o=>{const cid=low(o.clientId||o.clientID||'');if(cid)push(oById,cid,o);const k=okey(o);if(k!=='|')push(oByKey,k,o);});
+    /* Sales Done is fetched automatically from the Sales Orders that belong to the client (by client id, else organisation + phone). */
+    const saleOf=c=>{
+      const s=new Set();(oById.get(low(c.id))||[]).forEach(o=>s.add(o));const k=okey(c);if(k!=='|')(oByKey.get(k)||[]).forEach(o=>s.add(o));
+      const arr=[...s];if(!arr.length)return null;
+      arr.sort((a,b)=>String(a.date||a.entryDate||'').localeCompare(String(b.date||b.entryDate||'')));
+      const last=arr[arr.length-1];
+      return {n:arr.length,amt:arr.reduce((a,o)=>a+salesOrderNum(o.amount),0),last:dashboardDateKey(last.date||last.entryDate),pi:last.piStatus||'',orderFor:[...new Set(arr.map(o=>o.orderFor).filter(Boolean))].join(', ')};
+    };
     const recs=[];
     allClients.filter(pass).forEach(c=>{
       const t=low(c.leadTemp||c.leadTemperature),cats=[];
       if(t==='hot'||t==='warm'||t==='cold')cats.push(t);
-      if(!isSold(c))cats.push('notdone');
-      recs.push({src:'Client',r:c,cats,loc:locOfClient(c)});
+      const sale=saleOf(c);mapSale.set(c,sale);
+      if(!sale)cats.push('notdone');
+      recs.push({src:'Client',r:c,cats,sale,loc:locOfClient(c)});
     });
     allOrders.filter(pass).forEach(o=>{
       const cid=low(o.clientId||o.clientID||''),k=okey(o);
@@ -10225,7 +10240,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   function mapShell(root){
     if(!document.getElementById('kdMapStyle')){
       const st=document.createElement('style');st.id='kdMapStyle';
-      st.textContent='.kdm-wrap{background:transparent!important;border:0!important}.kdm{position:relative;width:46px;height:46px}.kdm img{width:46px;height:46px;border-radius:50%;box-shadow:0 2px 7px rgba(0,0,0,.5);background:#fff;display:block}.kdm-n{position:absolute;right:-7px;top:-7px;background:#d62828;color:#fff;border-radius:999px;font:700 11px/1 Arial,sans-serif;padding:3px 6px;border:2px solid #fff}.kdm-n.one{display:none}#kdMapCanvas{height:64vh;min-height:360px;border-radius:10px;border:1px solid #dee2e6;z-index:0}';
+      st.textContent='.kdm-wrap{background:transparent!important;border:0!important}.kdp{position:relative;width:60px;height:76px}.kdp-b{width:60px;height:60px;border-radius:50%;background:#fff;border:3px solid #d62828;box-shadow:0 3px 8px rgba(0,0,0,.45);overflow:hidden;box-sizing:border-box}.kdp-b img{width:100%;height:100%;display:block}.kdp:after{content:"";position:absolute;left:50%;top:57px;transform:translateX(-50%);border-left:9px solid transparent;border-right:9px solid transparent;border-top:15px solid #d62828}.kdp-dot{position:absolute;left:50%;bottom:0;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#d62828;box-shadow:0 0 0 3px rgba(214,40,40,.25)}.kdp-n{position:absolute;right:-6px;top:-6px;background:#d62828;color:#fff;border-radius:999px;font:700 11px/1 Arial,sans-serif;padding:3px 6px;border:2px solid #fff;z-index:2}.kdp-n.one{display:none}#kdMapCanvas{height:64vh;min-height:360px;border-radius:10px;border:1px solid #dee2e6;z-index:0}#kdMiniMap{height:170px;border-radius:10px;border:1px solid #dee2e6;z-index:0}';
       document.head.appendChild(st);
     }
     root.innerHTML=`<div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom flex-wrap gap-2">
@@ -10247,6 +10262,10 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     root.querySelector('#kdMapRefresh').addEventListener('click',()=>{Object.keys(geo).forEach(k=>{if(geo[k]===null)delete geo[k];});saveGeo();mapBlocked=false;mapDraw();});
   }
 
+  /* Map pin 📍: the Kosol badge sits in a callout whose tip marks the exact address location. */
+  function pinIcon(n){
+    return L.divIcon({className:'kdm-wrap',html:`<div class="kdp"><div class="kdp-b"><img src="${BADGE}" alt="Kosol"></div><span class="kdp-dot"></span><span class="kdp-n ${n>1?'':'one'}">${n}</span></div>`,iconSize:[60,76],iconAnchor:[30,76]});
+  }
   function mapDraw(){
     const root=document.getElementById('kdMapRoot');if(!root||!mapObj||!window.L)return;
     const all=mapBuild();
@@ -10267,7 +10286,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
       const g=geoPos(rec.loc);if(!g.pos){unlocated++;return;}
       if(g.pending)pend++;
       const key=g.pos[0].toFixed(4)+','+g.pos[1].toFixed(4);
-      if(!groups.has(key))groups.set(key,{pos:g.pos,recs:[]});
+      if(!groups.has(key))groups.set(key,{pos:g.pos,recs:[],approx:!!g.approx});
       groups.get(key).recs.push(rec);
     });
     mapLayer.clearLayers();
@@ -10275,7 +10294,7 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     groups.forEach(g=>{
       const n=g.recs.length,l0=g.recs[0].loc;
       g.label=[l0.city,l0.district,l0.state].filter(Boolean).join(', ')||'Selected location';
-      const icon=L.divIcon({className:'kdm-wrap',html:`<div class="kdm"><img src="${BADGE}" alt="Kosol"><span class="kdm-n ${n>1?'':'one'}">${n}</span></div>`,iconSize:[46,46],iconAnchor:[23,23]});
+      const icon=pinIcon(n);
       const m=L.marker(g.pos,{icon,title:g.label+' · '+n+' record'+(n===1?'':'s')});
       m.on('click',()=>openMapRecords(g));
       m.addTo(mapLayer);pts.push(g.pos);
@@ -10303,14 +10322,28 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     const rows=recs.map(rec=>({v:view(rec),rec}));
     const summary=Object.keys(CAT_LABEL).map(k=>{const n=recs.filter(r=>r.cats.includes(k)&&mapSel.cats.has(k)).length;return n?`<span class="badge bg-${CAT_CLASS[k]} me-1">${CAT_LABEL[k]}: ${n}</span>`:'';}).join('');
     cur={title,items:recs.map(r=>({src:r.src,r:r.r})),rows,sel:new Set()};
-    const th='<th><input type="checkbox" class="form-check-input" id="kdAll" onchange="kdAllSel(this.checked)" title="Select all"></th><th>Type</th><th>Category</th><th>Organization</th><th>Contact</th><th>Mobile</th><th>Address</th><th>Lead Temp</th><th>Details</th>';
-    const tr=rows.map((x,i)=>`<tr id="kdRow${i}"><td><input type="checkbox" class="form-check-input kd-chk" onchange="kdTog(${i},this.checked)"></td><td>${escapeHtml(x.rec.src)}</td><td>${escapeHtml(x.rec.cats.filter(c=>mapSel.cats.has(c)).map(c=>CAT_LABEL[c]).join(' / '))}</td><td class="fw-semibold">${escapeHtml(x.v.org)}</td><td>${escapeHtml(x.v.contact)}</td><td>${escapeHtml(x.v.mobile)}</td><td>${escapeHtml(locText(x.rec.loc))}</td><td>${escapeHtml(x.v.temp)}</td><td>${escapeHtml(x.v.detail)}</td></tr>`).join('');
-    modal(`<div class="dashboard-popup-title"><h5 class="mb-0">${escapeHtml(title)} <span class="badge bg-dark">${recs.length}</span></h5><small class="text-muted">${mapSel.state==='ALL'?'All states':escapeHtml(mapSel.state)}</small></div>
+    const th='<th><input type="checkbox" class="form-check-input" id="kdAll" onchange="kdAllSel(this.checked)" title="Select all"></th><th>Type</th><th>Category</th><th>Organization</th><th>Contact</th><th>Mobile</th><th>Address</th><th>Lead Temp</th><th>Sales Status (from Sales Orders)</th><th>Details</th>';
+    const tr=rows.map((x,i)=>`<tr id="kdRow${i}"><td><input type="checkbox" class="form-check-input kd-chk" onchange="kdTog(${i},this.checked)"></td><td>${escapeHtml(x.rec.src)}</td><td>${escapeHtml(x.rec.cats.filter(c=>mapSel.cats.has(c)).map(c=>CAT_LABEL[c]).join(' / '))}</td><td class="fw-semibold">${escapeHtml(x.v.org)}</td><td>${escapeHtml(x.v.contact)}</td><td>${escapeHtml(x.v.mobile)}</td><td>${escapeHtml(locText(x.rec.loc))}</td><td>${escapeHtml(x.v.temp)}</td><td class="${(x.rec.src==='Sales Order'||x.rec.sale)?'text-success fw-semibold':'text-muted'}">${escapeHtml(saleTextOf(x.rec.src,x.rec.r,x.rec.sale))}</td><td>${escapeHtml(x.v.detail)}</td></tr>`).join('');
+    const addrs=[...new Set(recs.map(r=>locText(r.loc)).filter(Boolean))];
+    const addrName=addrs.length===1?addrs[0]:g.label;
+    modal(`<div class="dashboard-popup-title"><h5 class="mb-0">📍 ${escapeHtml(g.label)} <span class="badge bg-dark">${recs.length}</span></h5><small class="text-muted">${mapSel.state==='ALL'?'All states':escapeHtml(mapSel.state)}</small></div>
+      <div id="kdMiniMap" class="mb-2"></div>
+      <div class="fw-semibold mb-2"><i class="bi bi-geo-alt-fill text-danger me-1"></i>${escapeHtml(addrName)}${addrs.length>1?' <span class="text-muted fw-normal small">('+addrs.length+' addresses)</span>':''}</div>
       <div class="mb-2">${summary}</div><div id="kdPopBar"></div>
       <div class="table-responsive"><table class="table table-sm table-bordered align-middle small"><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></div>`);
+    setTimeout(()=>{
+      const el=document.getElementById('kdMiniMap');if(!el||!window.L)return;
+      try{const mm=L.map(el,{zoomControl:false,scrollWheelZoom:false}).setView(g.pos,g.approx?8:12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap contributors'}).addTo(mm);
+        L.marker(g.pos,{icon:pinIcon(recs.length)}).addTo(mm);
+        setTimeout(()=>{try{mm.invalidateSize();mm.setView(g.pos,g.approx?8:12);}catch(e){}},350);}catch(e){console.warn('Mini map failed',e);}
+    },300);
     const host=document.getElementById('kdPopBar');
     if(host)cur.bar=bar(host,{name:'Map',all:()=>cur.items,sel:()=>[...cur.sel].sort((a,b)=>a-b).map(i=>cur.items[i]),selectAll:()=>window.kdAllSel(true),clear:()=>window.kdAllSel(false),
-      share:(list,isAll)=>openExportWindow(title,list.map(keyOf),buildTM(title,sectionsFor(list),list.length,isAll,cur.items.length))});
+      share:(list,isAll)=>{
+        const secs=sectionsFor(list),cl=list.filter(x=>x.src==='Client'),sec=secs.find(s=>s.heading==='CLIENT LEAD / VISIT DATA');
+        if(sec&&cl.length){sec.cols=[...sec.cols,'Sales Status (from Sales Orders)'];sec.rows=sec.rows.map((r,i)=>[...r,saleTextOf('Client',cl[i].r,mapSale.get(cl[i].r))]);}
+        openExportWindow(title,list.map(keyOf),buildTM(title,secs,list.length,isAll,cur.items.length));}});
   }
 
   async function renderMap(){
