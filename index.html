@@ -10137,6 +10137,11 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   const GEO_KEY='kosol_geo_cache_v1';
   let geo={};try{geo=JSON.parse(localStorage.getItem(GEO_KEY)||'{}')||{};}catch(e){geo={};}
   const saveGeo=()=>{try{localStorage.setItem(GEO_KEY,JSON.stringify(geo));}catch(e){}};
+  /* Pins the user dragged to a corrected position (per record, kept in this browser). */
+  const OVR_KEY='kosol_pin_overrides_v1';
+  let ovr={};try{ovr=JSON.parse(localStorage.getItem(OVR_KEY)||'{}')||{};}catch(e){ovr={};}
+  const saveOvr=()=>{try{localStorage.setItem(OVR_KEY,JSON.stringify(ovr));}catch(e){}};
+  let mapNote='';
   const CENT={'Andaman and Nicobar Islands':[11.7,92.7],'Andhra Pradesh':[15.9,79.7],'Arunachal Pradesh':[28.2,94.7],'Assam':[26.2,92.9],'Bihar':[25.1,85.3],'Chandigarh':[30.73,76.78],'Chhattisgarh':[21.3,81.9],'Dadra and Nagar Haveli and Daman and Diu':[20.4,72.9],'Delhi':[28.61,77.21],'Goa':[15.3,74.0],'Gujarat':[22.3,71.2],'Haryana':[29.06,76.09],'Himachal Pradesh':[31.9,77.2],'Jammu and Kashmir':[33.7,76.6],'Jharkhand':[23.6,85.3],'Karnataka':[15.3,75.7],'Kerala':[10.5,76.3],'Ladakh':[34.2,77.6],'Lakshadweep':[10.57,72.64],'Madhya Pradesh':[23.5,78.6],'Maharashtra':[19.7,75.7],'Manipur':[24.7,93.9],'Meghalaya':[25.5,91.4],'Mizoram':[23.2,92.9],'Nagaland':[26.2,94.6],'Odisha':[20.5,84.4],'Puducherry':[11.94,79.81],'Punjab':[31.1,75.3],'Rajasthan':[27.0,74.2],'Sikkim':[27.5,88.5],'Tamil Nadu':[11.1,78.7],'Telangana':[17.9,79.1],'Tripura':[23.8,91.7],'Uttar Pradesh':[26.8,80.9],'Uttarakhand':[30.1,79.3],'West Bengal':[22.99,87.85]};
   const CAT_LABEL={hot:'Hot',warm:'Warm',cold:'Cold',done:'Sales Done',notdone:'Sales Not Done'};
   const CAT_CLASS={hot:'danger',warm:'warning',cold:'info',done:'success',notdone:'secondary'};
@@ -10240,12 +10245,12 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   function mapShell(root){
     if(!document.getElementById('kdMapStyle')){
       const st=document.createElement('style');st.id='kdMapStyle';
-      st.textContent='.kdm-wrap{background:transparent!important;border:0!important}.kdp{position:relative;width:60px;height:76px}.kdp-b{width:60px;height:60px;border-radius:50%;background:#fff;border:3px solid #d62828;box-shadow:0 3px 8px rgba(0,0,0,.45);overflow:hidden;box-sizing:border-box}.kdp-b img{width:100%;height:100%;display:block}.kdp:after{content:"";position:absolute;left:50%;top:57px;transform:translateX(-50%);border-left:9px solid transparent;border-right:9px solid transparent;border-top:15px solid #d62828}.kdp-dot{position:absolute;left:50%;bottom:0;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#d62828;box-shadow:0 0 0 3px rgba(214,40,40,.25)}.kdp-n{position:absolute;right:-6px;top:-6px;background:#d62828;color:#fff;border-radius:999px;font:700 11px/1 Arial,sans-serif;padding:3px 6px;border:2px solid #fff;z-index:2}.kdp-n.one{display:none}#kdMapCanvas{height:64vh;min-height:360px;border-radius:10px;border:1px solid #dee2e6;z-index:0}#kdMiniMap{height:170px;border-radius:10px;border:1px solid #dee2e6;z-index:0}';
+      st.textContent='.kdm-wrap{background:transparent!important;border:0!important}.kdp{position:relative;width:60px;height:76px}.kdp-b{width:60px;height:60px;border-radius:50%;background:#fff;border:3px solid #d62828;box-shadow:0 3px 8px rgba(0,0,0,.45);overflow:hidden;box-sizing:border-box}.kdp-b img{width:100%;height:100%;display:block}.kdp:after{content:"";position:absolute;left:50%;top:57px;transform:translateX(-50%);border-left:9px solid transparent;border-right:9px solid transparent;border-top:15px solid #d62828}.kdp-dot{position:absolute;left:50%;bottom:0;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#d62828;box-shadow:0 0 0 3px rgba(214,40,40,.25)}.kdp-n{position:absolute;right:-6px;top:-6px;background:#d62828;color:#fff;border-radius:999px;font:700 11px/1 Arial,sans-serif;padding:3px 6px;border:2px solid #fff;z-index:2}.kdp-n.one{display:none}.kdp.moved .kdp-b{border-color:#198754}.kdp.moved:after{border-top-color:#198754}.kdp.moved .kdp-dot{background:#198754;box-shadow:0 0 0 3px rgba(25,135,84,.25)}.leaflet-marker-draggable.kdm-wrap{cursor:grab}#kdMapCanvas{height:64vh;min-height:360px;border-radius:10px;border:1px solid #dee2e6;z-index:0}#kdMiniMap{height:170px;border-radius:10px;border:1px solid #dee2e6;z-index:0}';
       document.head.appendChild(st);
     }
     root.innerHTML=`<div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom flex-wrap gap-2">
         <div><div class="text-warning small fw-bold text-uppercase">Geo View</div><h4 class="fw-bold mb-0">Map View</h4><small class="text-muted">Clients and sales plotted by their address. Tap a Kosol badge to see its records.</small></div>
-        <button type="button" class="btn btn-sm btn-outline-secondary" id="kdMapRefresh" title="Retry address lookup"><i class="bi bi-arrow-clockwise me-1"></i>Refresh locations</button>
+        <div class="d-flex gap-1"><button type="button" class="btn btn-sm btn-outline-secondary" id="kdMapReset" title="Put all moved pins back at their address location"><i class="bi bi-pin-map me-1"></i>Reset moved pins</button><button type="button" class="btn btn-sm btn-outline-secondary" id="kdMapRefresh" title="Retry address lookup"><i class="bi bi-arrow-clockwise me-1"></i>Refresh locations</button></div>
       </div>
       <div class="card card-dashboard p-2 p-md-3 mb-2">
         <div class="row g-2 align-items-end">
@@ -10259,12 +10264,19 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
       <div id="kdMapCanvas"></div>`;
     root.querySelector('#kdMapState').addEventListener('change',e=>{mapSel.state=e.target.value;mapFit=true;mapDraw();});
     root.querySelectorAll('.kd-mcat').forEach(cb=>cb.addEventListener('change',()=>{const k=cb.getAttribute('data-cat');cb.checked?mapSel.cats.add(k):mapSel.cats.delete(k);mapFit=true;mapDraw();}));
+    root.querySelector('#kdMapReset').addEventListener('click',()=>{if(!Object.keys(ovr).length){showOperationMessage('Nothing to reset','No pins have been moved.','success');return;}if(window.confirm('Put all moved pins back at their address location?')){ovr={};saveOvr();mapFit=true;mapDraw();}});
     root.querySelector('#kdMapRefresh').addEventListener('click',()=>{Object.keys(geo).forEach(k=>{if(geo[k]===null)delete geo[k];});saveGeo();mapBlocked=false;mapDraw();});
   }
 
   /* Map pin 📍: the Kosol badge sits in a callout whose tip marks the exact address location. */
-  function pinIcon(n){
-    return L.divIcon({className:'kdm-wrap',html:`<div class="kdp"><div class="kdp-b"><img src="${BADGE}" alt="Kosol"></div><span class="kdp-dot"></span><span class="kdp-n ${n>1?'':'one'}">${n}</span></div>`,iconSize:[60,76],iconAnchor:[30,76]});
+  function pinIcon(n,moved){
+    return L.divIcon({className:'kdm-wrap',html:`<div class="kdp${moved?' moved':''}"><div class="kdp-b"><img src="${BADGE}" alt="Kosol"></div><span class="kdp-dot"></span><span class="kdp-n ${n>1?'':'one'}">${n}</span></div>`,iconSize:[60,76],iconAnchor:[30,76]});
+  }
+  function movePin(g,ll){
+    const p=[+ll.lat.toFixed(6),+ll.lng.toFixed(6)];
+    g.recs.forEach(rec=>{ovr[keyOf(rec)]=p;});saveOvr();
+    mapNote='Pin moved — '+g.recs.length+' record'+(g.recs.length===1?'':'s')+' saved at the new location.';
+    mapFit=false;mapDraw();setTimeout(()=>{mapNote='';mapSchedule();},4000);
   }
   function mapDraw(){
     const root=document.getElementById('kdMapRoot');if(!root||!mapObj||!window.L)return;
@@ -10283,20 +10295,21 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     const shown=inState.filter(r=>r.cats.some(c=>mapSel.cats.has(c)));
     const groups=new Map();let unlocated=0,pend=0;
     shown.forEach(rec=>{
-      const g=geoPos(rec.loc);if(!g.pos){unlocated++;return;}
+      const ov=ovr[keyOf(rec)],g=ov?{pos:ov,manual:true}:geoPos(rec.loc);if(!g.pos){unlocated++;return;}
       if(g.pending)pend++;
       const key=g.pos[0].toFixed(4)+','+g.pos[1].toFixed(4);
-      if(!groups.has(key))groups.set(key,{pos:g.pos,recs:[],approx:!!g.approx});
-      groups.get(key).recs.push(rec);
+      if(!groups.has(key))groups.set(key,{pos:g.pos,recs:[],approx:!!g.approx,moved:!!g.manual});
+      const grp=groups.get(key);if(!g.manual)grp.moved=false;grp.recs.push(rec);
     });
     mapLayer.clearLayers();
     const pts=[];
     groups.forEach(g=>{
       const n=g.recs.length,l0=g.recs[0].loc;
       g.label=[l0.city,l0.district,l0.state].filter(Boolean).join(', ')||'Selected location';
-      const icon=pinIcon(n);
-      const m=L.marker(g.pos,{icon,title:g.label+' · '+n+' record'+(n===1?'':'s')});
+      const icon=pinIcon(n,g.moved);
+      const m=L.marker(g.pos,{icon,title:g.label+' · '+n+' record'+(n===1?'':'s')+' — drag to adjust the location',draggable:true,autoPan:true});
       m.on('click',()=>openMapRecords(g));
+      m.on('dragend',()=>movePin(g,m.getLatLng()));
       m.addTo(mapLayer);pts.push(g.pos);
     });
     if(mapFit){
@@ -10311,6 +10324,9 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
       if(pend||mapQueue.length)msg+=` · <span class="text-primary"><span class="spinner-border spinner-border-sm me-1"></span>refining exact locations (${mapQueue.length} left)</span>`;
       if(mapBlocked)msg+=' · <span class="text-warning">address lookup unavailable, showing state / cached positions (tap Refresh locations to retry)</span>';
       if(unlocated)msg+=` · <span class="text-danger">${unlocated} without a recognisable state</span>`;
+      const movedN=Object.keys(ovr).length;
+      msg+=` · <i class="bi bi-arrows-move"></i> drag a pin to correct its location${movedN?' ('+movedN+' moved, shown in green)':''}`;
+      if(mapNote)msg+=` · <span class="text-success fw-semibold">${escapeHtml(mapNote)}</span>`;
       st.innerHTML=msg;
     }
     geoPump();
@@ -10328,16 +10344,17 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     const addrName=addrs.length===1?addrs[0]:g.label;
     modal(`<div class="dashboard-popup-title"><h5 class="mb-0">📍 ${escapeHtml(g.label)} <span class="badge bg-dark">${recs.length}</span></h5><small class="text-muted">${mapSel.state==='ALL'?'All states':escapeHtml(mapSel.state)}</small></div>
       <div id="kdMiniMap" class="mb-2"></div>
-      <div class="fw-semibold mb-2"><i class="bi bi-geo-alt-fill text-danger me-1"></i>${escapeHtml(addrName)}${addrs.length>1?' <span class="text-muted fw-normal small">('+addrs.length+' addresses)</span>':''}</div>
+      <div class="fw-semibold mb-2"><i class="bi bi-geo-alt-fill text-danger me-1"></i>${escapeHtml(addrName)}${addrs.length>1?' <span class="text-muted fw-normal small">('+addrs.length+' addresses)</span>':''}${recs.some(r=>ovr[keyOf(r)])?' <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="kdPinReset">Reset pin to address</button>':''}</div><div class="small text-muted mb-2">Drag the pin on either map to correct this location.</div>
       <div class="mb-2">${summary}</div><div id="kdPopBar"></div>
       <div class="table-responsive"><table class="table table-sm table-bordered align-middle small"><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></div>`);
     setTimeout(()=>{
       const el=document.getElementById('kdMiniMap');if(!el||!window.L)return;
       try{const mm=L.map(el,{zoomControl:false,scrollWheelZoom:false}).setView(g.pos,g.approx?8:12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap contributors'}).addTo(mm);
-        L.marker(g.pos,{icon:pinIcon(recs.length)}).addTo(mm);
+        const mk=L.marker(g.pos,{icon:pinIcon(recs.length,g.moved),draggable:true}).addTo(mm);mk.on('dragend',()=>{movePin(g,mk.getLatLng());mm.panTo(mk.getLatLng());});
         setTimeout(()=>{try{mm.invalidateSize();mm.setView(g.pos,g.approx?8:12);}catch(e){}},350);}catch(e){console.warn('Mini map failed',e);}
     },300);
+    const rb=document.getElementById('kdPinReset');if(rb)rb.onclick=()=>{recs.forEach(r=>{delete ovr[keyOf(r)];});saveOvr();mapFit=false;mapDraw();closeModal(true);};
     const host=document.getElementById('kdPopBar');
     if(host)cur.bar=bar(host,{name:'Map',all:()=>cur.items,sel:()=>[...cur.sel].sort((a,b)=>a-b).map(i=>cur.items[i]),selectAll:()=>window.kdAllSel(true),clear:()=>window.kdAllSel(false),
       share:(list,isAll)=>{
