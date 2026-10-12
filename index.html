@@ -9658,40 +9658,38 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
     if(!box)return;
     const c=getDashboardFilterContext();
     const allTargets=Array.isArray(rawData.targets)?rawData.targets:[];
-    const targets=allTargets.filter(t=>dashboardTargetMatchesScope(t,c));
-    if(!targets.length){
-      box.innerHTML='<div class="text-muted small">No targets found for the selected user/team and dashboard date scope.</div>';
-      return;
-    }
-
+    const scoped=allTargets.filter(t=>dashboardTargetMatchesScope(t,c));
+    const targets=scoped.filter(t=>!['TOUR_PLAN','CLIENT_EPC_TARGET_LIST'].includes(String(t.targetType||'').toUpperCase()));
+    const weeklyTours=scoped.filter(t=>String(t.targetType||'').toUpperCase()==='TOUR_PLAN'&&String(t.periodType||t.period||'').toUpperCase()==='WEEKLY');
     const orders=Array.isArray(rawData.salesOrders)?rawData.salesOrders:[];
-    const shown=targets.slice(0,20);
     const scopeLabel=c.uf==='TEAM:ALL'?(String(currentUser?.name||currentUser?.email||'My')+' — All Team Data'):(c.uf==='ALL'?(c.hasTeam?'My Data + My Team':'My Data'):((c.selected?.name||c.selected?.email||'Selected User')+(c.includeTeam?' — All Team Data':' — Individual Data')));
-    box.innerHTML=shown.map(t=>{
-      const scopedOrders=dashboardTargetOrders(t,orders);
-      const manualA=targetManualAchievement(t);
-      const ach=(manualA!==null)
-        ? manualA
-        : targetAchievementLocal(t,scopedOrders);
-      const tar=salesOrderNum(t.targetValue||t.target||0);
-      const pct=tar?Math.min(100,ach/tar*100):0;
-      const owner=t.userName||t.username||t.userEmail||t.email||t.ownerName||'';
-      return `<div class="mb-3">
-        <div class="d-flex justify-content-between gap-2 flex-wrap">
-          <div>
-            <b>${escapeHtml(t.targetName||'Target')}</b>
-            ${owner?`<small class="d-block text-primary fw-semibold"><i class="bi bi-person"></i> ${escapeHtml(owner)}</small>`:''}
-            <small class="d-block text-muted">${escapeHtml(t.product||'')} · ${escapeHtml(t.metric||'Amount')} · ${escapeHtml(t.pvType||'')} · ${escapeHtml(t.salesType||'All')} · ${escapeHtml(targetPeriodLabel(t))}</small>
-          </div>
-          <div class="fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})} / ${tar.toLocaleString('en-IN',{maximumFractionDigits:2})} ${escapeHtml(t.metric||'Amount')} (${pct.toFixed(1)}%)</div>
-        </div>
-        <div class="progress mt-1" style="height:9px"><div class="progress-bar bg-warning" style="width:${pct}%"></div></div>
-      </div>`;
-    }).join('');
-    box.insertAdjacentHTML('afterbegin',`<div class="small text-muted mb-2"><i class="bi bi-people me-1"></i>Target scope: <b>${escapeHtml(scopeLabel)}</b></div>`);
-    if(targets.length>shown.length){
-      box.insertAdjacentHTML('beforeend',`<div class="small text-muted text-center">Showing ${shown.length} of ${targets.length} matching target records.</div>`);
-    }
+    let html=`<div class="small text-muted mb-2"><i class="bi bi-people me-1"></i>Target scope: <b>${escapeHtml(scopeLabel)}</b></div>`;
+    if(targets.length){
+      html+=targets.slice(0,20).map(t=>{
+        const scopedOrders=dashboardTargetOrders(t,orders);
+        const manualA=targetManualAchievement(t);
+        const ach=(manualA!==null)?manualA:targetAchievementLocal(t,scopedOrders);
+        const tar=salesOrderNum(t.targetValue||t.target||0);
+        const pct=tar?Math.min(100,ach/tar*100):0;
+        const owner=t.userName||t.username||t.userEmail||t.email||t.ownerName||'';
+        return `<div class="mb-3"><div class="d-flex justify-content-between gap-2 flex-wrap"><div><b>${escapeHtml(t.targetName||'Target')}</b>${owner?`<small class="d-block text-primary fw-semibold"><i class="bi bi-person"></i> ${escapeHtml(owner)}</small>`:''}<small class="d-block text-muted">${escapeHtml(t.product||'')} · ${escapeHtml(t.metric||'Amount')} · ${escapeHtml(t.pvType||'')} · ${escapeHtml(t.salesType||'All')} · ${escapeHtml(targetPeriodLabel(t))}</small></div><div class="fw-bold">${ach.toLocaleString('en-IN',{maximumFractionDigits:2})} / ${tar.toLocaleString('en-IN',{maximumFractionDigits:2})} ${escapeHtml(t.metric||'Amount')} (${pct.toFixed(1)}%)</div></div><div class="progress mt-1" style="height:9px"><div class="progress-bar bg-warning" style="width:${pct}%"></div></div></div>`;
+      }).join('');
+      if(targets.length>20)html+=`<div class="small text-muted text-center">Showing 20 of ${targets.length} matching sales targets.</div>`;
+    } else html+='<div class="text-muted small mb-3">No sales targets found for the selected user/team and dashboard scope.</div>';
+    if(weeklyTours.length){
+      html+='<div class="border-top pt-3 mt-3"><div class="fw-bold mb-2"><i class="bi bi-calendar-week text-primary me-1"></i>Weekly Tour Plans <span class="badge text-bg-primary">'+weeklyTours.length+'</span></div>';
+      html+=weeklyTours.slice(0,10).map(t=>{
+        let days=[];try{const raw=t.dayWisePlanJson||t.dayWisePlan||[];days=typeof raw==='string'?JSON.parse(raw||'[]'):raw;if(!Array.isArray(days))days=[];}catch(_){days=[];}
+        const plannedDays=days.filter(d=>d&&d.date&&new Date(String(d.date)+'T12:00:00').getDay()!==0);
+        const territories=[...new Set(plannedDays.map(d=>String(d.territory||'').trim()).filter(Boolean))];
+        const activities=[...new Set(plannedDays.map(d=>String(d.activities||'').trim()).filter(Boolean))];
+        const owner=t.userName||t.username||t.ownerName||t.userEmail||t.email||'';
+        return `<div class="rounded border p-2 mb-2"><div class="d-flex justify-content-between align-items-start flex-wrap gap-2"><div><b>${escapeHtml(t.targetName||'Weekly Tour Plan')}</b>${owner?`<small class="d-block text-primary"><i class="bi bi-person"></i> ${escapeHtml(owner)}</small>`:''}<small class="d-block text-muted">${escapeHtml(appDateOnly(t.startDate)||'')} → ${escapeHtml(appDateOnly(t.endDate)||'')}</small></div><span class="badge text-bg-light">${plannedDays.length} working days</span></div>${territories.length?`<div class="small mt-1"><b>Territories:</b> ${escapeHtml(territories.join(', '))}</div>`:''}${activities.length?`<div class="small mt-1"><b>Activities:</b> ${escapeHtml(activities.join(', '))}</div>`:''}</div>`;
+      }).join('');
+      if(weeklyTours.length>10)html+=`<div class="small text-muted text-center">Showing 10 of ${weeklyTours.length} weekly tour plans.</div>`;
+      html+='</div>';
+    }else html+='<div class="border-top pt-3 mt-3 small text-muted"><i class="bi bi-calendar-week me-1"></i>No weekly tour plans found in My Target for the selected user/team.</div>';
+    box.innerHTML=html;
   };
 
   /* Fast filter application: never rebuild the dropdowns when only a filter
