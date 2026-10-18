@@ -11043,6 +11043,53 @@ const oldSwitchTab=window.switchTab;window.switchTab=async function(tabId,event)
   if(typeof oldRender==='function')window.renderActiveModuleStable=async function(tabId){if(tabId==='profile-settings'){if($p('tab-profile-settings'))$p('tab-profile-settings').classList.remove('d-none');await profileLoadSettings(false);return;}return oldRender.apply(this,arguments);};
   const oldSetupShell=window.setupAppShell;
   if(typeof oldSetupShell==='function')window.setupAppShell=function(){const result=oldSetupShell.apply(this,arguments);setTimeout(()=>profileLoadSettings(false),0);return result;};
+
+  // Export-only tabs: keep the live register and database operations unchanged.
+  const EXPO_INFO_COLS=['expoName','expoCategory','expoCountry','expoVenue','expoStartDate','expoEndDate','expoWebsite'];
+  const VISITOR_COLS=['expoName','organization','contactName','designation','mobile','email','address','interestedIn','requirements','remarks','leadType','createdBy','createdByEmail','createdAt','sourceType'];
+  const FOLLOWUP_COLS=['expoName','organization','contactName','mobile','email','leadType','stage','temperature','dealValue','capacity','followupDate','followupMethod','requirements','remarks','notes','createdBy','createdByEmail','updatedAt'];
+  const CARD_COLS=['expoName','organization','contactName','designation','mobile','email','address','cardScanId','cardFrontFileName','cardBackFileName','rawCardText','sourceType','createdBy','createdByEmail','createdAt'];
+  function expoExportSheets(){
+    const rows=expoExportRows();
+    const uniqueExpo=new Map();
+    rows.forEach(r=>{const k=String(r.expoName||'Other / Unspecified Expo').trim();if(!uniqueExpo.has(k))uniqueExpo.set(k,Object.fromEntries(EXPO_INFO_COLS.map(c=>[c,expoExportValue(r[c])])));});
+    const visitor=rows.filter(r=>/visitor/i.test(String(r.sourceType||'')) || /visitor submitted/i.test(String(r.notes||'')));
+    const cards=rows.filter(r=>/visiting.?card|business.?card/i.test(String(r.sourceType||'')) || r.cardScanId || r.cardFrontFileName || r.cardBackFileName || r.rawCardText);
+    return [
+      {name:'Expo Related Info',cols:EXPO_INFO_COLS,rows:[...uniqueExpo.values()]},
+      {name:'Visitor Form Data',cols:VISITOR_COLS,rows:visitor.map(r=>Object.fromEntries(VISITOR_COLS.map(c=>[c,expoExportValue(r[c])])) )},
+      {name:'Follow-up Register',cols:FOLLOWUP_COLS,rows:rows.map(r=>Object.fromEntries(FOLLOWUP_COLS.map(c=>[c,expoExportValue(r[c])])) )},
+      {name:'Visiting Card Data',cols:CARD_COLS,rows:cards.map(r=>Object.fromEntries(CARD_COLS.map(c=>[c,expoExportValue(r[c])])) )}
+    ];
+  }
+  async function exportExpoInquiriesExcel(){
+    try{const sheets=expoExportSheets();if(!sheets.some(s=>s.rows.length)){alert('There are no Expo records to export.');return;}
+      await loadScriptOnce('xlsx',LAZY_LIBS.xlsx);const wb=window.XLSX.utils.book_new();
+      sheets.forEach(s=>{const ws=window.XLSX.utils.json_to_sheet(s.rows.length?s.rows:[Object.fromEntries(s.cols.map(c=>[c,'']))],{header:s.cols});window.XLSX.utils.book_append_sheet(wb,ws,s.name);});
+      window.XLSX.writeFile(wb,'KEPL_STMS_Expo_Register_'+new Date().toISOString().slice(0,10)+'.xlsx');
+    }catch(e){alert('Excel export failed: '+(e.message||e));}
+  }
+  function exportExpoInquiriesCsv(){
+    const sheets=expoExportSheets();let count=0;
+    sheets.forEach((s,i)=>{if(!s.rows.length)return;const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=[s.cols.map(esc).join(','),...s.rows.map(r=>s.cols.map(c=>esc(r[c])).join(','))].join('\r\n');downloadBlob(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}),'KEPL_STMS_'+s.name.replace(/[^a-z0-9]+/gi,'_')+'_'+new Date().toISOString().slice(0,10)+'.csv');count++;});
+    if(!count)alert('There are no Expo records to export. CSV does not support multiple tabs, so each category is downloaded as a separate CSV file.');
+  }
+  function exportExpoInquiriesPdf(){
+    const sheets=expoExportSheets();if(!sheets.some(s=>s.rows.length)){alert('There are no Expo records to export.');return;}
+    const esc=v=>pEsc(v),tables=sheets.map(s=>'<section><h2>'+esc(s.name)+'</h2><p>'+s.rows.length+' records</p><table><thead><tr>'+s.cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+s.rows.map(r=>'<tr>'+s.cols.map(c=>'<td>'+esc(r[c])+'</td>').join('')+'</tr>').join('')+'</tbody></table></section>').join('');
+    const html='<!doctype html><html><head><meta charset="utf-8"><title>KEPL_STMS Expo Register</title><style>body{font:9px Arial,sans-serif;color:#111;padding:16px}h1{font-size:20px}h2{font-size:15px;margin:0 0 4px}p{color:#555;margin:0 0 8px}section{page-break-after:always}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #bbb;padding:4px;vertical-align:top;overflow-wrap:anywhere}th{background:#eee}thead{display:table-header-group}@media print{@page{size:A4 landscape;margin:8mm}button{display:none}}</style></head><body><h1>KEPL_STMS — Expo Leads & Follow-up Register</h1><p>Exported '+new Date().toLocaleString()+'</p><button onclick="window.print()">Print / Save as PDF</button>'+tables+'</body></html>';
+    const w=window.open('','_blank');if(!w){alert('Allow pop-ups to create the PDF export.');return;}w.document.open();w.document.write(html);w.document.close();
+  }
+  async function exportExpoInquiriesGoogleSheet(){
+    try{const sheets=expoExportSheets();if(!sheets.some(s=>s.rows.length)){alert('There are no Expo records to export.');return;}
+      await loadScriptOnce('xlsx',LAZY_LIBS.xlsx);const wb=window.XLSX.utils.book_new();
+      sheets.forEach(s=>{const ws=window.XLSX.utils.json_to_sheet(s.rows.length?s.rows:[Object.fromEntries(s.cols.map(c=>[c,'']))],{header:s.cols});window.XLSX.utils.book_append_sheet(wb,ws,s.name);});
+      window.XLSX.writeFile(wb,'KEPL_STMS_Expo_Register_Google_Sheets_Import_'+new Date().toISOString().slice(0,10)+'.xlsx');
+      window.open('https://sheets.new','_blank');
+      alert('A workbook with four separate tabs has been downloaded. Upload it to Google Sheets and choose to open/convert it; the tabs will be preserved. Direct creation inside your Google account requires Google authorization.');
+    }catch(e){alert('Google Sheets export preparation failed: '+(e.message||e));}
+  }
+
   window.profileLoadSettings=profileLoadSettings;window.profileSaveSettings=profileSaveSettings;window.profileDownloadCardOriginal=profileDownloadCardOriginal;window.profileExportCardPdf=profileExportCardPdf;window.profileExportCardImage=profileExportCardImage;window.exportExpoInquiriesExcel=exportExpoInquiriesExcel;window.exportExpoInquiriesPdf=exportExpoInquiriesPdf;window.exportExpoInquiriesGoogleSheet=exportExpoInquiriesGoogleSheet;
 })();
 </script>
